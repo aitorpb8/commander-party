@@ -219,8 +219,8 @@ export default async function Home() {
             {!decks || decks.length === 0 ? (
               <div style={{ textAlign: "center", padding: "6rem 2rem", border: "2px dashed #333", borderRadius: "32px", background: 'rgba(255,255,255,0.01)' }}>
                 {decksError && <div style={{ color: '#ff4444', marginBottom: '1rem', fontSize: '0.8rem' }}>Error base de datos: {decksError.message}</div>}
-                <p style={{ color: "#666", marginBottom: "2rem", fontSize: '1.1rem' }}>No hay rastro de mazos... todavía.</p>
-                <Link href="/profile" className="btn btn-gold" style={{ padding: '1rem 3rem' }}>CREAR MI PRIMER MAZO</Link>
+                <p style={{ color: "#666", marginBottom: "2rem", fontSize: '1.1rem' }}>No hay rastro de decks... todavía.</p>
+                <Link href="/profile" className="btn btn-gold" style={{ padding: '1rem 3rem' }}>CREAR MI PRIMER DECK</Link>
               </div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
