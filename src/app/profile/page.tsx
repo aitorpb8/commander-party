@@ -213,7 +213,7 @@ export default function ProfilePage() {
                   value={username} 
                   onChange={(e) => setUsername(e.target.value)}
                   className="card"
-                  style={{ width: '100%', padding: '0.75rem', background: '#111', border: '1px solid #333' }}
+                  style={{ width: '100%', padding: '0.75rem', background: '#111', border: '1px solid #333', color: 'white' }}
                   placeholder="Tu apodo en la liga..."
                 />
               </div>
