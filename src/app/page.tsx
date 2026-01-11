@@ -213,6 +213,9 @@ export default async function Home() {
                 <h2 style={{ fontSize: "2.5rem", fontWeight: "900", marginBottom: "0.25rem", letterSpacing: '-1px' }}>LA COLECCIÓN</h2>
                 <p style={{ color: "#666", fontSize: "1rem" }}>Las abominaciones que pueblan nuestra mesa.</p>
               </div>
+              <Link href="/decks" style={{ color: "var(--color-gold)", fontWeight: "bold", fontSize: "0.9rem", borderBottom: '2px solid' }}>VER TODO →</Link>
+            </div>
+
             {!decks || decks.length === 0 ? (
               <div style={{ textAlign: "center", padding: "6rem 2rem", border: "2px dashed #333", borderRadius: "32px", background: 'rgba(255,255,255,0.01)' }}>
                 {decksError && <div style={{ color: '#ff4444', marginBottom: '1rem', fontSize: '0.8rem' }}>Error base de datos: {decksError.message}</div>}
