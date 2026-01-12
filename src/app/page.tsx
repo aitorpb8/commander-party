@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabaseClient";
 import { calculateDeckBudget } from '@/lib/budgetUtils';
 import Link from "next/link";
 
+// Force revalidation on every request to show fresh budget data
+export const revalidate = 0;
+
 export default async function Home() {
   const cookieStore = await cookies();
 
@@ -66,7 +69,7 @@ export default async function Home() {
 
         <div className="hero-stats-container">
           <div className="hero-stat-item">
-            <div style={{ color: "var(--color-gold)", fontSize: "3rem", fontWeight: "900", lineHeight: "1" }}>
+            <div style={{ color: "var(--color-gold)", fontSize: "2rem", fontWeight: "900", lineHeight: "1" }}>
               {playerCount || 0}
             </div>
             <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>
@@ -75,7 +78,7 @@ export default async function Home() {
           </div>
           <div className="hero-divider" />
           <div className="hero-stat-item">
-            <div style={{ color: "var(--color-gold)", fontSize: "3rem", fontWeight: "900", lineHeight: "1" }}>
+            <div style={{ color: "var(--color-gold)", fontSize: "2rem", fontWeight: "900", lineHeight: "1" }}>
               {decks?.length || 0}
             </div>
             <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>
@@ -84,7 +87,7 @@ export default async function Home() {
           </div>
           <div className="hero-divider" />
           <div className="hero-stat-item">
-            <div style={{ color: "var(--color-gold)", fontSize: "3rem", fontWeight: "900", lineHeight: "1" }}>
+            <div style={{ color: "var(--color-gold)", fontSize: "2rem", fontWeight: "900", lineHeight: "1" }}>
               10€
             </div>
             <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>

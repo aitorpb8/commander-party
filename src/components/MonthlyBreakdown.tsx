@@ -61,12 +61,12 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {grouped[m].upgrades.map(u => (
-                <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#aaa' }}>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    <span style={{ color: 'var(--color-green)' }}>↑ {u.card_in || 'N/A'}</span>
-                    {u.card_out && <span style={{ color: 'var(--color-red)', opacity: 0.6 }}>↓ {u.card_out}</span>}
+                <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#aaa', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+                    <span style={{ color: 'var(--color-green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↑ {u.card_in || 'N/A'}</span>
+                    {u.card_out && <span style={{ color: 'var(--color-red)', opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↓ {u.card_out}</span>}
                   </div>
-                  <span>{u.cost.toFixed(2)}€</span>
+                  <span style={{ flexShrink: 0 }}>{u.cost.toFixed(2)}€</span>
                 </div>
               ))}
             </div>

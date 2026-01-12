@@ -88,6 +88,44 @@ export default function RulesPage() {
           <p>Esta es una liga casual. El objetivo es divertirse y explorar cartas poco comunes debido a la restricción de precio. No se permite el uso de proxies salvo que el grupo lo autorice individualmente.</p>
         </section>
 
+        <section style={{ borderTop: '2px solid var(--color-gold)', paddingTop: '2rem', marginTop: '2rem' }}>
+          <h2 style={{ color: 'var(--color-gold)', marginBottom: '1rem' }}>📋 Actualizaciones Recientes</h2>
+          <p style={{ fontSize: '0.9rem', color: '#888', marginBottom: '1rem' }}>Última actualización: Enero 2026</p>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ padding: '1rem', background: 'rgba(212, 175, 55, 0.05)', borderLeft: '3px solid var(--color-gold)', borderRadius: '4px' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--color-gold)' }}>🎴 Selección de Versiones de Cartas</h3>
+              <p style={{ fontSize: '0.9rem' }}>Ahora puedes elegir versiones específicas de cartas (diferentes ediciones) en el Editor Visual, Upgrade Log y Wishlist. Cada carta mantiene su versión seleccionada y se refleja correctamente en el mazo.</p>
+            </div>
+
+            <div style={{ padding: '1rem', background: 'rgba(212, 175, 55, 0.05)', borderLeft: '3px solid var(--color-gold)', borderRadius: '4px' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--color-gold)' }}>💰 Sincronización de Presupuesto</h3>
+              <p style={{ fontSize: '0.9rem' }}>Las barras de presupuesto ahora se sincronizan automáticamente en todas las páginas (Home, Lista de Mazos, Detalle del Mazo) mostrando siempre los valores actualizados con precios en tendencia.</p>
+            </div>
+
+            <div style={{ padding: '1rem', background: 'rgba(212, 175, 55, 0.05)', borderLeft: '3px solid var(--color-gold)', borderRadius: '4px' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--color-gold)' }}>🎨 Mejoras de Interfaz</h3>
+              <ul style={{ fontSize: '0.9rem', listStyle: 'disc', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <li>Diálogos de confirmación premium con diseño moderno</li>
+                <li>Nuevo layout de cards en Wishlist (imagen arriba, controles a la derecha)</li>
+                <li>Botón "Añadir todo al mazo" para el mes actual en Wishlist</li>
+                <li>Código de colores mejorado: Verde (dentro presupuesto), Naranja (10-11€), Rojo (&gt;11€)</li>
+                <li>Espaciado optimizado en modales de selección de versiones</li>
+              </ul>
+            </div>
+
+            <div style={{ padding: '1rem', background: 'rgba(212, 175, 55, 0.05)', borderLeft: '3px solid var(--color-gold)', borderRadius: '4px' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '0.5rem', color: 'var(--color-gold)' }}>🔧 Correcciones Técnicas</h3>
+              <ul style={{ fontSize: '0.9rem', listStyle: 'disc', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                <li>Acumulación correcta de cartas duplicadas (ej: tierras básicas)</li>
+                <li>Limpieza automática de duplicados al cargar mazos</li>
+                <li>Formato de fechas mejorado en Wishlist</li>
+                <li>Corrección de desbordamiento en componentes de texto largo</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
       </div>
     </div>
   );

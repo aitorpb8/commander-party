@@ -163,15 +163,15 @@ export default function DeckVisualizer({
         <div 
           className="card" 
           style={{ 
-            maxWidth: '700px', width: '100%', maxHeight: '85vh', 
+            maxWidth: '800px', width: '100%', maxHeight: '85vh', 
             display: 'flex', flexDirection: 'column', 
-            padding: '2rem', border: '1px solid #444', 
+            padding: '3rem', border: '1px solid #444', 
             boxShadow: '0 25px 50px rgba(0,0,0,0.9)',
             background: '#121212', borderRadius: '24px'
           }}
           onClick={e => e.stopPropagation()}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
               <h3 style={{ margin: 0, color: 'var(--color-gold)', fontSize: '1.5rem' }}>Cambiar Edición</h3>
               <p style={{ margin: '4px 0 0', fontSize: '1rem', color: '#888' }}>{editingVersion.card_name}</p>
@@ -201,8 +201,8 @@ export default function DeckVisualizer({
               <p style={{ marginTop: '1.5rem', color: '#888', fontSize: '1.1rem' }}>Buscando ediciones...</p>
             </div>
           ) : (
-            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1.5rem' }}>
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '1rem', marginRight: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1.5rem' }}>
                 {prints
                   .filter(p => 
                     (p.set_name?.toLowerCase().includes(versionFilter.toLowerCase())) || 

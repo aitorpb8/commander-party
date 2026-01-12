@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { searchCards, ScryfallCard, getAveragePrice, getCollection, getCardPrints } from '@/lib/scryfall';
 import { createPortal } from 'react-dom';
+import ConfirmationDialog from './ConfirmationDialog';
 
 interface WishlistCard {
   id: string;
@@ -13,12 +14,22 @@ interface WishlistCard {
   scryfall_id?: string;
 }
 
-export default function Wishlist({ deckId, isOwner = false }: { deckId: string; isOwner?: boolean }) {
+export default function Wishlist({ 
+  deckId, 
+  isOwner = false, 
+  onUpdateDeck,
+  trendingPrices: externalTrendingPrices 
+}: { 
+  deckId: string; 
+  isOwner?: boolean;
+  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<void> | void;
+  trendingPrices?: Record<string, number>;
+}) {
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [query, setQuery] = useState('');
   const [results, setAddResults] = useState<ScryfallCard[]>([]);
   const [loading, setLoading] = useState(true);
-  const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
+  const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>(externalTrendingPrices || {});
   const [loadingTrending, setLoadingTrending] = useState(false);
   
   // Version Selection State
@@ -26,6 +37,10 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
   const [prints, setPrints] = useState<ScryfallCard[]>([]);
   const [loadingPrints, setLoadingPrints] = useState(false);
   const [versionFilter, setVersionFilter] = useState('');
+  
+  // Dialog state
+  const [errorDialog, setErrorDialog] = useState<{ title: string, message: string } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
   
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -105,7 +120,10 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
     });
 
     if (error) {
-      alert('Error añadiendo a wishlist: ' + error.message);
+      setErrorDialog({
+        title: 'Error al añadir carta',
+        message: `No se pudo añadir "${card.name}" al Backlog. ${error.message}`
+      });
     } else {
       fetchWishlist();
       setQuery('');
@@ -116,6 +134,39 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
   const removeFromWishlist = async (id: string) => {
     await supabase.from('deck_wishlist').delete().eq('id', id);
     setWishlist(wishlist.filter(w => w.id !== id));
+  };
+
+  const addAllToMainboard = async (monthKey: string) => {
+    const cardsToAdd = wishlist.filter(w => (w.target_month || 'backlog') === monthKey);
+    if (cardsToAdd.length === 0) return;
+
+    setConfirmDialog({
+      title: 'Añadir cartas al mazo',
+      message: `¿Deseas añadir ${cardsToAdd.length} carta(s) al mazo principal? Se usarán los precios actuales y las cartas se eliminarán del Wishlist.`,
+      onConfirm: async () => {
+
+    for (const card of cardsToAdd) {
+      // Add to mainboard via onUpdateDeck
+      if (onUpdateDeck) {
+        const trending = card.scryfall_id ? trendingPrices[card.scryfall_id] : trendingPrices[card.card_name.toLowerCase()];
+        const price = trending !== undefined ? trending : (card.price || 0);
+        
+        await onUpdateDeck({
+          card_in: card.card_name,
+          cost: price,
+          description: `Añadido desde Wishlist (${monthKey})`
+        });
+      }
+      
+      // Remove from wishlist
+      await supabase.from('deck_wishlist').delete().eq('id', card.id);
+    }
+
+        // Refresh wishlist
+        fetchWishlist();
+        setConfirmDialog(null);
+      }
+    });
   };
 
   const updateMonth = async (id: string, month: string | null) => {
@@ -177,14 +228,14 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
         <div 
           className="card" 
           style={{ 
-            maxWidth: '650px', width: '100%', maxHeight: '85vh', 
+            maxWidth: '750px', width: '100%', maxHeight: '85vh', 
             display: 'flex', flexDirection: 'column', 
-            padding: '1.5rem', border: '1px solid #444', 
+            padding: '3rem', border: '1px solid #444', 
             boxShadow: '0 20px 50px rgba(0,0,0,0.9)',
           }}
           onClick={e => e.stopPropagation()}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
               <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Cambiar Edición (Backlog)</h3>
               <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: '#888' }}>{editingVersion.name}</p>
@@ -214,8 +265,8 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
               <p style={{ marginTop: '1rem', color: '#888' }}>Buscando ediciones...</p>
             </div>
           ) : (
-            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.2rem' }}>
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '1rem', marginRight: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '1.2rem' }}>
                 {prints
                   .filter(p => 
                     (p.set_name?.toLowerCase().includes(versionFilter.toLowerCase())) || 
@@ -264,8 +315,10 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
     
     for (let i = 0; i < 6; i++) {
       const value = date.toISOString().slice(0, 7); // YYYY-MM
-      const label = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-      options.push({ value, label: label.charAt(0).toUpperCase() + label.slice(1) });
+      const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+      const year = date.getFullYear();
+      const label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
+      options.push({ value, label });
       date.setMonth(date.getMonth() + 1);
     }
     return options;
@@ -382,8 +435,10 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
             }
           }
           
-          let title = isBacklog ? '📥 Backlog (Sin asignar)' : new Date(`${key}-01`).toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-          title = title.charAt(0).toUpperCase() + title.slice(1);
+          const date = new Date(`${key}-01`);
+          const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+          const year = date.getFullYear();
+          let title = isBacklog ? '📥 Backlog (Sin asignar)' : `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
 
           return (
             <div key={key} style={{ 
@@ -398,11 +453,37 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
               <div style={{ 
                   padding: '1rem', 
                   background: headerBg,
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem'
               }}>
-                <h4 style={{ margin: 0, fontSize: '1.1rem', color: textColor }}>
-                    {title} <span style={{ opacity: 0.5, fontSize: '0.9rem' }}>({items.length})</span>
-                </h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+                  <h4 style={{ margin: 0, fontSize: '1.1rem', color: textColor }}>
+                      {title} <span style={{ opacity: 0.5, fontSize: '0.9rem' }}>({items.length})</span>
+                  </h4>
+                  {/* Add All button - only show for current month with items */}
+                  {!isBacklog && key === currentMonthKey && items.length > 0 && isOwner && (
+                    <button
+                      onClick={() => addAllToMainboard(key)}
+                      className="btn"
+                      style={{
+                        padding: '6px 12px',
+                        background: 'var(--color-gold)',
+                        color: '#000',
+                        border: 'none',
+                        borderRadius: '6px',
+                        fontSize: '0.8rem',
+                        fontWeight: 'bold',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ➕ Añadir todo al mazo
+                    </button>
+                  )}
+                </div>
                 <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.8rem', color: '#aaa', textTransform: 'uppercase' }}>Total</div>
                     <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: !isBacklog && monthTotal > 10 ? textColor : 'var(--color-gold)' }}>
@@ -418,25 +499,31 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
                     <div style={{ padding: '1rem', textAlign: 'center', color: '#666', fontStyle: 'italic' }}>Nada planificado para este mes.</div>
                 ) : (
                     items.map(card => (
-                        <div key={card.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: '#1c1c1c', padding: '0.8rem', borderRadius: '8px', border: '1px solid #333' }}>
-                             <div 
-                               onClick={() => handleOpenVersionPicker(card)}
-                               style={{ cursor: isOwner ? 'pointer' : 'default', position: 'relative' }}
-                               className="wishlist-image-container"
-                             >
-                               <img src={card.image_url} style={{ width: '40px', borderRadius: '4px' }} alt="" />
-                               {isOwner && (
-                                 <div style={{ 
-                                   position: 'absolute', bottom: -2, right: -2, background: 'var(--color-gold)', 
-                                   width: '14px', height: '14px', borderRadius: '50%', fontSize: '8px', 
-                                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' 
-                                 }}>🔄</div>
-                               )}
-                             </div>
-                             
-                             <div style={{ flex: 1 }}>
-                                 <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{card.card_name}</div>
-                                  <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <div key={card.id} style={{ display: 'flex', gap: '1rem', background: '#1c1c1c', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
+                             {/* Left side: Image + Text */}
+                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', minWidth: '90px' }}>
+                               <div 
+                                 onClick={() => handleOpenVersionPicker(card)}
+                                 style={{ cursor: isOwner ? 'pointer' : 'default', position: 'relative' }}
+                                 className="wishlist-image-container"
+                               >
+                                {card.image_url ? (
+                                  <img src={card.image_url} style={{ width: '70px', borderRadius: '6px' }} alt={card.card_name} />
+                                ) : (
+                                  <div style={{ width: '70px', height: '98px', background: '#333', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', color: '#666' }}>?</div>
+                                )}
+                                 {isOwner && (
+                                   <div style={{ 
+                                     position: 'absolute', bottom: -2, right: -2, background: 'var(--color-gold)', 
+                                     width: '18px', height: '18px', borderRadius: '50%', fontSize: '10px', 
+                                     display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' 
+                                   }}>🔄</div>
+                                 )}
+                               </div>
+                               
+                               <div style={{ textAlign: 'center', width: '100%' }}>
+                                 <div style={{ fontWeight: 'bold', marginBottom: '4px', fontSize: '0.85rem', lineHeight: '1.2' }}>{card.card_name}</div>
+                                 <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
                                     {(() => {
                                         const trending = card.scryfall_id ? trendingPrices[card.scryfall_id] : trendingPrices[card.card_name.toLowerCase()];
                                         const price = trending !== undefined ? trending : card.price;
@@ -447,13 +534,15 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
                                             </>
                                         );
                                     })()}
-                                  </div>
+                                 </div>
+                               </div>
                              </div>
 
+                             {/* Right side: Controls */}
                              {isOwner && (
-                               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: '140px' }}>
+                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: 'auto', justifyContent: 'center', minWidth: '150px' }}>
                                    <select 
-                                      style={{ padding: '6px', background: '#000', color: '#fff', border: '1px solid #444', borderRadius: '4px', fontSize: '0.8rem' }}
+                                      style={{ padding: '8px 12px', background: '#000', color: '#fff', border: '1px solid #444', borderRadius: '6px', fontSize: '0.85rem' }}
                                       value={card.target_month || 'backlog'}
                                       onChange={(e) => updateMonth(card.id, e.target.value === 'backlog' ? null : e.target.value)}
                                    >
@@ -467,9 +556,10 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
                                    
                                    <button 
                                       onClick={() => removeFromWishlist(card.id)}
-                                      style={{ padding: '4px', background: 'transparent', border: '1px solid #444', color: '#888', borderRadius: '4px', fontSize: '0.75rem', cursor: 'pointer' }}
+                                      className="btn"
+                                      style={{ padding: '8px 12px', background: '#333', fontSize: '0.85rem', border: '1px solid #444', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                                    >
-                                      Eliminar
+                                      🗑️ Eliminar
                                    </button>
                                </div>
                              )}
@@ -482,6 +572,30 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
         })}
       </div>
       {renderVersionModal()}
+      
+      {/* Error Dialog */}
+      <ConfirmationDialog
+        isOpen={errorDialog !== null}
+        title={errorDialog?.title || ''}
+        message={errorDialog?.message || ''}
+        confirmText="Entendido"
+        cancelText=""
+        isDestructive={true}
+        onConfirm={() => setErrorDialog(null)}
+        onCancel={() => setErrorDialog(null)}
+      />
+
+      {/* Confirm Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmDialog !== null}
+        title={confirmDialog?.title || ''}
+        message={confirmDialog?.message || ''}
+        confirmText="Sí, añadir"
+        cancelText="Cancelar"
+        isDestructive={false}
+        onConfirm={() => confirmDialog?.onConfirm()}
+        onCancel={() => setConfirmDialog(null)}
+      />
     </div>
   );
 }

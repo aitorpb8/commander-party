@@ -15,6 +15,7 @@ import DeckVisualizer from '@/components/DeckVisualizer';
 import TagStats from '@/components/TagStats';
 import DeckAlerts from '@/components/DeckAlerts';
 import { calculateDeckBudget } from '@/lib/budgetUtils';
+import ConfirmationDialog from '@/components/ConfirmationDialog';
 
 export default function DeckDetailPage() {
   const { id } = useParams();
@@ -38,6 +39,9 @@ export default function DeckDetailPage() {
   // COORDINATED TRENDING PRICES
   const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
   const [loadingTrending, setLoadingTrending] = useState(false);
+
+  // Dialog state
+  const [messageDialog, setMessageDialog] = useState<{ title: string, message: string, isError?: boolean } | null>(null);
 
   const supabase = createClient();
 
@@ -344,7 +348,7 @@ export default function DeckDetailPage() {
 
       await fetchData(5, false);
     } catch (err: any) {
-      alert("Error actualizando mazo: " + err.message);
+      setMessageDialog({ title: 'Error al actualizar', message: `No se pudo actualizar el mazo: ${err.message}`, isError: true });
     } finally {
       setLoading(false);
     }
@@ -423,7 +427,7 @@ export default function DeckDetailPage() {
 
       await fetchData(5, true);
     } catch (err: any) {
-      alert("Error al deshacer mejora: " + err.message);
+      setMessageDialog({ title: 'Error al deshacer', message: `No se pudo deshacer la mejora: ${err.message}`, isError: true });
     } finally {
       setLoading(false);
     }
@@ -476,7 +480,7 @@ export default function DeckDetailPage() {
       if (deckData) setDeck(deckData);
 
     } catch (err: any) {
-      alert("Error actualizando mejora: " + err.message);
+      setMessageDialog({ title: 'Error al actualizar', message: `No se pudo actualizar la mejora: ${err.message}`, isError: true });
     }
   };
 
@@ -486,7 +490,7 @@ export default function DeckDetailPage() {
       .update({ image_url: imageUrl })
       .eq('id', id);
     
-    if (error) alert('Error: ' + error.message);
+    if (error) setMessageDialog({ title: 'Error', message: `No se pudo actualizar la imagen: ${error.message}`, isError: true });
     else {
       setDeck({ ...deck, image_url: imageUrl });
       setShowPicker(false);
@@ -499,7 +503,7 @@ export default function DeckDetailPage() {
       .update({ precon_url: tempPreconUrl })
       .eq('id', id);
     
-    if (error) alert('Error: ' + error.message);
+    if (error) setMessageDialog({ title: 'Error', message: `No se pudo actualizar el nombre: ${error.message}`, isError: true });
     else {
       setDeck({ ...deck, precon_url: tempPreconUrl });
       setEditingPrecon(false);
@@ -508,7 +512,7 @@ export default function DeckDetailPage() {
 
   const handleSyncCards = async () => {
     if (!deck.moxfield_id && !deck.archidekt_id) {
-      alert("No se puede sincronizar un mazo manual.");
+      setMessageDialog({ title: 'Sincronización no disponible', message: 'No se puede sincronizar un mazo manual. Solo los mazos importados desde Moxfield o Archidekt pueden sincronizarse.', isError: false });
       return;
     }
 
@@ -552,10 +556,9 @@ export default function DeckDetailPage() {
 
       if (cardsError) throw cardsError;
       
-      alert("¡Mazo sincronizado con éxito!");
-      fetchData();
+      setMessageDialog({ title: '¡Éxito!', message: 'Mazo sincronizado correctamente con la plataforma externa.', isError: false });
     } catch (err: any) {
-      alert("Error al sincronizar: " + err.message);
+      setMessageDialog({ title: 'Error al sincronizar', message: `No se pudo sincronizar el mazo: ${err.message}`, isError: true });
     } finally {
       setLoading(false);
     }
@@ -564,13 +567,13 @@ export default function DeckDetailPage() {
   const exportToText = () => {
     const list = deckCards.map(c => `${c.quantity} ${c.card_name}`).join('\n');
     navigator.clipboard.writeText(list);
-    alert('¡Mazo exportado al portapapeles!');
+    setMessageDialog({ title: '¡Exportado!', message: 'Mazo exportado al portapapeles correctamente.', isError: false });
   };
 
   const copyToClipboard = () => {
     const list = upgrades.map(u => `1 ${u.card_in}`).join('\n');
     navigator.clipboard.writeText(list);
-    alert('¡Lista de mejoras copiada al portapapeles!');
+    setMessageDialog({ title: '¡Copiado!', message: 'Lista de mejoras copiada al portapapeles.', isError: false });
   };
 
   // 1. Fetch Trending Prices once for all components
@@ -615,6 +618,26 @@ export default function DeckDetailPage() {
 
     return calculateDeckBudget(deck?.created_at || new Date(), deck?.budget_spent || 0, totalWithTrending);
   }, [deck, upgrades, trendingPrices]);
+
+  // 3. Sync budget_spent to database when trending prices change
+  React.useEffect(() => {
+    const syncBudgetSpent = async () => {
+      if (!deck || !budgetInfo || loadingTrending) return;
+      
+      // Only update if the value has actually changed (avoid unnecessary writes)
+      const currentStored = deck.budget_spent || 0;
+      const newValue = budgetInfo.totalSpent;
+      
+      if (Math.abs(currentStored - newValue) > 0.01) { // Only update if difference > 1 cent
+        await supabase
+          .from('decks')
+          .update({ budget_spent: newValue })
+          .eq('id', id);
+      }
+    };
+
+    syncBudgetSpent();
+  }, [budgetInfo?.totalSpent, deck?.id, loadingTrending]);
 
   if (loading) return (
     <div style={{ textAlign: 'center', marginTop: '5rem' }}>
@@ -820,7 +843,12 @@ export default function DeckDetailPage() {
             </div>
          </div>
          <div style={{ gridColumn: '1 / -1' }}>
-            <Wishlist deckId={id as string} isOwner={isOwner} />
+            <Wishlist 
+              deckId={id as string} 
+              isOwner={isOwner} 
+              onUpdateDeck={handleUpdateDeck}
+              trendingPrices={trendingPrices}
+            />
          </div>
       </div>
 
@@ -832,6 +860,18 @@ export default function DeckDetailPage() {
           onClose={() => setShowPicker(false)} 
         />
       )}
+
+      {/* Message Dialog */}
+      <ConfirmationDialog
+        isOpen={messageDialog !== null}
+        title={messageDialog?.title || ''}
+        message={messageDialog?.message || ''}
+        confirmText="Entendido"
+        cancelText=""
+        isDestructive={messageDialog?.isError || false}
+        onConfirm={() => setMessageDialog(null)}
+        onCancel={() => setMessageDialog(null)}
+      />
     </div>
   );
 }

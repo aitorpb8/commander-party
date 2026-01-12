@@ -3,6 +3,10 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import DeckCard from '@/components/DeckCard';
 import Link from 'next/link';
+import { calculateDeckBudget } from '@/lib/budgetUtils';
+
+// Force revalidation on every request to show fresh budget data
+export const revalidate = 0;
 
 export default async function DecksPage(props: { searchParams: Promise<{ user?: string }> }) {
   const searchParams = await props.searchParams;
@@ -48,15 +52,20 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '2rem' }}>
           {decks.map((deck: any) => (
             <Link href={`/decks/${deck.id}`} key={deck.id}>
-              <DeckCard 
-                playerName={deck.profiles?.username || 'Invitado'}
-                deckName={deck.name}
-                commanderName={deck.commander}
-                spent={deck.budget_spent}
-                budget={deck.budget_limit}
-                imageUrl={deck.image_url || 'https://via.placeholder.com/150'}
-                colors={[]}
-              />
+              {(() => {
+                const { dynamicLimit, totalSpent } = calculateDeckBudget(deck.created_at, deck.budget_spent);
+                return (
+                  <DeckCard 
+                    playerName={deck.profiles?.username || 'Invitado'}
+                    deckName={deck.name}
+                    commanderName={deck.commander}
+                    spent={totalSpent}
+                    budget={dynamicLimit}
+                    imageUrl={deck.image_url || 'https://via.placeholder.com/150'}
+                    colors={[]}
+                  />
+                );
+              })()}
             </Link>
           ))}
         </div>

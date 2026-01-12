@@ -114,15 +114,15 @@ export default function UpgradeLog({
         <div 
           className="card" 
           style={{ 
-            maxWidth: '650px', width: '100%', maxHeight: '85vh', 
+            maxWidth: '750px', width: '100%', maxHeight: '85vh', 
             display: 'flex', flexDirection: 'column', 
-            padding: '1.5rem', border: '1px solid #444', 
+            padding: '3rem', border: '1px solid #444', 
             boxShadow: '0 20px 50px rgba(0,0,0,0.9)',
             transform: 'translateZ(0)' // Fix some rendering blinks
           }}
           onClick={e => e.stopPropagation()}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
             <div>
               <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Cambiar Edición</h3>
               <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: '#888' }}>{editingVersion.name}</p>
@@ -152,8 +152,8 @@ export default function UpgradeLog({
               <p style={{ marginTop: '1rem', color: '#888' }}>Buscando ediciones...</p>
             </div>
           ) : (
-            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.2rem' }}>
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '1rem', marginRight: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: '1.2rem' }}>
                 {prints
                   .filter(p => 
                     (p.set_name?.toLowerCase().includes(versionFilter.toLowerCase())) || 

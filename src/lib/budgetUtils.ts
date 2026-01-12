@@ -38,10 +38,10 @@ export function calculateDeckBudget(createdAt: string | Date, spent: number = 0,
 
   // Status Color Logic
   let statusColor = 'var(--color-green)';
-  if (finalSpent > dynamicLimit) {
-      statusColor = 'var(--color-red)';
-  } else if (finalSpent > dynamicLimit * 0.9) {
-      statusColor = '#ff9800'; // Orange warning
+  if (finalSpent > dynamicLimit + 1) {
+      statusColor = 'var(--color-red)'; // Red if over budget by more than 1€
+  } else if (finalSpent > dynamicLimit) {
+      statusColor = '#ff9800'; // Orange if over budget by up to 1€
   }
 
   return {
