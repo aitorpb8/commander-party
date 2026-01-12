@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ScryfallCard, getCardPrints, getCollection } from '@/lib/scryfall';
+import { ScryfallCard, getCardPrints, getCollection, getCardByName } from '@/lib/scryfall';
+import ConfirmationDialog from './ConfirmationDialog';
 
 interface Upgrade {
   id: string;
@@ -33,9 +34,15 @@ export default function UpgradeLog({
   trendingPrices = {},
   loadingPrices = false
 }: UpgradeLogProps) {
-  const [editingVersion, setEditingVersion] = useState<{ id: string, name: string } | null>(null);
+  const [editingVersion, setEditingVersion] = useState<{ id: string, name: string, isUpgrade?: boolean } | null>(null);
   const [prints, setPrints] = useState<ScryfallCard[]>([]);
   const [loadingPrints, setLoadingPrints] = useState(false);
+  const [versionFilter, setVersionFilter] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Hover Preview State
+  const [previewCard, setPreviewCard] = useState<{ name: string, image: string, x: number, y: number } | null>(null);
+  const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout|null>(null);
 
   const currentMonth = new Date().toISOString().slice(0, 7);
 
@@ -52,7 +59,12 @@ export default function UpgradeLog({
 
   const handleOpenVersionPicker = async (upgrade: Upgrade) => {
     if (!isOwner || !upgrade.card_in) return;
-    setEditingVersion({ id: upgrade.id, name: upgrade.card_in });
+    setEditingVersion({ 
+      id: upgrade.id, 
+      name: upgrade.card_in,
+      isUpgrade: true
+    });
+    setVersionFilter('');
     setLoadingPrints(true);
     const results = await getCardPrints(upgrade.card_in);
     setPrints(results);
@@ -69,6 +81,23 @@ export default function UpgradeLog({
       });
     }
     setEditingVersion(null);
+  };
+
+  const startHoverTimer = async (name: string, e: React.MouseEvent) => {
+     if (!name) return;
+     const timer = setTimeout(async () => {
+         const card = await getCardByName(name);
+         if (card) {
+            const imageUrl = card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '';
+            setPreviewCard({ name, image: imageUrl, x: e.clientX, y: e.clientY });
+         }
+     }, 400); // 400ms delay for log preview to avoid too many jumps
+     setHoverTimer(timer);
+  };
+
+  const stopHoverTimer = () => {
+    if (hoverTimer) clearTimeout(hoverTimer);
+    setPreviewCard(null);
   };
 
   const renderModal = () => {
@@ -93,23 +122,44 @@ export default function UpgradeLog({
           }}
           onClick={e => e.stopPropagation()}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <div>
-              <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Seleccionar Edición</h3>
+              <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Cambiar Edición</h3>
               <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: '#888' }}>{editingVersion.name}</p>
             </div>
             <button onClick={() => setEditingVersion(null)} className="modal-close-btn" style={{ position: 'relative', top: 0, right: 0 }}>&times;</button>
           </div>
 
+          {!loadingPrints && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <input 
+                type="text"
+                placeholder="🔍 Filtrar por set (ej: Zendikar, SLD...)"
+                value={versionFilter}
+                onChange={e => setVersionFilter(e.target.value)}
+                style={{ 
+                  width: '100%', padding: '0.8rem 1rem', 
+                  background: '#000', border: '1px solid #444', 
+                  color: '#fff', borderRadius: '8px', fontSize: '0.9rem' 
+                }}
+              />
+            </div>
+          )}
+
           {loadingPrints ? (
             <div style={{ textAlign: 'center', padding: '3rem' }}>
               <div className="spinner"></div>
-              <p style={{ marginTop: '1rem', color: '#888' }}>Obteniendo versiones y precios...</p>
+              <p style={{ marginTop: '1rem', color: '#888' }}>Buscando ediciones...</p>
             </div>
           ) : (
             <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.2rem' }}>
-                {prints.map(p => (
+                {prints
+                  .filter(p => 
+                    (p.set_name?.toLowerCase().includes(versionFilter.toLowerCase())) || 
+                    (p.set?.toLowerCase().includes(versionFilter.toLowerCase()))
+                  )
+                  .map(p => (
                   <div 
                     key={p.id}
                     onClick={() => handleSelectVersion(editingVersion.id, p)}
@@ -175,7 +225,12 @@ export default function UpgradeLog({
                     <td style={{ padding: '1rem 0.75rem', fontSize: '0.85rem', color: '#aaa' }}>{u.month}</td>
                     <td style={{ padding: '1rem 0.75rem' }}>
                       {u.card_in ? (
-                        <div onClick={() => handleOpenVersionPicker(u)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isOwner ? 'pointer' : 'default' }}>
+                        <div 
+                          onClick={() => handleOpenVersionPicker(u)} 
+                          onMouseEnter={e => startHoverTimer(u.card_in, e)}
+                          onMouseLeave={stopHoverTimer}
+                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isOwner ? 'pointer' : 'default' }}
+                        >
                           <span style={{ color: 'var(--color-green)' }}>↑</span>
                           <span style={{ color: 'var(--color-green)', textDecoration: isOwner ? 'underline dotted' : 'none' }}>{u.card_in}</span>
                         </div>
@@ -183,7 +238,11 @@ export default function UpgradeLog({
                     </td>
                     <td style={{ padding: '1rem 0.75rem' }}>
                       {u.card_out ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.7 }}>
+                        <div 
+                           onMouseEnter={e => startHoverTimer(u.card_out, e)}
+                           onMouseLeave={stopHoverTimer}
+                           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.7 }}
+                        >
                           <span style={{ color: 'var(--color-red)' }}>↓</span>
                           <span style={{ color: 'var(--color-red)' }}>{u.card_out}</span>
                         </div>
@@ -195,7 +254,14 @@ export default function UpgradeLog({
                     </td>
                     {isOwner && (
                       <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
-                        <button onClick={() => confirm(`¿Borrar mejora?`) && onDeleteUpgrade(u.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5 }}>🗑️</button>
+                        <button 
+                          onClick={() => setDeleteConfirmId(u.id)} 
+                          style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.2s' }}
+                          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                          onMouseLeave={e => e.currentTarget.style.opacity = '0.5'}
+                        >
+                          🗑️
+                        </button>
                       </td>
                     )}
                   </tr>
@@ -206,6 +272,71 @@ export default function UpgradeLog({
         </table>
       </div>
       {renderModal()}
+      
+      <ConfirmationDialog
+        isOpen={deleteConfirmId !== null}
+        title="Borrar Mejora"
+        message="¿Estás seguro de que quieres eliminar esta mejora del historial? Esta acción no se puede deshacer."
+        confirmText="Sí, borrar"
+        cancelText="No, mantener"
+        isDestructive={true}
+        onConfirm={() => {
+          if (deleteConfirmId) onDeleteUpgrade(deleteConfirmId);
+          setDeleteConfirmId(null);
+        }}
+        onCancel={() => setDeleteConfirmId(null)}
+      />
+
+      {previewCard && typeof document !== 'undefined' && createPortal(
+        (() => {
+          const cardWidth = 240;
+          const cardHeight = 330; 
+          const offset = 20;
+          
+          let left = previewCard.x + offset;
+          let top = previewCard.y + offset;
+          
+          if (left + cardWidth > window.innerWidth) {
+            left = previewCard.x - cardWidth - offset;
+          }
+          
+          if (top + cardHeight > window.innerHeight) {
+            top = Math.max(10, window.innerHeight - cardHeight - 10);
+          }
+
+          return (
+            <div 
+              style={{ 
+                position: 'fixed', 
+                top: top, 
+                left: left, 
+                zIndex: 9999999, 
+                pointerEvents: 'none',
+                animation: 'fadeIn 0.2s ease-out'
+              }}
+            >
+              <img 
+                src={previewCard.image} 
+                alt={previewCard.name}
+                style={{ 
+                  width: `${cardWidth}px`, 
+                  borderRadius: '12px', 
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.8)',
+                  border: '1px solid rgba(255,255,255,0.2)'
+                }}
+              />
+            </div>
+          );
+        })(),
+        document.body
+      )}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+      `}</style>
     </div>
   );
 }

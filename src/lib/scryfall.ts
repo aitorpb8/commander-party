@@ -110,11 +110,22 @@ export async function searchCards(query: string): Promise<ScryfallCard[]> {
 export async function getCardPrints(name: string): Promise<ScryfallCard[]> {
   try {
     const encodedName = encodeURIComponent(`!"${name}"`);
-    // order=eur ensures that the list is already sorted by price
-    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedName}&unique=prints&order=eur&dir=asc`);
-    if (!res.ok) return [];
-    const data = await res.json();
-    return data.data || [];
+    let allPrints: ScryfallCard[] = [];
+    let nextUrl = `${SCRYFALL_API}/cards/search?q=${encodedName}&unique=prints&order=eur&dir=asc`;
+    
+    // We fetch up to 3 pages (525 cards) to avoid excessive waiting, 
+    // but covering almost everything except some basic lands.
+    let pagesFetched = 0;
+    while (nextUrl && pagesFetched < 3) {
+      const res = await fetch(nextUrl);
+      if (!res.ok) break;
+      const data = await res.json();
+      if (data.data) allPrints = [...allPrints, ...data.data];
+      nextUrl = data.has_more ? data.next_page : null;
+      pagesFetched++;
+    }
+    
+    return allPrints;
   } catch (error) {
     console.error("Error fetching prints:", error);
     return [];

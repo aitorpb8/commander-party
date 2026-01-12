@@ -8,6 +8,7 @@ interface DeckCard {
   type_line: string | null;
   mana_cost: string | null;
   oracle_text: string | null;
+  is_commander?: boolean;
 }
 
 interface Alert {
@@ -150,13 +151,25 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
   });
 
   // Alert 6: Singleton Rule
+  const MULTI_COPY_CARDS = [
+    'shadowborn apostle',
+    'relentless rats',
+    'rat colony',
+    'dragon\'s approach',
+    'persistent petitioners',
+    'slime against humanity',
+    'nazgûl'
+  ];
+
   const duplicates: string[] = [];
   cards.forEach(c => {
-    // Check if it's a basic land (usually has "Basic Land" in type line or is one of the 5 basic types)
-    // Safe check: type_line includes "Basic" and "Land"
     const isBasic = c.type_line?.includes('Basic') && c.type_line?.includes('Land');
-    if (!isBasic && c.quantity > 1) {
+    const isMultiCopy = MULTI_COPY_CARDS.includes(c.card_name.toLowerCase());
+    
+    if (!isBasic && !isMultiCopy && c.quantity > 1) {
       duplicates.push(`${c.card_name} (x${c.quantity})`);
+    } else if (c.card_name.toLowerCase() === 'nazgûl' && c.quantity > 9) {
+      duplicates.push(`Nazgûl (máx 9, tienes ${c.quantity})`);
     }
   });
 
@@ -204,6 +217,92 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
         total: budgetLimit,
         color: 'var(--color-green)'
       }
+    });
+  }
+
+  // Alert 8: Commander Legality
+  const invalidCommanders: string[] = [];
+  const commanders = cards.filter(c => c.is_commander);
+
+  commanders.forEach(c => {
+    const typeLine = c.type_line?.toLowerCase() || '';
+    const oracleText = c.oracle_text?.toLowerCase() || '';
+    const isLegendary = typeLine.includes('legendary');
+    const isCreature = typeLine.includes('creature') || typeLine.includes('criatura'); // Support for local cache/trans
+    const isPlaneswalker = typeLine.includes('planeswalker');
+    const isBackground = typeLine.includes('background') && typeLine.includes('enchantment');
+    const canBeCommanderText = oracleText.includes('can be your commander') || oracleText.includes('puede ser tu comandante');
+
+    let isValid = false;
+    if (isLegendary) {
+        if (isCreature) isValid = true;
+        if (isPlaneswalker && canBeCommanderText) isValid = true;
+        if (isBackground) isValid = true;
+    }
+
+    if (!isValid) {
+        let reason = 'No es una criatura legendaria';
+        if (isPlaneswalker && !canBeCommanderText) reason = 'Este Planeswalker no puede ser comandante';
+        if (!isLegendary) reason = 'No es legendario/a';
+        invalidCommanders.push(`${c.card_name} (${reason})`);
+    }
+  });
+
+  if (invalidCommanders.length > 0) {
+    alerts.push({
+      level: 'critical',
+      title: 'Comandante no legal',
+      message: `Las siguientes cartas no pueden ser tus comandantes según las reglas oficiales: ${invalidCommanders.join(', ')}.`,
+      action: 'Cambia tus comandantes por criaturas legendarias o planeswalkers permitidos.'
+    });
+  }
+
+  // Alert 9: Commander Pairings & Count
+  if (commanders.length > 2) {
+    alerts.push({
+      level: 'critical',
+      title: 'Demasiados comandantes',
+      message: `Tienes ${commanders.length} comandantes. Solo se permiten 1 o 2 (si tienen Partner, Background, etc.).`,
+      action: 'Marca solo las cartas que realmente sean tus comandantes.'
+    });
+  } else if (commanders.length === 2) {
+    const c1Text = commanders[0].oracle_text?.toLowerCase() || '';
+    const c2Text = commanders[1].oracle_text?.toLowerCase() || '';
+    const c1Type = commanders[0].type_line?.toLowerCase() || '';
+    const c2Type = commanders[1].type_line?.toLowerCase() || '';
+
+    const hasPartner = (txt: string) => txt.includes('partner') || txt.includes('companion') || txt.includes('friends forever');
+    const hasChooseBackground = (txt: string) => txt.includes('choose a background') || txt.includes('elige un trasfondo');
+    const isBackgroundStr = (type: string) => type.includes('background') && type.includes('enchantment');
+
+    const c1Partner = hasPartner(c1Text);
+    const c2Partner = hasPartner(c2Text);
+    const c1Choose = hasChooseBackground(c1Text);
+    const c2Choose = hasChooseBackground(c2Text);
+    const c1Back = isBackgroundStr(c1Type);
+    const c2Back = isBackgroundStr(c2Type);
+
+    let legalPair = false;
+    if (c1Partner && c2Partner) legalPair = true;
+    if ((c1Choose && c2Back) || (c2Choose && c1Back)) legalPair = true;
+    
+    // Support "Partner with [Name]" - usually contains "Partner with"
+    if (c1Text.includes('partner with') && c2Text.includes('partner with')) legalPair = true;
+
+    if (!legalPair) {
+      alerts.push({
+        level: 'critical',
+        title: 'Pareja de comandantes no válida',
+        message: 'Tienes 2 comandantes, pero no parecen tener habilidades de pareja legales (como Partner o Trasfondo).',
+        action: 'Asegúrate de que ambos tengan Partner, o uno tenga "Choose a Background" y el otro sea un Trasfondo.'
+      });
+    }
+  } else if (commanders.length === 0) {
+    alerts.push({
+      level: 'warning',
+      title: 'Sin comandante',
+      message: 'No has marcado ninguna carta como comandante en este mazo.',
+      action: 'Abre el detalle de una carta y pulsa "Set Commander".'
     });
   }
 

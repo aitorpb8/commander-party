@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { searchCards, getAveragePrice, ScryfallCard } from '@/lib/scryfall';
+import { ScryfallCard, searchCards, getAveragePrice, getCardPrints } from '@/lib/scryfall';
+import ConfirmationDialog from './ConfirmationDialog';
 import TagEditor from '@/components/TagEditor';
 
 interface DeckCard {
+  id?: string; // Database ID
   card_name: string;
   quantity: number;
   type_line: string | null;
@@ -14,12 +16,13 @@ interface DeckCard {
   back_image_url?: string | null;
   oracle_text: string | null;
   is_commander: boolean;
+  scryfall_id?: string;
 }
 
 interface DeckVisualizerProps {
   cards: DeckCard[];
   isOwner?: boolean;
-  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => void;
+  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<void> | void;
   preconCardNames?: Set<string>;
   deckId?: string;
   cardTags?: Record<string, string[]>;
@@ -53,6 +56,16 @@ export default function DeckVisualizer({
   // Add Card State
   const [showAdd, setShowAdd] = useState(false);
   const [addQuery, setAddQuery] = useState('');
+  const [activeInfoCard, setActiveInfoCard] = useState<DeckCard | null>(null);
+  const [modalFace, setModalFace] = useState(0);
+  const [isLoadingInfo, setIsLoadingInfo] = useState(false);
+  const [fullCardData, setFullCardData] = useState<any>(null);
+
+  // Version Selection State
+  const [editingVersion, setEditingVersion] = useState<DeckCard | null>(null);
+  const [prints, setPrints] = useState<ScryfallCard[]>([]);
+  const [loadingPrints, setLoadingPrints] = useState(false);
+  const [versionFilter, setVersionFilter] = useState('');
   const [showPlaytest, setShowPlaytest] = useState(false);
   const [playtestDeck, setPlaytestDeck] = useState<DeckCard[]>([]);
   const [playtestHand, setPlaytestHand] = useState<DeckCard[]>([]);
@@ -61,7 +74,6 @@ export default function DeckVisualizer({
   const [isSearchingPrice, setIsSearchingPrice] = useState(false);
 
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
-  const [activeInfoCard, setActiveInfoCard] = useState<DeckCard | null>(null);
   const [editingTags, setEditingTags] = useState<{ cardName: string, tags: string[] } | null>(null);
   const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
 
@@ -71,10 +83,9 @@ export default function DeckVisualizer({
     setTimeout(() => setShareStatus('idle'), 2000);
   };
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  const [fullCardData, setFullCardData] = useState<any>(null);
-  const [modalFace, setModalFace] = useState(0); // 0 = Front, 1 = Back
-  const [isLoadingInfo, setIsLoadingInfo] = useState(false);
   const [showBracketInfo, setShowBracketInfo] = useState(false);
+
+  const [cardToRemove, setCardToRemove] = useState<DeckCard | null>(null);
 
   // Card Preview State
   const [previewCard, setPreviewCard] = useState<{ name: string, image: string, x: number, y: number } | null>(null);
@@ -98,6 +109,137 @@ export default function DeckVisualizer({
       else next.add(cardName);
       return next;
     });
+  };
+
+  const handleOpenVersionPicker = async () => {
+    if (!isOwner || !activeInfoCard) return;
+    setEditingVersion(activeInfoCard);
+    setVersionFilter('');
+    setLoadingPrints(true);
+    const results = await getCardPrints(activeInfoCard.card_name);
+    setPrints(results);
+    setLoadingPrints(false);
+  };
+
+  const handleSelectVersion = async (card: ScryfallCard) => {
+    if (!activeInfoCard) return;
+    const newImageUrl = card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '';
+    const newBackUrl = card.card_faces?.[1]?.image_uris?.normal || null;
+    const combinedOracle = card.oracle_text || card.card_faces?.map((f: any) => `${f.name}: ${f.oracle_text}`).join('\n\n') || null;
+
+    const updatedCard: DeckCard = { 
+      ...activeInfoCard, 
+      scryfall_id: card.id,
+      image_url: newImageUrl,
+      back_image_url: newBackUrl,
+      oracle_text: combinedOracle,
+      type_line: card.type_line || '',
+      mana_cost: card.mana_cost || null
+    };
+
+    setActiveInfoCard(updatedCard);
+    
+    // Notify parent to update the DB entry
+    onUpdateDeck?.({ 
+      card_in: updatedCard, 
+      card_out: activeInfoCard.card_name,
+      cost: 0 // Just a version change
+    });
+
+    setEditingVersion(null);
+  };
+
+  const renderVersionModal = () => {
+    if (!editingVersion) return null;
+
+    return createPortal(
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.85)', zIndex: 30000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+        backdropFilter: 'blur(10px)'
+      }} onClick={() => setEditingVersion(null)}>
+        <div 
+          className="card" 
+          style={{ 
+            maxWidth: '700px', width: '100%', maxHeight: '85vh', 
+            display: 'flex', flexDirection: 'column', 
+            padding: '2rem', border: '1px solid #444', 
+            boxShadow: '0 25px 50px rgba(0,0,0,0.9)',
+            background: '#121212', borderRadius: '24px'
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div>
+              <h3 style={{ margin: 0, color: 'var(--color-gold)', fontSize: '1.5rem' }}>Cambiar Edición</h3>
+              <p style={{ margin: '4px 0 0', fontSize: '1rem', color: '#888' }}>{editingVersion.card_name}</p>
+            </div>
+            <button onClick={() => setEditingVersion(null)} className="modal-close-btn" style={{ position: 'relative', top: 0, right: 0 }}>&times;</button>
+          </div>
+
+          {!loadingPrints && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <input 
+                type="text"
+                placeholder="🔍 Filtrar por set (ej: Zendikar, SLD...)"
+                value={versionFilter}
+                onChange={e => setVersionFilter(e.target.value)}
+                style={{ 
+                  width: '100%', padding: '1rem', 
+                  background: '#000', border: '1px solid #333', 
+                  color: '#fff', borderRadius: '12px', fontSize: '1rem' 
+                }}
+              />
+            </div>
+          )}
+
+          {loadingPrints ? (
+            <div style={{ textAlign: 'center', padding: '4rem' }}>
+              <div className="spinner"></div>
+              <p style={{ marginTop: '1.5rem', color: '#888', fontSize: '1.1rem' }}>Buscando ediciones...</p>
+            </div>
+          ) : (
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '1.5rem' }}>
+                {prints
+                  .filter(p => 
+                    (p.set_name?.toLowerCase().includes(versionFilter.toLowerCase())) || 
+                    (p.set?.toLowerCase().includes(versionFilter.toLowerCase()))
+                  )
+                  .map(p => (
+                  <div 
+                    key={p.id}
+                    onClick={() => handleSelectVersion(p)}
+                    style={{ 
+                      cursor: 'pointer', padding: '10px', borderRadius: '12px',
+                      background: '#1a1a1a', border: '1px solid #333',
+                      transition: 'all 0.2s', textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#252525';
+                      e.currentTarget.style.borderColor = 'var(--color-gold)';
+                      e.currentTarget.style.transform = 'translateY(-5px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#1a1a1a';
+                      e.currentTarget.style.borderColor = '#333';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <img src={p.image_uris?.small || p.card_faces?.[0]?.image_uris?.small} alt={p.set_name} style={{ width: '100%', borderRadius: '8px', marginBottom: '10px' }} />
+                    <div style={{ fontSize: '0.75rem', fontWeight: 'bold', height: '2.5em', overflow: 'hidden', color: '#aaa', margin: '4px 0' }}>{p.set_name}</div>
+                    <div style={{ color: 'var(--color-gold)', fontWeight: 'bold', fontSize: '1rem' }}>{p.prices?.eur ? `${p.prices.eur}€` : 'N/A'}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>,
+      document.body
+    );
   };
 
   // 1. Calculate Deck Stats
@@ -272,10 +414,7 @@ export default function DeckVisualizer({
       else if (typeLine.includes('enchantment')) key = 'Enchantment';
       else if (typeLine.includes('battle')) key = 'Battle';
       else if (typeLine.includes('land')) key = 'Land';
-      // Fallback for tricky cases
-      if (key === 'Other' && typeLine.length > 0) {
-        // ... simple heuristics 
-      }
+      else key = 'Other';
     } else if (groupBy === 'cmc') {
       const cmc = getCMC(card.mana_cost);
       key = cmc >= 6 ? '6+' : cmc.toString();
@@ -319,41 +458,50 @@ export default function DeckVisualizer({
 
   const handleAddCard = async (scryfallCard: ScryfallCard) => {
     setIsSearchingPrice(true);
-    let finalPrice = 0;
-    let priceDescription = 'Añadida desde editor visual';
+    try {
+      let finalPrice = 0;
+      let priceDescription = 'Añadida desde editor visual';
 
-    const isPrecon = preconCardNames.has(scryfallCard.name.toLowerCase());
-    const isOwned = userCollection.has(scryfallCard.name.toLowerCase());
-    
-    if (isPrecon) {
-      finalPrice = 0;
-      priceDescription = 'Añadida desde base original (0€)';
-    } else if (isOwned) {
-      finalPrice = 0;
-      priceDescription = 'Carta de tu colección personal (0€)';
-    } else if (scryfallCard.prices?.eur) {
-      // Use the specific price of the version found (filtered by our new logic)
-      finalPrice = parseFloat(scryfallCard.prices.eur);
-      priceDescription = `Precio Cardmarket (${scryfallCard.set_name || scryfallCard.set.toUpperCase()})`;
-    } else {
-      // Fallback to average if this specific version has no price
-      const avgData = await getAveragePrice(scryfallCard.name);
-      finalPrice = avgData?.price || 0;
-      if (avgData) {
-        priceDescription = `Precio Estimado (Media versiones baratas: ${avgData.sets.join(', ')})`;
+      const scryName = scryfallCard.name.toLowerCase();
+      const isPrecon = preconCardNames.has(scryName);
+      const isOwned = userCollection.has(scryName);
+      
+      const isBasic = scryfallCard.type_line?.includes('Basic Land');
+
+      if (isPrecon) {
+        finalPrice = 0;
+        priceDescription = 'Añadida desde base original (0€)';
+      } else if (isOwned) {
+        finalPrice = 0;
+        priceDescription = 'Carta de tu colección personal (0€)';
+      } else if (isBasic) {
+        finalPrice = 0;
+        priceDescription = 'Tierra básica (0€)';
+      } else if (scryfallCard.prices?.eur) {
+        finalPrice = parseFloat(scryfallCard.prices.eur) || 0;
+        priceDescription = `Precio Cardmarket (${scryfallCard.set_name || scryfallCard.set.toUpperCase()})`;
+      } else {
+        const avgData = await getAveragePrice(scryfallCard.name);
+        finalPrice = avgData?.price || 0;
+        if (avgData) {
+          priceDescription = `Precio Estimado (Media versiones baratas: ${avgData.sets.join(', ')})`;
+        }
       }
-    }
 
-    if (onUpdateDeck) {
-      onUpdateDeck({ 
-        card_in: scryfallCard,
-        cost: finalPrice,
-        description: priceDescription
-      });
+      if (onUpdateDeck) {
+        await onUpdateDeck({ 
+          card_in: scryfallCard,
+          cost: finalPrice,
+          description: priceDescription
+        });
+      }
+      setAddQuery('');
+      setAddResults([]);
+    } catch (e) {
+      console.error("Error adding card:", e);
+    } finally {
+      setIsSearchingPrice(false);
     }
-    setAddQuery('');
-    setAddResults([]);
-    setIsSearchingPrice(false);
   };
 
   const startPlaytest = () => {
@@ -759,7 +907,16 @@ export default function DeckVisualizer({
       {/* Add Card Interface (Always Visible for Owner) */}
       {isOwner && (
         <div style={{ marginBottom: '1.5rem', background: '#111', padding: '0.8rem', borderRadius: '30px', border: '1px solid var(--color-gold)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-           <span style={{ paddingLeft: '1rem', color: 'var(--color-gold)', fontWeight: 'bold', fontSize: '1.2rem' }}>
+           <span 
+             onClick={() => {
+               if (addResults.length > 0) handleAddCard(addResults[0]);
+             }}
+             style={{ 
+               paddingLeft: '1rem', color: 'var(--color-gold)', fontWeight: 'bold', fontSize: '1.2rem',
+               cursor: addResults.length > 0 ? 'pointer' : 'default',
+               display: 'flex', alignItems: 'center', justifyContent: 'center'
+             }}
+           >
              {isSearchingPrice ? <div className="spinner-small"></div> : '+'}
            </span>
            <div style={{ position: 'relative', flex: 1 }}>
@@ -1372,18 +1529,14 @@ export default function DeckVisualizer({
                        <div style={{ display: 'flex', alignItems: 'center', background: '#000', borderRadius: '8px', border: '1px solid #333' }}>
                           <button 
                             onClick={() => {
-                               if (activeInfoCard.quantity > 1) {
-                                  // Decrement logic: update local and call parent
-                                  const newQty = activeInfoCard.quantity - 1;
-                                  setActiveInfoCard({...activeInfoCard, quantity: newQty});
-                                  onUpdateDeck?.({ card_in: {...activeInfoCard, quantity: newQty}, card_out: activeInfoCard.card_name }); 
-                               } else {
-                                  if(confirm('¿Eliminar carta del mazo?')) {
-                                      handleRemoveCard(activeInfoCard);
-                                      setActiveInfoCard(null);
-                                  }
-                               }
-                            }}
+                                if (activeInfoCard.quantity > 1) {
+                                   const newQty = activeInfoCard.quantity - 1;
+                                   setActiveInfoCard(prev => prev ? {...prev, quantity: newQty} : null);
+                                   onUpdateDeck?.({ card_in: {...activeInfoCard, quantity: newQty}, card_out: activeInfoCard.card_name }); 
+                                } else {
+                                   setCardToRemove(activeInfoCard);
+                                }
+                             }}
                             className="btn"
                             style={{ padding: '4px 12px', background: 'none', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}
                           >−</button>
@@ -1391,13 +1544,23 @@ export default function DeckVisualizer({
                           <button 
                              onClick={() => {
                                 const newQty = activeInfoCard.quantity + 1;
-                                setActiveInfoCard({...activeInfoCard, quantity: newQty});
+                                setActiveInfoCard(prev => prev ? {...prev, quantity: newQty} : null);
+                                // Pass the full activeInfoCard to preserve version (scryfall_id, image_url, etc)
                                 onUpdateDeck?.({ card_in: {...activeInfoCard, quantity: newQty}, card_out: activeInfoCard.card_name });
                              }}
                             className="btn"
                              style={{ padding: '4px 12px', background: 'none', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}
                           >+</button>
                        </div>
+
+                        {/* Version Selection */}
+                        <button 
+                          onClick={handleOpenVersionPicker}
+                          className="btn"
+                          style={{ background: '#222', fontSize: '0.9rem', padding: '8px 16px', border: '1px solid #444', display: 'flex', alignItems: 'center', gap: '8px' }}
+                        >
+                          🔄 Cambiar Edición
+                        </button>
 
                        {/* Tags */}
                        <button 
@@ -1408,19 +1571,49 @@ export default function DeckVisualizer({
                          🏷️ Etiquetas
                        </button>
 
-                       {/* Remove */}
-                       <button 
-                         onClick={() => {
-                             if(confirm('¿Eliminar carta del mazo?')) {
-                                 handleRemoveCard(activeInfoCard);
-                                 setActiveInfoCard(null);
-                             }
-                         }}
-                         className="btn"
-                         style={{ background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', fontSize: '0.9rem', padding: '8px 12px', border: '1px solid rgba(255, 68, 68, 0.3)' }}
-                       >
-                         🗑️
-                       </button>
+                        {/* Remove */}
+                        <button 
+                          onClick={() => setCardToRemove(activeInfoCard)}
+                          className="btn"
+                          style={{ background: 'rgba(255, 68, 68, 0.1)', color: '#ff4444', fontSize: '0.9rem', padding: '8px 12px', border: '1px solid rgba(255, 68, 68, 0.3)' }}
+                        >
+                          🗑️
+                        </button>
+
+                        {/* Set as Commander Toggle - Only if eligible */}
+                        {(() => {
+                           const typeLine = (fullCardData?.type_line || activeInfoCard.type_line || '').toLowerCase();
+                           const oracleText = (fullCardData?.oracle_text || activeInfoCard.oracle_text || '').toLowerCase();
+                           const isLegendary = typeLine.includes('legendary');
+                           const isCreature = typeLine.includes('creature');
+                           const isPlaneswalker = typeLine.includes('planeswalker');
+                           const isBackground = typeLine.includes('background') && typeLine.includes('enchantment');
+                           const canBeCommander = oracleText.includes('can be your commander') || oracleText.includes('puede ser tu comandante');
+                           
+                           // If it's already a commander, we must show the option to unset it
+                           // Otherwise, it must be Legendary + (Creature or Background or specific Planeswalker)
+                           if (activeInfoCard.is_commander || (isLegendary && (isCreature || isBackground || (isPlaneswalker && canBeCommander)))) {
+                             return (
+                               <button 
+                                 onClick={() => {
+                                    const newIsCommander = !activeInfoCard.is_commander;
+                                    setActiveInfoCard(prev => prev ? {...prev, is_commander: newIsCommander} : null);
+                                    onUpdateDeck?.({ card_in: {...activeInfoCard, is_commander: newIsCommander}, card_out: activeInfoCard.card_name });
+                                 }}
+                                 className="btn"
+                                 style={{ 
+                                   background: activeInfoCard.is_commander ? 'var(--color-gold)' : '#222', 
+                                   color: activeInfoCard.is_commander ? '#000' : '#888',
+                                   fontSize: '0.8rem', padding: '8px 12px', border: '1px solid #444',
+                                   fontWeight: 'bold'
+                                 }}
+                               >
+                                 {activeInfoCard.is_commander ? '👑 Comandante' : 'Set Commander'}
+                               </button>
+                             );
+                           }
+                           return null;
+                        })()}
                     </div>
                  </div>
                )}
@@ -1510,7 +1703,12 @@ export default function DeckVisualizer({
           from { opacity: 0; transform: translateX(20px); }
           to { opacity: 1; transform: translateX(0); }
         }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
       `}</style>
+      
       {showPlaytest && (
         <>
           <div 
@@ -1550,6 +1748,7 @@ export default function DeckVisualizer({
           </div>
         </>
       )}
+
       {editingTags && deckId && (
         <TagEditor
           deckId={deckId}
@@ -1562,6 +1761,23 @@ export default function DeckVisualizer({
           }}
         />
       )}
+
+      <ConfirmationDialog
+        isOpen={cardToRemove !== null}
+        title="Quitar Carta"
+        message={`¿Estás seguro de que quieres quitar todas las copias de "${cardToRemove?.card_name}" del mazo?`}
+        confirmText="Sí, quitar"
+        cancelText="No, mantener"
+        isDestructive={true}
+        onConfirm={() => {
+          if (cardToRemove) onUpdateDeck?.({ card_out: cardToRemove.card_name });
+          setCardToRemove(null);
+          setActiveInfoCard(null);
+        }}
+        onCancel={() => setCardToRemove(null)}
+      />
+
+      {renderVersionModal()}
     </div>
   );
 }

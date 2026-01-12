@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
-import { searchCards, ScryfallCard, getAveragePrice, getCollection } from '@/lib/scryfall';
+import { searchCards, ScryfallCard, getAveragePrice, getCollection, getCardPrints } from '@/lib/scryfall';
+import { createPortal } from 'react-dom';
 
 interface WishlistCard {
   id: string;
@@ -9,6 +10,7 @@ interface WishlistCard {
   image_url: string;
   priority: 'High' | 'Medium' | 'Low';
   target_month?: string; // YYYY-MM
+  scryfall_id?: string;
 }
 
 export default function Wishlist({ deckId, isOwner = false }: { deckId: string; isOwner?: boolean }) {
@@ -18,6 +20,12 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
   const [loading, setLoading] = useState(true);
   const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
   const [loadingTrending, setLoadingTrending] = useState(false);
+  
+  // Version Selection State
+  const [editingVersion, setEditingVersion] = useState<{ id: string, name: string } | null>(null);
+  const [prints, setPrints] = useState<ScryfallCard[]>([]);
+  const [loadingPrints, setLoadingPrints] = useState(false);
+  const [versionFilter, setVersionFilter] = useState('');
   
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,11 +56,15 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
         return;
       }
       setLoadingTrending(true);
-      const identifiers = wishlist.map(w => ({ name: w.card_name }));
+      const identifiers = wishlist.map(w => 
+        w.scryfall_id ? { id: w.scryfall_id } : { name: w.card_name }
+      );
       const cards = await getCollection(identifiers);
       const prices: Record<string, number> = {};
       cards.forEach(c => {
         prices[c.name.toLowerCase()] = parseFloat(c.prices.eur || '0');
+        // Also map by ID to be more specific if possible
+        if (c.id) prices[c.id] = parseFloat(c.prices.eur || '0');
       });
       setTrendingPrices(prices);
       setLoadingTrending(false);
@@ -115,6 +127,132 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
     if (!error) {
        setWishlist(wishlist.map(w => w.id === id ? { ...w, target_month: month as string } : w));
     }
+  };
+
+  const handleOpenVersionPicker = async (item: WishlistCard) => {
+    if (!isOwner) return;
+    setEditingVersion({ id: item.id, name: item.card_name });
+    setVersionFilter('');
+    setLoadingPrints(true);
+    const results = await getCardPrints(item.card_name);
+    setPrints(results);
+    setLoadingPrints(false);
+  };
+
+  const handleSelectVersion = async (wishlistId: string, card: ScryfallCard) => {
+    const newPrice = parseFloat(card.prices.eur || '0');
+    const newImageUrl = card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '';
+    
+    const { error } = await supabase
+      .from('deck_wishlist')
+      .update({ 
+        scryfall_id: card.id,
+        image_url: newImageUrl,
+        price: newPrice 
+      })
+      .eq('id', wishlistId);
+
+    if (!error) {
+      setWishlist(wishlist.map(w => w.id === wishlistId ? { 
+        ...w, 
+        scryfall_id: card.id, 
+        image_url: newImageUrl, 
+        price: newPrice 
+      } : w));
+    }
+    setEditingVersion(null);
+  };
+
+  const renderVersionModal = () => {
+    if (!editingVersion) return null;
+
+    return createPortal(
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.85)', zIndex: 11000,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+        backdropFilter: 'blur(5px)'
+      }} onClick={() => setEditingVersion(null)}>
+        <div 
+          className="card" 
+          style={{ 
+            maxWidth: '650px', width: '100%', maxHeight: '85vh', 
+            display: 'flex', flexDirection: 'column', 
+            padding: '1.5rem', border: '1px solid #444', 
+            boxShadow: '0 20px 50px rgba(0,0,0,0.9)',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Cambiar Edición (Backlog)</h3>
+              <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: '#888' }}>{editingVersion.name}</p>
+            </div>
+            <button onClick={() => setEditingVersion(null)} className="modal-close-btn" style={{ position: 'relative', top: 0, right: 0 }}>&times;</button>
+          </div>
+
+          {!loadingPrints && (
+            <div style={{ marginBottom: '1.5rem' }}>
+              <input 
+                type="text"
+                placeholder="🔍 Filtrar por set (ej: Zendikar, SLD...)"
+                value={versionFilter}
+                onChange={e => setVersionFilter(e.target.value)}
+                style={{ 
+                  width: '100%', padding: '0.8rem 1rem', 
+                  background: '#000', border: '1px solid #444', 
+                  color: '#fff', borderRadius: '8px', fontSize: '0.9rem' 
+                }}
+              />
+            </div>
+          )}
+
+          {loadingPrints ? (
+            <div style={{ textAlign: 'center', padding: '3rem' }}>
+              <div className="spinner"></div>
+              <p style={{ marginTop: '1rem', color: '#888' }}>Buscando ediciones...</p>
+            </div>
+          ) : (
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '1.2rem' }}>
+                {prints
+                  .filter(p => 
+                    (p.set_name?.toLowerCase().includes(versionFilter.toLowerCase())) || 
+                    (p.set?.toLowerCase().includes(versionFilter.toLowerCase()))
+                  )
+                  .map(p => (
+                  <div 
+                    key={p.id}
+                    onClick={() => handleSelectVersion(editingVersion.id, p)}
+                    style={{ 
+                      cursor: 'pointer', padding: '8px', borderRadius: '10px',
+                      background: '#1a1a1a', border: '1px solid #333',
+                      transition: 'all 0.2s', textAlign: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#252525';
+                      e.currentTarget.style.borderColor = 'var(--color-gold)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = '#1a1a1a';
+                      e.currentTarget.style.borderColor = '#333';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}
+                  >
+                    <img src={p.image_uris?.small || p.card_faces?.[0]?.image_uris?.small} alt={p.set_name} style={{ width: '100%', borderRadius: '6px', marginBottom: '8px' }} />
+                    <div style={{ fontSize: '0.7rem', fontWeight: 'bold', height: '2.4em', overflow: 'hidden', color: '#aaa', margin: '4px 0' }}>{p.set_name}</div>
+                    <div style={{ color: 'var(--color-gold)', fontWeight: 'bold', fontSize: '0.9rem' }}>{p.prices?.eur ? `${p.prices.eur}€` : 'N/A'}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>,
+      document.body
+    );
   };
 
   // Helper to generate next 6 months options
@@ -281,13 +419,26 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
                 ) : (
                     items.map(card => (
                         <div key={card.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: '#1c1c1c', padding: '0.8rem', borderRadius: '8px', border: '1px solid #333' }}>
-                             <img src={card.image_url} style={{ width: '40px', borderRadius: '4px' }} alt="" />
+                             <div 
+                               onClick={() => handleOpenVersionPicker(card)}
+                               style={{ cursor: isOwner ? 'pointer' : 'default', position: 'relative' }}
+                               className="wishlist-image-container"
+                             >
+                               <img src={card.image_url} style={{ width: '40px', borderRadius: '4px' }} alt="" />
+                               {isOwner && (
+                                 <div style={{ 
+                                   position: 'absolute', bottom: -2, right: -2, background: 'var(--color-gold)', 
+                                   width: '14px', height: '14px', borderRadius: '50%', fontSize: '8px', 
+                                   display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#000' 
+                                 }}>🔄</div>
+                               )}
+                             </div>
                              
                              <div style={{ flex: 1 }}>
                                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{card.card_name}</div>
-                                 <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                     {(() => {
-                                        const trending = trendingPrices[card.card_name.toLowerCase()];
+                                        const trending = card.scryfall_id ? trendingPrices[card.scryfall_id] : trendingPrices[card.card_name.toLowerCase()];
                                         const price = trending !== undefined ? trending : card.price;
                                         return (
                                             <>
@@ -296,7 +447,7 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
                                             </>
                                         );
                                     })()}
-                                 </div>
+                                  </div>
                              </div>
 
                              {isOwner && (
@@ -330,6 +481,7 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
           );
         })}
       </div>
+      {renderVersionModal()}
     </div>
   );
 }
