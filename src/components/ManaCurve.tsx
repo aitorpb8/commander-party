@@ -40,7 +40,7 @@ export default function ManaCurve({ cardNames }: ManaCurveProps) {
       setLoading(true);
       // Fetch card data from Scryfall (limited to 75 at a time, decks are usually 100)
       // We'll take the first 75 for now as a representative sample or split if needed
-      const cards = await getCollection(cardNames.slice(0, 75));
+      const cards = await getCollection(cardNames.slice(0, 75).map(name => ({ name })));
       
       // Filter out lands as they don't usually count for the "curve"
       const nonLandCards = cards.filter(c => !c.type_line.includes('Land'));
