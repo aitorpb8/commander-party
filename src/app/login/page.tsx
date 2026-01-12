@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [username, setUsername] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [mode, setMode] = useState<'login' | 'signup'>('login')
@@ -36,13 +37,20 @@ export default function LoginPage() {
         router.refresh()
       }
     } else {
+      // Validate username
+      if (!username.trim()) {
+        setMessage('Error: Debes elegir un apodo.')
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${location.origin}/auth/callback`,
           data: {
-            full_name: email.split('@')[0]
+            username: username.trim()
           }
         },
       })
@@ -50,6 +58,14 @@ export default function LoginPage() {
       if (error) {
         setMessage('Error al registrar: ' + error.message)
       } else {
+        if (data.user) {
+          // Update profile with username immediately
+          await supabase
+            .from('profiles')
+            .update({ username: username.trim() })
+            .eq('id', data.user.id)
+        }
+        
         if (data.user && data.session) {
           setMessage('¡Registro completado! Ya puedes entrar.')
           router.push('/')
@@ -131,6 +147,25 @@ export default function LoginPage() {
               required
             />
           </div>
+          
+          {mode === 'signup' && (
+            <div>
+              <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Apodo / Nombre de Jugador</label>
+              <input 
+                type="text" 
+                placeholder="Tu apodo en la liga..."
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                style={{ 
+                  width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #333',
+                  background: '#000', color: 'white', fontSize: '1rem'
+                }}
+                required
+                minLength={3}
+              />
+            </div>
+          )}
+          
           <div>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Contraseña</label>
             <input 

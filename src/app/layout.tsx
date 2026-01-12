@@ -63,7 +63,6 @@ export default function RootLayout({
     <html lang="es" className={`${cinzel.variable} ${ebGaramond.variable}`}>
       <body>
         <Navbar />
-        <OnboardingModal />
         <main className="container">
           {children}
         </main>

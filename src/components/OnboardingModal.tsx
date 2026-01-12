@@ -24,9 +24,16 @@ export default function OnboardingModal() {
       .eq('id', user.id)
       .single();
 
-    // If profile doesn't exist yet (null or error), we might need to wait for the trigger
-    // or just assume we need to create it.
-    if (!profile || !profile.username) {
+    // Show modal if:
+    // 1. Profile doesn't exist yet
+    // 2. Username is null/empty
+    // 3. Username is the same as the email (default value from trigger)
+    const needsUsername = !profile || 
+                         !profile.username || 
+                         profile.username.trim() === '' ||
+                         profile.username === user.email;
+
+    if (needsUsername) {
       if (!profile && retryCount < 3) {
         // Retry after 1s if profile is completely missing
         setTimeout(() => checkProfile(retryCount + 1), 1500);
