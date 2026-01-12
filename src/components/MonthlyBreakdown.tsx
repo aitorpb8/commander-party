@@ -9,21 +9,33 @@ interface Upgrade {
   cost: number;
   month: string;
   description: string;
+  scryfall_id?: string;
 }
 
 interface MonthlyBreakdownProps {
   upgrades: Upgrade[];
+  trendingPrices?: Record<string, number>;
 }
 
-export default function MonthlyBreakdown({ upgrades }: MonthlyBreakdownProps) {
+export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: MonthlyBreakdownProps) {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
   // Group upgrades by month
   const grouped = upgrades.reduce((acc, u) => {
     const m = u.month || 'Desconocido';
     if (!acc[m]) acc[m] = { upgrades: [], total: 0 };
-    acc[m].upgrades.push(u);
-    acc[m].total += u.cost;
+    
+    // Resolve price (live if current month)
+    let displayPrice = u.cost;
+    if (m === currentMonth && u.card_in) {
+        const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : trendingPrices[u.card_in.toLowerCase()];
+        if (trending !== undefined) displayPrice = trending;
+    }
+
+    acc[m].upgrades.push({ ...u, cost: displayPrice });
+    acc[m].total += displayPrice;
     return acc;
-  }, {} as Record<string, { upgrades: Upgrade[], total: 0 }>);
+  }, {} as Record<string, { upgrades: Upgrade[], total: number }>);
 
   // Sort months descending
   const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));

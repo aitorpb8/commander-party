@@ -9,7 +9,7 @@ import BudgetChart from '@/components/BudgetChart';
 import ManaAnalysis from '@/components/ManaAnalysis';
 import Wishlist from '@/components/Wishlist';
 import MonthlyBreakdown from '@/components/MonthlyBreakdown';
-import { searchCards, ScryfallCard } from '@/lib/scryfall';
+import { searchCards, ScryfallCard, getCollection } from '@/lib/scryfall';
 import CommanderPicker from '@/components/CommanderPicker';
 import DeckVisualizer from '@/components/DeckVisualizer';
 import TagStats from '@/components/TagStats';
@@ -34,14 +34,18 @@ export default function DeckDetailPage() {
   const [tempPreconUrl, setTempPreconUrl] = useState('');
   const [cardTags, setCardTags] = useState<Record<string, string[]>>({});
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-  
+
+  // COORDINATED TRENDING PRICES
+  const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
+  const [loadingTrending, setLoadingTrending] = useState(false);
+
   const supabase = createClient();
 
-  const fetchData = async (retries = 5) => {
+  const fetchData = async (retries = 5, silent = false) => {
     const { data: { user: authUser } } = await supabase.auth.getUser();
     setUser(authUser);
     const user = authUser; // Local reference for remaining function logic
-    setLoading(true);
+    if (!silent) setLoading(true);
 
     const { data: deckData, error: dbError } = await supabase
       .from('decks')
@@ -59,7 +63,7 @@ export default function DeckDetailPage() {
     if (!deckData && retries > 0) {
       console.log(`Deck not found, retrying... (${retries} left)`);
       await new Promise(resolve => setTimeout(resolve, 1000));
-      return fetchData(retries - 1);
+      return fetchData(retries - 1, silent);
     }
 
     if (!deckData) {
@@ -122,7 +126,7 @@ export default function DeckDetailPage() {
       }
     }
 
-    setLoading(false);
+    if (!silent) setLoading(false);
     setError(null);
   };
 
@@ -168,9 +172,27 @@ export default function DeckDetailPage() {
           card_out: change.card_out || null,
           cost: change.cost || 0,
           description: change.description || '',
-          month
+          month,
+          scryfall_id: typeof change.card_in === 'object' ? change.card_in?.id : null
         });
-      if (upgradeError) throw upgradeError;
+      if (upgradeError) {
+        // Fallback for when the column doesn't exist yet (user hasn't run the migration)
+        if (upgradeError.code === '42703') {
+           const { error: fallbackError } = await supabase
+            .from('deck_upgrades')
+            .insert({
+              deck_id: id,
+              card_in: typeof change.card_in === 'string' ? change.card_in : (change.card_in?.name || null),
+              card_out: change.card_out || null,
+              cost: change.cost || 0,
+              description: change.description || '',
+              month
+            });
+            if (fallbackError) throw fallbackError;
+        } else {
+          throw upgradeError;
+        }
+      }
 
       // 2. Update current mainboard (deck_cards)
       if (change.card_out) {
@@ -337,6 +359,57 @@ export default function DeckDetailPage() {
     }
   };
 
+  const handleUpdateUpgrade = async (upgradeId: string, updates: any) => {
+    // We don't use the global setLoading(true) here because it unmounts the whole page (flicker)
+    try {
+      // 1. Fetch current upgrade to calculate budget difference
+      const { data: current, error: fetchError } = await supabase
+        .from('deck_upgrades')
+        .select('*')
+        .eq('id', upgradeId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+
+      // 2. Update the upgrade
+      const { error: updateError } = await supabase
+        .from('deck_upgrades')
+        .update(updates)
+        .eq('id', upgradeId);
+      
+      if (updateError) throw updateError;
+
+      // 3. Update deck budget if cost changed
+      if (updates.cost !== undefined && updates.cost !== current.cost) {
+        const diff = updates.cost - current.cost;
+        const { error: budgetError } = await supabase
+          .from('decks')
+          .update({ budget_spent: (deck.budget_spent || 0) + diff })
+          .eq('id', id);
+        if (budgetError) throw budgetError;
+      }
+
+      // 4. Fetch data without full page spinner
+      const { data: upgradeData } = await supabase
+        .from('deck_upgrades')
+        .select('*')
+        .eq('deck_id', id)
+        .order('created_at', { ascending: false });
+      
+      const { data: deckData } = await supabase
+        .from('decks')
+        .select('*, profiles!user_id(username)')
+        .eq('id', id)
+        .single();
+
+      if (upgradeData) setUpgrades(upgradeData);
+      if (deckData) setDeck(deckData);
+
+    } catch (err: any) {
+      alert("Error actualizando mejora: " + err.message);
+    }
+  };
+
   const handleUpdateImage = async (imageUrl: string) => {
     const { error } = await supabase
       .from('decks')
@@ -430,6 +503,49 @@ export default function DeckDetailPage() {
     alert('¡Lista de mejoras copiada al portapapeles!');
   };
 
+  // 1. Fetch Trending Prices once for all components
+  useEffect(() => {
+    const fetchTrending = async () => {
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const currentMonthUpgrades = upgrades.filter(u => u.month === currentMonth && u.card_in);
+      if (currentMonthUpgrades.length === 0) {
+        setTrendingPrices({});
+        return;
+      }
+
+      setLoadingTrending(true);
+      const identifiers = currentMonthUpgrades.map(u => u.scryfall_id ? { id: u.scryfall_id } : { name: u.card_in });
+      const cards = await getCollection(identifiers);
+      
+      const prices: Record<string, number> = {};
+      cards.forEach(c => {
+        if (c.id) prices[c.id] = parseFloat(c.prices.eur || '0');
+        prices[c.name.toLowerCase()] = parseFloat(c.prices.eur || '0');
+      });
+      setTrendingPrices(prices);
+      setLoadingTrending(false);
+    };
+
+    if (upgrades.length > 0) fetchTrending();
+  }, [upgrades]);
+
+  // 2. Calculate coordinated budget info
+  const budgetInfo = React.useMemo(() => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    
+    // Sum all registered costs
+    // BUT we need to swap current month costs with live trending if they exist
+    const totalWithTrending = upgrades.reduce((sum, u) => {
+      if (u.month === currentMonth && u.card_in) {
+        const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : trendingPrices[u.card_in.toLowerCase()];
+        return sum + (trending !== undefined ? trending : (u.cost || 0));
+      }
+      return sum + (u.cost || 0);
+    }, 0);
+
+    return calculateDeckBudget(deck?.created_at || new Date(), deck?.budget_spent || 0, totalWithTrending);
+  }, [deck, upgrades, trendingPrices]);
+
   if (loading) return (
     <div style={{ textAlign: 'center', marginTop: '5rem' }}>
       <div className="spinner" style={{ marginBottom: '1rem' }}></div>
@@ -521,7 +637,7 @@ export default function DeckDetailPage() {
              <p style={{ color: '#888', marginBottom: '1rem' }}>Comandante: {deck.commander}</p>
              
              {(() => {
-                const { monthsActive, dynamicLimit, totalSpent, remaining, statusColor } = calculateDeckBudget(deck.created_at, deck.budget_spent);
+                const { monthsActive, dynamicLimit, totalSpent, remaining, statusColor } = budgetInfo;
 
                 return (
                  <div style={{ padding: '1rem', background: '#111', borderRadius: '8px', marginBottom: 'auto' }}>
@@ -575,7 +691,9 @@ export default function DeckDetailPage() {
             currentDeckList={currentDeckListNames}
             onAddUpgrade={handleAddUpgrade}
             onDeleteUpgrade={handleDeleteUpgrade}
+            onUpdateUpgrade={handleUpdateUpgrade}
             isOwner={isOwner}
+            trendingPrices={trendingPrices}
           />
         </div>
       </div>
@@ -596,7 +714,7 @@ export default function DeckDetailPage() {
 
       {/* SECTION 3: Alerts & Stats */}
       {(() => {
-          const { dynamicLimit, totalSpent } = calculateDeckBudget(deck.created_at, deck.budget_spent);
+          const { dynamicLimit, totalSpent } = budgetInfo;
           
           return (
             <DeckAlerts 
@@ -628,7 +746,7 @@ export default function DeckDetailPage() {
               </div>
             </div>
             <div style={{ height: '100%' }}>
-               <MonthlyBreakdown upgrades={upgrades} />
+               <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} />
             </div>
          </div>
          <div style={{ gridColumn: '1 / -1' }}>

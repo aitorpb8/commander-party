@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
-import { searchCards, ScryfallCard, getAveragePrice } from '@/lib/scryfall';
+import { searchCards, ScryfallCard, getAveragePrice, getCollection } from '@/lib/scryfall';
 
 interface WishlistCard {
   id: string;
@@ -16,6 +16,8 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
   const [query, setQuery] = useState('');
   const [results, setAddResults] = useState<ScryfallCard[]>([]);
   const [loading, setLoading] = useState(true);
+  const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
+  const [loadingTrending, setLoadingTrending] = useState(false);
   
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -27,8 +29,8 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
       .from('deck_wishlist')
       .select('*')
       .eq('deck_id', deckId)
-      .order('target_month', { ascending: true }) // First by month
-      .order('created_at', { ascending: false }); // Then by newest
+      .order('target_month', { ascending: true })
+      .order('created_at', { ascending: false });
       
     if (data) setWishlist(data);
     setLoading(false);
@@ -38,7 +40,28 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
     fetchWishlist();
   }, [deckId]);
 
+  // Fetch trending prices for wishlist items
   useEffect(() => {
+    const fetchTrending = async () => {
+      if (wishlist.length === 0) {
+        setTrendingPrices({});
+        return;
+      }
+      setLoadingTrending(true);
+      const identifiers = wishlist.map(w => ({ name: w.card_name }));
+      const cards = await getCollection(identifiers);
+      const prices: Record<string, number> = {};
+      cards.forEach(c => {
+        prices[c.name.toLowerCase()] = parseFloat(c.prices.eur || '0');
+      });
+      setTrendingPrices(prices);
+      setLoadingTrending(false);
+    };
+    fetchTrending();
+  }, [wishlist]);
+
+  useEffect(() => {
+    // ...
     const timer = setTimeout(async () => {
       // Use the improved search logic from scryfall.ts
       if (query.length > 2) {
@@ -195,7 +218,12 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
         {sortedKeys.map(key => {
           const items = grouped[key];
           const isBacklog = key === 'backlog';
-          const monthTotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
+          
+          // Calculate month total using trending prices if available
+          const monthTotal = items.reduce((sum, item) => {
+              const trending = trendingPrices[item.card_name.toLowerCase()];
+              return sum + (trending !== undefined ? trending : (item.price || 0));
+          }, 0);
           
           let statusColor = '#3f3f46'; // Default (Backlog / Safe)
           let headerBg = isBacklog ? '#3f3f46' : '#111';
@@ -257,7 +285,18 @@ export default function Wishlist({ deckId, isOwner = false }: { deckId: string; 
                              
                              <div style={{ flex: 1 }}>
                                  <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>{card.card_name}</div>
-                                 <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)' }}>{card.price?.toFixed(2)}€</div>
+                                 <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    {(() => {
+                                        const trending = trendingPrices[card.card_name.toLowerCase()];
+                                        const price = trending !== undefined ? trending : card.price;
+                                        return (
+                                            <>
+                                                {price?.toFixed(2)}€
+                                                {trending !== undefined && <span style={{ fontSize: '0.7rem', opacity: 0.6 }} title="Precio en tendencia real">🔥</span>}
+                                            </>
+                                        );
+                                    })()}
+                                 </div>
                              </div>
 
                              {isOwner && (

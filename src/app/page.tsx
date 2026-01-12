@@ -225,7 +225,7 @@ export default async function Home() {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
                 {decks.map((deck: any) => {
-                   const { dynamicLimit } = calculateDeckBudget(deck.created_at, deck.budget_spent);
+                   const { dynamicLimit, totalSpent } = calculateDeckBudget(deck.created_at, deck.budget_spent);
 
                    return (
                   <Link key={deck.id} href={`/decks/${deck.id}`} style={{ textDecoration: 'none' }}>
@@ -234,7 +234,7 @@ export default async function Home() {
                       playerAvatar={deck.profiles?.avatar_url}
                       deckName={deck.name}
                       commanderName={deck.commander}
-                      spent={deck.budget_spent}
+                      spent={totalSpent}
                       budget={dynamicLimit}
                       imageUrl={deck.image_url || "https://via.placeholder.com/150"}
                       colors={[]}

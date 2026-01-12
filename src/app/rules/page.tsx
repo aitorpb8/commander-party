@@ -30,19 +30,16 @@ export default function RulesPage() {
               **Sistema Acumulativo**: El presupuesto total disponible es de **(meses desde creación del mazo + 1) × 10€**. Si un mes no gastas nada, ese dinero se acumula para el siguiente.
             </li>
             <li>
-              **Ejemplo**: Si tu mazo tiene 3 meses, tu límite acumulado es 40€. Si solo has gastado 25€, te quedan 15€ disponibles para nuevas mejoras.
+              **Precios en Tiempo Real (🔥)**: Para el **mes en curso** y la **Wishlist**, la web muestra el precio de mercado actual (Trend) en tiempo real. Esto significa que el coste de tus últimas mejoras puede oscilar ligeramente según el mercado hasta que termine el mes.
             </li>
             <li>
-              **Sobregasto**: Si te pasas del límite acumulado, el exceso se **resta** de futuros meses. La web te mostrará alertas cuando te acerques al límite.
+              **Consolidación de Precios**: Una vez que un mes finaliza, los precios de las mejoras de ese mes se **congelan**. Esto asegura que tu historial de gastos sea estable y no cambie retroactivamente.
             </li>
             <li>
-              El coste de cada carta se calcula usando el **precio Tendencia (Trend)** de Cardmarket en euros, proporcionado por Scryfall en el momento de añadirla al mazo. Este precio refleja el valor de mercado real de la carta.
+              **Cálculo de Coste**: El coste se basa en el **precio Tendencia (Trend)** de Cardmarket proporcionado por Scryfall. Priorizamos automáticamente la versión **normal** (barata) de la carta.
             </li>
             <li>
-              **Versiones Estándar**: Para evitar costes inflados artificialmente, la web prioriza automáticamente la versión **normal** (sin marcos extendidos ni arte alternativo) al buscar cartas.
-            </li>
-            <li>
-              Si una carta solo existe en versión especial (Promo, Secret Lair), se usará ese precio.
+              **Sobregasto**: Si te pasas del límite acumulado, el exceso se resta de futuros meses automáticamente.
             </li>
           </ul>
         </section>

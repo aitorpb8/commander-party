@@ -57,11 +57,10 @@ export async function getCardByName(
   }
 }
 
-export async function getCollection(names: string[]): Promise<ScryfallCard[]> {
-  if (names.length === 0) return [];
+export async function getCollection(identifiers: { name?: string, id?: string }[]): Promise<ScryfallCard[]> {
+  if (identifiers.length === 0) return [];
   try {
     // Scryfall allows up to 75 identifiers per request
-    const identifiers = names.map(name => ({ name }));
     const res = await fetch(`${SCRYFALL_API}/cards/collection`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
