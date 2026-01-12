@@ -39,8 +39,10 @@ export async function getCardByName(
   name: string
 ): Promise<ScryfallCard | null> {
   try {
-    const encodedName = encodeURIComponent(name);
-    const res = await fetch(`${SCRYFALL_API}/cards/named?exact=${encodedName}`);
+    // Instead of using /cards/named, we use /cards/search with exact name and order=eur
+    // to ensure we get the cheapest printing available.
+    const encodedName = encodeURIComponent(`!"${name}"`);
+    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedName}&order=eur&dir=asc`);
 
     if (!res.ok) {
       if (res.status === 404) return null;
@@ -48,7 +50,7 @@ export async function getCardByName(
     }
 
     const data = await res.json();
-    return data as ScryfallCard;
+    return (data.data && data.data[0]) || null;
   } catch (error) {
     console.error("Error fetching card:", error);
     return null;
@@ -80,7 +82,8 @@ export async function searchCards(query: string): Promise<ScryfallCard[]> {
   
   const performSearch = async (q: string) => {
     const encodedQuery = encodeURIComponent(q);
-    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedQuery}`);
+    // Add order=eur&dir=asc to prioritize the cheapest printing
+    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedQuery}&order=eur&dir=asc`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || [];
@@ -108,7 +111,8 @@ export async function searchCards(query: string): Promise<ScryfallCard[]> {
 export async function getCardPrints(name: string): Promise<ScryfallCard[]> {
   try {
     const encodedName = encodeURIComponent(`!"${name}"`);
-    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedName}&unique=prints`);
+    // order=eur ensures that the list is already sorted by price
+    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedName}&unique=prints&order=eur&dir=asc`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || [];
