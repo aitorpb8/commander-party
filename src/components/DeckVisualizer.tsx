@@ -1096,21 +1096,40 @@ export default function DeckVisualizer({
                                             transition: 'opacity 0.2s',
                                             pointerEvents: (isLast || isHovered) ? 'auto' : 'none'
                                           }}>
-                                              <button 
+                              <button 
                                                 onClick={(e) => { e.stopPropagation(); handleFlip(card); }}
+                                                className="flip-btn-premium"
                                                 style={{ 
                                                     width: '42px', height: '42px', 
-                                                    background: 'rgba(0,0,0,0.85)', color: '#fff', 
-                                                    border: '1.5px solid #fff', borderRadius: '50%',
+                                                    background: 'rgba(20, 20, 20, 0.6)', 
+                                                    backdropFilter: 'blur(4px)',
+                                                    color: 'var(--color-gold)', 
+                                                    border: '1px solid var(--color-gold)', 
+                                                    borderRadius: '50%',
                                                     cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: '1.4rem', boxShadow: '0 8px 16px rgba(0,0,0,0.5)',
-                                                    transition: 'transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+                                                    boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
+                                                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                                                 }}
-                                                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.15) rotate(180deg)'}
-                                                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1) rotate(0deg)'}
+                                                onMouseEnter={(e) => {
+                                                  e.currentTarget.style.transform = 'scale(1.15) rotate(180deg)';
+                                                  e.currentTarget.style.background = 'var(--color-gold)';
+                                                  e.currentTarget.style.color = '#000';
+                                                  e.currentTarget.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.4)';
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                                                  e.currentTarget.style.background = 'rgba(20, 20, 20, 0.6)';
+                                                  e.currentTarget.style.color = 'var(--color-gold)';
+                                                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.5)';
+                                                }}
                                                 title="Voltear carta (DFC)"
                                               >
-                                                🔄
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                                  <path d="M3 3v5h5"/>
+                                                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                                                  <path d="M16 16h5v5"/>
+                                                </svg>
                                               </button>
                                           </div>
                                         )}
@@ -1492,14 +1511,34 @@ export default function DeckVisualizer({
               {fullCardData?.card_faces && fullCardData.card_faces.length > 1 && (
                 <button 
                   onClick={() => setModalFace(prev => (prev === 0 ? 1 : 0))}
+                  className="flip-btn-premium"
                   style={{
-                    marginTop: '1.5rem', padding: '0.8rem 1.5rem', background: 'var(--color-gold)',
-                    color: '#000', border: 'none', borderRadius: '30px', fontWeight: 'bold',
-                    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
-                    boxShadow: '0 4px 15px rgba(212,175,55,0.4)', fontSize: '0.9rem'
+                    marginTop: '1.5rem', 
+                    width: '50px', height: '50px',
+                    borderRadius: '50%',
+                    background: 'var(--color-gold)',
+                    color: '#000', 
+                    border: 'none', 
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 15px rgba(212,175,55,0.4)',
+                    transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
                   }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'scale(1.1) rotate(180deg)';
+                    e.currentTarget.style.boxShadow = '0 0 25px rgba(212, 175, 55, 0.6)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
+                    e.currentTarget.style.boxShadow = '0 4px 15px rgba(212,175,55,0.4)';
+                  }}
+                  title="Ver Reverso"
                 >
-                  <span>🔄 Ver Reverso</span>
+                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                      <path d="M3 3v5h5"/>
+                      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                      <path d="M16 16h5v5"/>
+                    </svg>
                 </button>
               )}
             </div>
