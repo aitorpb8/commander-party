@@ -838,7 +838,7 @@ export default function DeckDetailPage() {
                  <BudgetChart upgrades={upgrades} creationDate={deck.created_at} />
               </div>
             </div>
-            <div style={{ height: '100%' }}>
+            <div style={{ height: '100%', overflow: 'hidden' }}>
                <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} />
             </div>
          </div>

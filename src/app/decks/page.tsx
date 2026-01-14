@@ -2,6 +2,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import DeckCard from '@/components/DeckCard';
+import DeckGridItem from '@/components/DeckGridItem';
 import Link from 'next/link';
 import { calculateDeckBudget } from '@/lib/budgetUtils';
 
@@ -44,6 +45,8 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
     query = query.eq('user_id', filterUser);
   }
 
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { data: decks } = await query;
 
   return (
@@ -62,22 +65,7 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '2rem' }}>
           {decks.map((deck: any) => (
-            <Link href={`/decks/${deck.id}`} key={deck.id}>
-              {(() => {
-                const { dynamicLimit, totalSpent } = calculateDeckBudget(deck.created_at, deck.budget_spent);
-                return (
-                  <DeckCard 
-                    playerName={deck.profiles?.username || 'Invitado'}
-                    deckName={deck.name}
-                    commanderName={deck.commander}
-                    spent={totalSpent}
-                    budget={dynamicLimit}
-                    imageUrl={deck.image_url || 'https://via.placeholder.com/150'}
-                    colors={[]}
-                  />
-                );
-              })()}
-            </Link>
+             <DeckGridItem key={deck.id} deck={deck} currentUserId={user?.id} />
           ))}
         </div>
       )}

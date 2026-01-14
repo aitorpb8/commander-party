@@ -201,8 +201,8 @@ export default function ProfilePage() {
           </div>
         </aside>
 
-        {/* Right Column: Profile Edit */}
-        <main>
+        {/* Right Column: Profile Edit & Decks */}
+        <main style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div className="card">
             <h3>Editar Información</h3>
             <form onSubmit={handleSave} style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -280,6 +280,60 @@ export default function ProfilePage() {
                 {saving ? 'Guardando...' : 'Guardar Cambios'}
               </button>
             </form>
+          </div>
+
+          <div className="card">
+            <h3 style={{ marginBottom: '1rem' }}>Mis Mazos</h3>
+            {decks.length === 0 ? (
+                <p style={{ color: '#888', fontStyle: 'italic' }}>No tienes mazos registrados.</p>
+            ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {decks.map((deck) => (
+                        <div key={deck.id} style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            padding: '1rem',
+                            background: '#1a1a1a',
+                            borderRadius: '8px',
+                            border: '1px solid #333'
+                        }}>
+                            <div>
+                                <h4 style={{ marginBottom: '0.25rem' }}>{deck.name}</h4>
+                                <span style={{ fontSize: '0.8rem', color: '#888' }}>{deck.commander}</span>
+                            </div>
+                            <button 
+                                onClick={async () => {
+                                    if (window.confirm('¿Estás seguro de que quieres eliminar este mazo? Esta acción no se puede deshacer.')) {
+                                        const { error } = await supabase
+                                            .from('decks')
+                                            .delete()
+                                            .eq('id', deck.id);
+                                        
+                                        if (error) {
+                                            alert('Error al eliminar el mazo: ' + error.message);
+                                        } else {
+                                            setDecks(prev => prev.filter(d => d.id !== deck.id));
+                                        }
+                                    }
+                                }}
+                                style={{ 
+                                    background: 'transparent', 
+                                    border: '1px solid var(--color-red)', 
+                                    color: 'var(--color-red)',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem'
+                                }}
+                                className="hover-red-bg"
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
           </div>
         </main>
       </div>

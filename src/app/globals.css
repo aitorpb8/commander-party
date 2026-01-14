@@ -627,12 +627,14 @@ a {
 /* Budget Stats Grid */
 .budget-stats-grid {
   grid-template-columns: 2fr 1fr;
-  height: 450px;
+  height: 650px;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
   .budget-stats-grid {
     grid-template-columns: 1fr; /* Stack vertically */
+    grid-template-rows: auto;
     height: auto !important; /* Allow auto height */
   }
   .budget-stats-grid > div {

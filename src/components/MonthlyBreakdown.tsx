@@ -50,9 +50,9 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
   if (upgrades.length === 0) return null;
 
   return (
-    <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)' }}>Desglose</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
+    <div className="card" style={{ height: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)', flexShrink: 0 }}>Desglose</h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1, overflowY: 'auto', paddingRight: '0.5rem', minHeight: 0 }}>
         {months.map(m => (
           <div key={m} style={{ borderBottom: '1px solid #333', paddingBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
