@@ -149,7 +149,12 @@ export default function DeckDetailPage() {
     }
 
     // Fetch precon cards for zero-cost logic
-    if (deckData?.precon_url) {
+    if (deckData?.precon_cards && deckData.precon_cards.length > 0) {
+      // 1. Use cached list from DB
+      setPreconCardNames(new Set(deckData.precon_cards.map((n: string) => n.toLowerCase())));
+    } 
+    else if (deckData?.precon_url) {
+      // 2. Fallback: Fetch from API and BACKFILL DB
       try {
         let endpoint = '';
         if (deckData.precon_url.includes('archidekt.com')) endpoint = '/api/import/archidekt';
@@ -163,8 +168,15 @@ export default function DeckDetailPage() {
           });
           const data = await res.json();
           if (data.cards) {
-            const names = new Set<string>(data.cards.map((c: any) => c.name.toLowerCase()));
-            setPreconCardNames(names);
+            const rawNames = data.cards.map((c: any) => c.name);
+            const lowerNames = new Set<string>(rawNames.map((n: string) => n.toLowerCase()));
+            setPreconCardNames(lowerNames);
+
+            // BACKFILL: Save this list to the database so we don't have to fetch again
+            await supabase
+              .from('decks')
+              .update({ precon_cards: rawNames })
+              .eq('id', id);
           }
         }
       } catch (err) {

@@ -105,6 +105,7 @@ export default function NewDeckPage() {
           archidekt_id: data.archidekt_id || null,
           moxfield_id: data.moxfield_id || null,
           precon_url: overrideUrl || preconUrl || null,
+          precon_cards: data.cards && data.cards.length > 0 ? data.cards.map((c: any) => c.name) : null,
           budget_spent: 0,
           budget_limit: 10.0
         })
