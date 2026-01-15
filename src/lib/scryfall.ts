@@ -1,39 +1,11 @@
+import { ScryfallCard } from '@/types';
+
 const SCRYFALL_API = "https://api.scryfall.com";
 
-export interface ScryfallCard {
-  id: string;
-  name: string;
-  set: string;
-  image_uris?: {
-    normal: string;
-    small: string;
-    large?: string;
-    png?: string;
-  };
-  card_faces?: {
-    name: string;
-    image_uris?: {
-      normal: string;
-      small: string;
-      large?: string;
-      png?: string;
-    };
-    oracle_text?: string;
-    mana_cost?: string;
-    type_line?: string;
-  }[];
-  prices: {
-    eur?: string;
-    eur_foil?: string;
-    usd?: string;
-  };
-  color_identity: string[];
-  set_name?: string;
-  cmc: number;
-  type_line: string;
-  oracle_text?: string;
-  mana_cost?: string;
-}
+export type { ScryfallCard };
+
+// Removed local interface definition
+
 
 export async function getCardByName(
   name: string

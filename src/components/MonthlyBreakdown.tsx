@@ -1,19 +1,10 @@
 'use client'
 
 import React from 'react';
-
-interface Upgrade {
-  id: string;
-  card_in: string | null;
-  card_out: string | null;
-  cost: number;
-  month: string;
-  description: string;
-  scryfall_id?: string;
-}
+import { DeckUpgrade } from '@/types';
 
 interface MonthlyBreakdownProps {
-  upgrades: Upgrade[];
+  upgrades: DeckUpgrade[];
   trendingPrices?: Record<string, number>;
 }
 
@@ -26,7 +17,7 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
     if (!acc[m]) acc[m] = { upgrades: [], total: 0 };
     
     // Resolve price (live if current month)
-    let displayPrice = u.cost;
+    let displayPrice = u.cost || 0;
     if (m === currentMonth && u.card_in) {
         const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : trendingPrices[u.card_in.toLowerCase()];
         if (trending !== undefined) displayPrice = trending;
@@ -35,7 +26,7 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
     acc[m].upgrades.push({ ...u, cost: displayPrice });
     acc[m].total += displayPrice;
     return acc;
-  }, {} as Record<string, { upgrades: Upgrade[], total: number }>);
+  }, {} as Record<string, { upgrades: DeckUpgrade[], total: number }>);
 
   // Sort months descending
   const months = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
@@ -66,7 +57,7 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
                     <span style={{ color: 'var(--color-green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↑ {u.card_in || 'N/A'}</span>
                     {u.card_out && <span style={{ color: 'var(--color-red)', opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↓ {u.card_out}</span>}
                   </div>
-                  <span style={{ flexShrink: 0 }}>{u.cost.toFixed(2)}€</span>
+                  <span style={{ flexShrink: 0 }}>{(u.cost || 0).toFixed(2)}€</span>
                 </div>
               ))}
             </div>

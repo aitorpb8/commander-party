@@ -13,6 +13,7 @@ import {
   Filler
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { DeckUpgrade } from '@/types';
 
 ChartJS.register(
   CategoryScale,
@@ -25,14 +26,8 @@ ChartJS.register(
   Filler
 );
 
-interface Upgrade {
-  id: string;
-  month: string;
-  cost: number;
-}
-
 interface BudgetChartProps {
-  upgrades: Upgrade[];
+  upgrades: DeckUpgrade[];
   initialBudget?: number;
   creationDate?: string;
 }
@@ -59,9 +54,15 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
   if (creationDate) {
       startDate = new Date(creationDate);
   } else if (upgrades.length > 0) {
-      const sorted = [...upgrades].sort((a, b) => a.month.localeCompare(b.month));
-      const [y, m] = sorted[0].month.split('-');
-      startDate = new Date(parseInt(y), parseInt(m) - 1);
+      // Filter out upgrades with null month for sorting
+      const validUpgrades = upgrades.filter(u => u.month);
+      if (validUpgrades.length > 0) {
+        const sorted = [...validUpgrades].sort((a, b) => a.month!.localeCompare(b.month!));
+        const [y, m] = sorted[0].month!.split('-');
+        startDate = new Date(parseInt(y), parseInt(m) - 1);
+      } else {
+        startDate.setMonth(now.getMonth() - 2);
+      }
   } else {
       startDate.setMonth(now.getMonth() - 2); 
   }
@@ -72,7 +73,9 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
   // Group real spending by month
   const monthlyTotals: { [key: string]: number } = {};
   upgrades.forEach(u => {
-    monthlyTotals[u.month] = (monthlyTotals[u.month] || 0) + u.cost;
+    if (u.month && u.cost) {
+      monthlyTotals[u.month] = (monthlyTotals[u.month] || 0) + u.cost;
+    }
   });
 
   // Calculate cumulative data points over the FULL timeline

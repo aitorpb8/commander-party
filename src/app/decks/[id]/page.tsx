@@ -3,7 +3,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
+import { User } from '@supabase/supabase-js';
 
+import { Deck, DeckCard, DeckUpgrade } from '@/types';
 import UpgradeLog from '@/components/UpgradeLog';
 import BudgetChart from '@/components/BudgetChart';
 import ManaAnalysis from '@/components/ManaAnalysis';
@@ -20,12 +22,12 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 export default function DeckDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [deck, setDeck] = useState<any>(null);
-  const [upgrades, setUpgrades] = useState<any[]>([]);
-  const [deckCards, setDeckCards] = useState<any[]>([]);
+  const [deck, setDeck] = useState<Deck | null>(null);
+  const [upgrades, setUpgrades] = useState<DeckUpgrade[]>([]);
+  const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [userCollection, setUserCollection] = useState<Set<string>>(new Set());
   const [showPicker, setShowPicker] = useState(false);
 
@@ -92,7 +94,7 @@ export default function DeckDetailPage() {
 
     // Cleanup duplicates before setting state
     if (cardsData && cardsData.length > 0) {
-      const cardsByName = new Map<string, any[]>();
+      const cardsByName = new Map<string, DeckCard[]>();
       cardsData.forEach(card => {
         const existing = cardsByName.get(card.card_name) || [];
         existing.push(card);
@@ -133,8 +135,8 @@ export default function DeckDetailPage() {
       setDeckCards(cardsData || []);
     }
 
-    setDeck(deckData);
-    setUpgrades(upgradeData || []);
+    setDeck(deckData as Deck);
+    setUpgrades((upgradeData || []) as DeckUpgrade[]);
 
     // Fetch user collection
     if (user) {
@@ -352,7 +354,7 @@ export default function DeckDetailPage() {
       if (change.cost && change.cost !== 0) {
         const { error: budgetError } = await supabase
           .from('decks')
-          .update({ budget_spent: (deck.budget_spent || 0) + change.cost })
+          .update({ budget_spent: (deck?.budget_spent || 0) + change.cost })
           .eq('id', id);
         if (budgetError) throw budgetError;
       }
@@ -431,7 +433,7 @@ export default function DeckDetailPage() {
 
       // 3. Revert Budget
       if (upgrade.cost && upgrade.cost !== 0) {
-        await supabase.from('decks').update({ budget_spent: (deck.budget_spent || 0) - upgrade.cost }).eq('id', id);
+        await supabase.from('decks').update({ budget_spent: (deck?.budget_spent || 0) - upgrade.cost }).eq('id', id);
       }
 
       // 4. Delete the upgrade log entry
@@ -470,7 +472,7 @@ export default function DeckDetailPage() {
         const diff = updates.cost - current.cost;
         const { error: budgetError } = await supabase
           .from('decks')
-          .update({ budget_spent: (deck.budget_spent || 0) + diff })
+          .update({ budget_spent: (deck?.budget_spent || 0) + diff })
           .eq('id', id);
         if (budgetError) throw budgetError;
       }
@@ -504,7 +506,7 @@ export default function DeckDetailPage() {
     
     if (error) setMessageDialog({ title: 'Error', message: `No se pudo actualizar la imagen: ${error.message}`, isError: true });
     else {
-      setDeck({ ...deck, image_url: imageUrl });
+      setDeck({ ...deck, image_url: imageUrl } as Deck);
       setShowPicker(false);
     }
   };
@@ -517,13 +519,13 @@ export default function DeckDetailPage() {
     
     if (error) setMessageDialog({ title: 'Error', message: `No se pudo actualizar el nombre: ${error.message}`, isError: true });
     else {
-      setDeck({ ...deck, precon_url: tempPreconUrl });
+      setDeck({ ...deck, precon_url: tempPreconUrl } as Deck);
       setEditingPrecon(false);
     }
   };
 
   const handleSyncCards = async () => {
-    if (!deck.moxfield_id && !deck.archidekt_id) {
+    if (!deck || (!deck.moxfield_id && !deck.archidekt_id)) {
       setMessageDialog({ title: 'Sincronización no disponible', message: 'No se puede sincronizar un mazo manual. Solo los mazos importados desde Moxfield o Archidekt pueden sincronizarse.', isError: false });
       return;
     }
@@ -599,7 +601,7 @@ export default function DeckDetailPage() {
       }
 
       setLoadingTrending(true);
-      const identifiers = currentMonthUpgrades.map(u => u.scryfall_id ? { id: u.scryfall_id } : { name: u.card_in });
+      const identifiers = currentMonthUpgrades.map(u => u.scryfall_id ? { id: u.scryfall_id } : { name: u.card_in || '' });
       const cards = await getCollection(identifiers);
       
       const prices: Record<string, number> = {};
@@ -619,37 +621,42 @@ export default function DeckDetailPage() {
     const currentMonth = new Date().toISOString().slice(0, 7);
     
     // Sum all registered costs
-    // BUT we need to swap current month costs with live trending if they exist
-    const totalWithTrending = upgrades.reduce((sum, u) => {
-      if (u.month === currentMonth && u.card_in) {
-        const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : trendingPrices[u.card_in.toLowerCase()];
-        return sum + (trending !== undefined ? trending : (u.cost || 0));
-      }
+    // We use the LOGGED cost (u.cost) as the source of truth for the budget.
+    // Trending prices are for information only, not for the official budget cap.
+    const totalSpent = upgrades.reduce((sum, u) => {
+      // FIX: If the card is from the original precon, it should ALWAYS be 0 cost.
+      const isPrecon = u.card_in && preconCardNames.has(u.card_in.toLowerCase());
+      if (isPrecon) return sum; // Cost is 0
+
       return sum + (u.cost || 0);
     }, 0);
 
-    return calculateDeckBudget(deck?.created_at || new Date(), deck?.budget_spent || 0, totalWithTrending);
-  }, [deck, upgrades, trendingPrices]);
+    return calculateDeckBudget(deck?.created_at || new Date(), deck?.budget_spent || 0, totalSpent);
+  }, [deck, upgrades, preconCardNames]);
 
-  // 3. Sync budget_spent to database when trending prices change
+  // 3. Sync budget_spent to database IF there is a discrepancy (e.g. initial calculation error or manual edit)
   React.useEffect(() => {
     const syncBudgetSpent = async () => {
-      if (!deck || !budgetInfo || loadingTrending) return;
+      if (!deck || !budgetInfo) return;
       
-      // Only update if the value has actually changed (avoid unnecessary writes)
       const currentStored = deck.budget_spent || 0;
       const newValue = budgetInfo.totalSpent;
       
-      if (Math.abs(currentStored - newValue) > 0.01) { // Only update if difference > 1 cent
+      // We sync if the difference is significant, to ensure the listing page shows the correct value.
+      if (Math.abs(currentStored - newValue) > 0.01) { 
         await supabase
           .from('decks')
           .update({ budget_spent: newValue })
           .eq('id', id);
+        
+        // Also update local state to avoid infinite loop (though dependecy array protects us mostly)
+        // Actually, we don't update local 'deck' state here to avoid re-renders, assuming the DB update is enough.
+        // But to be safe against the loop, we check the difference.
       }
     };
 
     syncBudgetSpent();
-  }, [budgetInfo?.totalSpent, deck?.id, loadingTrending]);
+  }, [budgetInfo?.totalSpent, deck?.budget_spent, deck?.id, id, supabase]);
 
   if (loading) return (
     <div style={{ textAlign: 'center', marginTop: '5rem' }}>
@@ -798,6 +805,7 @@ export default function DeckDetailPage() {
             onDeleteUpgrade={handleDeleteUpgrade}
             onUpdateUpgrade={handleUpdateUpgrade}
             isOwner={isOwner}
+            preconCardNames={preconCardNames}
             trendingPrices={trendingPrices}
           />
         </div>

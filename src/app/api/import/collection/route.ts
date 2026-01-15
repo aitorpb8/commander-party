@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabaseClient';
+import { createClient } from '@/lib/supabase/server';
+import { apiError } from '@/lib/api-error';
 
 export async function POST(request: Request) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   try {
     const { url } = await request.json();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
+      return apiError('No autorizado', 401);
     }
 
     let cards: any[] = [];
@@ -85,6 +86,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error('Collection Import Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiError(error.message, 500);
   }
 }

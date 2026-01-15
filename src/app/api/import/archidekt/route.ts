@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-error';
 
 export async function POST(request: Request) {
   try {
     const { url } = await request.json();
     
-    // Extract ID from URL like https://www.archidekt.com/decks/1234567/name
     const match = url.match(/decks\/(\d+)/);
     if (!match) {
-      return NextResponse.json({ error: 'URL de Archidekt inválida' }, { status: 400 });
+      return apiError('URL de Archidekt inválida', 400);
     }
     
     const deckId = match[1];
@@ -17,6 +17,8 @@ export async function POST(request: Request) {
       redirect: 'follow'
     });
     
+    let data;
+    
     if (!response.ok) {
       // Fallback to www if root fails
       const wwwResponse = await fetch(`https://www.archidekt.com/api/decks/${deckId}/`, {
@@ -25,11 +27,12 @@ export async function POST(request: Request) {
       if (!wwwResponse.ok) {
         throw new Error('No se pudo obtener el mazo de Archidekt');
       }
-      var data = await wwwResponse.json();
+      data = await wwwResponse.json();
     } else {
-      var data = await response.json();
+      data = await response.json();
     }
     
+    // Parse cards
     // Parse cards
     const cards = data.cards.map((item: any) => {
       const oc = item.card.oracleCard;
@@ -43,9 +46,9 @@ export async function POST(request: Request) {
       return {
         name: oc.name,
         quantity: item.quantity,
-        is_commander: item.categories.includes('Commander'),
+        is_commander: item.categories?.includes('Commander') || false,
         image_url: oc.imageUri || `https://api.scryfall.com/cards/${item.card.uid}?format=image`,
-        back_image_url: (oc.cardFaces && oc.cardFaces.length > 1) ? (oc.cardFaces[1].imageUri || null) : null,
+        // back_image_url: (oc.cardFaces && oc.cardFaces.length > 1) ? (oc.cardFaces[1].imageUri || null) : null, // Not strictly needed for import but good to have
         type_line: typeLine,
         mana_cost: oc.manaCost,
         oracle_text: oc.oracleText
@@ -62,6 +65,6 @@ export async function POST(request: Request) {
       archidekt_id: deckId
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiError(error.message, 500);
   }
 }

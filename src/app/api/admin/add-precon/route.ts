@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { apiError } from '@/lib/api-error';
+import { Precon } from '@/types';
 
 export async function POST(req: Request) {
   try {
     const { name, url, series, commander, year } = await req.json();
     
     if (!name || !url || !commander) {
-      return NextResponse.json({ error: 'Name, URL and Commander are required' }, { status: 400 });
+      return apiError('Name, URL and Commander are required', 400);
     }
 
     const preconsPath = path.join(process.cwd(), 'src/data/precons.json');
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
       console.error('Error fetching scryfall image:', e);
     }
     
-    const newPrecon = {
+    const newPrecon: Precon = {
       id,
       name,
       commander,
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, precon: newPrecon });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiError(error.message, 500);
   }
 }
 

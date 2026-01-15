@@ -1,24 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { ScryfallCard, getCardPrints, getCollection, getCardByName } from '@/lib/scryfall';
+import { ScryfallCard, getCardPrints, getCardByName } from '@/lib/scryfall';
+import { DeckUpgrade } from '@/types';
 import ConfirmationDialog from './ConfirmationDialog';
 
-interface Upgrade {
-  id: string;
-  month: string;
-  card_in: string;
-  card_out: string;
-  cost: number;
-  description?: string;
-  scryfall_id?: string;
-}
-
 interface UpgradeLogProps {
-  upgrades: Upgrade[];
+  upgrades: DeckUpgrade[];
   currentDeckList: string[];
-  onAddUpgrade: (upgrade: Partial<Upgrade>) => void;
+  onAddUpgrade: (upgrade: Partial<DeckUpgrade>) => void;
   onDeleteUpgrade: (id: string) => void;
-  onUpdateUpgrade?: (id: string, updates: Partial<Upgrade>) => void;
+  onUpdateUpgrade?: (id: string, updates: Partial<DeckUpgrade>) => void;
   initialCardIn?: string;
   initialCost?: number;
   isOwner?: boolean;
@@ -32,8 +23,9 @@ export default function UpgradeLog({
   onUpdateUpgrade,
   isOwner = false,
   trendingPrices = {},
-  loadingPrices = false
-}: UpgradeLogProps) {
+  loadingPrices = false,
+  preconCardNames = new Set() // Add new prop with default empty set
+}: UpgradeLogProps & { preconCardNames?: Set<string> }) {
   const [editingVersion, setEditingVersion] = useState<{ id: string, name: string, isUpgrade?: boolean } | null>(null);
   const [prints, setPrints] = useState<ScryfallCard[]>([]);
   const [loadingPrints, setLoadingPrints] = useState(false);
@@ -57,7 +49,7 @@ export default function UpgradeLog({
     };
   }, [editingVersion]);
 
-  const handleOpenVersionPicker = async (upgrade: Upgrade) => {
+  const handleOpenVersionPicker = async (upgrade: DeckUpgrade) => {
     if (!isOwner || !upgrade.card_in) return;
     setEditingVersion({ 
       id: upgrade.id, 
@@ -218,7 +210,12 @@ export default function UpgradeLog({
               upgrades.map(u => {
                 const isCurrentMonth = u.month === currentMonth;
                 const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : (u.card_in ? trendingPrices[u.card_in.toLowerCase()] : null);
-                const displayCost = (isCurrentMonth && typeof trending === 'number') ? trending : (u.cost || 0);
+                
+                // FIX: Check if card is precon
+                const isPrecon = u.card_in && preconCardNames?.has(u.card_in.toLowerCase());
+                
+                // If it's a precon card, FORCE 0€, otherwise use trending or recorded cost
+                const displayCost = isPrecon ? 0 : (isCurrentMonth && typeof trending === 'number') ? trending : (u.cost || 0);
 
                 return (
                   <tr key={u.id} style={{ borderBottom: '1px solid #222' }}>
@@ -227,7 +224,7 @@ export default function UpgradeLog({
                       {u.card_in ? (
                         <div 
                           onClick={() => handleOpenVersionPicker(u)} 
-                          onMouseEnter={e => startHoverTimer(u.card_in, e)}
+                          onMouseEnter={e => u.card_in && startHoverTimer(u.card_in, e)}
                           onMouseLeave={stopHoverTimer}
                           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isOwner ? 'pointer' : 'default' }}
                         >
@@ -239,7 +236,7 @@ export default function UpgradeLog({
                     <td style={{ padding: '1rem 0.75rem' }}>
                       {u.card_out ? (
                         <div 
-                           onMouseEnter={e => startHoverTimer(u.card_out, e)}
+                           onMouseEnter={e => u.card_out && startHoverTimer(u.card_out, e)}
                            onMouseLeave={stopHoverTimer}
                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.7 }}
                         >
@@ -250,7 +247,7 @@ export default function UpgradeLog({
                     </td>
                     <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 'bold', color: 'var(--color-gold)' }}>
                       {(displayCost || 0).toFixed(2)}€
-                      {isCurrentMonth && typeof trending === 'number' && <span style={{ fontSize: '0.65rem', marginLeft: '4px', opacity: 0.5 }} title="Precio en tendencia real">🔥</span>}
+                      {isCurrentMonth && typeof trending === 'number' && !isPrecon && <span style={{ fontSize: '0.65rem', marginLeft: '4px', opacity: 0.5 }} title="Precio en tendencia real">🔥</span>}
                     </td>
                     {isOwner && (
                       <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>

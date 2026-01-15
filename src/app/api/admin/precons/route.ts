@@ -1,16 +1,19 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
+import { apiError } from '@/lib/api-error';
+import { Precon } from '@/types';
 
 export async function GET() {
   try {
     const metaPath = path.join(process.cwd(), 'src/data/precons.json');
     const content = await fs.readFile(metaPath, 'utf8');
-    const response = NextResponse.json(JSON.parse(content));
+    const precons: Precon[] = JSON.parse(content);
+    const response = NextResponse.json(precons);
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
   } catch (error: any) {
-    const response = NextResponse.json({ error: error.message }, { status: 500 });
+    const response = apiError(error.message, 500);
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
   }
