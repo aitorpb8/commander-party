@@ -222,7 +222,7 @@ export default async function TestAtogPage() {
          )}
       </div>
 
-      {cards && cards.length > 0 && (
+      {/* {cards && cards.length > 0 && (
         <form action={deleteGhost}>
           <button style={{ 
             background: 'red', color: 'white', padding: '15px 30px', 
@@ -231,7 +231,7 @@ export default async function TestAtogPage() {
             🗑️ BORRAR FANTASMA AHORA
           </button>
         </form>
-      )}
+      )} */}
       
       <h2>Decks with "Atog" in name:</h2>
       <pre>{JSON.stringify(decks, null, 2)}</pre>
