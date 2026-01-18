@@ -14,12 +14,16 @@ export default function CommanderPicker({ commanderName, onSelect, onClose }: Co
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const fetchPrints = async () => {
       const data = await getCardPrints(commanderName);
-      setPrints(data);
-      setLoading(false);
+      if (!cancelled) {
+        setPrints(data);
+        setLoading(false);
+      }
     };
     fetchPrints();
+    return () => { cancelled = true; };
   }, [commanderName]);
 
   return (

@@ -45,12 +45,34 @@ export default function DeckDetailPage() {
   // Dialog state
   const [messageDialog, setMessageDialog] = useState<{ title: string, message: string, isError?: boolean } | null>(null);
 
+  // FIX: Race Condition Guard
+  // When navigating quickly between decks, a previous fetch might finish AFTER our current fetch started
+  // or overwrite the current state. We use a Ref to track the "active" ID we care about.
+  const activeIdRef = React.useRef(id);
+
+  useEffect(() => {
+    activeIdRef.current = id;
+    
+    // Clear state immediately on ID change to show loading and avoid stale data
+    setDeck(null);
+    setUpgrades([]);
+    setDeckCards([]);
+    setLoading(true);
+    setError(null);
+    setPreconCardNames(new Set());
+    setTrendingPrices({});
+  }, [id]);
+
   const supabase = createClient();
 
   const fetchData = async (retries = 5, silent = false) => {
     const { data: { user: authUser } } = await supabase.auth.getUser();
+    
+    // Guard: If we navigated away, stop
+    if (activeIdRef.current !== id) return;
+    
     setUser(authUser);
-    const user = authUser; // Local reference for remaining function logic
+    const user = authUser; 
     if (!silent) setLoading(true);
 
     const { data: deckData, error: dbError } = await supabase
@@ -59,6 +81,9 @@ export default function DeckDetailPage() {
       .eq('id', id)
       .maybeSingle(); 
     
+    // Guard
+    if (activeIdRef.current !== id) return;
+
     if (dbError) {
       console.error("Supabase fetch error:", dbError);
       setError(dbError.message);
@@ -69,6 +94,8 @@ export default function DeckDetailPage() {
     if (!deckData && retries > 0) {
       console.log(`Deck not found, retrying... (${retries} left)`);
       await new Promise(resolve => setTimeout(resolve, 1000));
+      // Guard before recursive call
+      if (activeIdRef.current !== id) return;
       return fetchData(retries - 1, silent);
     }
 
@@ -83,12 +110,18 @@ export default function DeckDetailPage() {
       .eq('deck_id', id)
       .order('created_at', { ascending: false });
 
+    // Guard
+    if (activeIdRef.current !== id) return;
+
     if (upgradeError) console.error("Upgrades error:", upgradeError);
 
     const { data: cardsData, error: cardsError } = await supabase
       .from('deck_cards')
       .select('*')
       .eq('deck_id', id);
+
+    // Guard
+    if (activeIdRef.current !== id) return;
 
     if (cardsError) console.error("Cards error:", cardsError);
 
@@ -107,13 +140,11 @@ export default function DeckDetailPage() {
           const totalQty = cards.reduce((sum, c) => sum + (c.quantity || 1), 0);
           const primaryCard = cards[0];
           
-          // Update the first card with total quantity
           await supabase
             .from('deck_cards')
             .update({ quantity: totalQty })
             .eq('id', primaryCard.id);
           
-          // Delete the duplicates
           const duplicateIds = cards.slice(1).map(c => c.id);
           if (duplicateIds.length > 0) {
             await supabase
@@ -130,6 +161,9 @@ export default function DeckDetailPage() {
         .select('*')
         .eq('deck_id', id);
       
+      // Guard
+      if (activeIdRef.current !== id) return;
+
       setDeckCards(cleanedCards || []);
     } else {
       setDeckCards(cardsData || []);
@@ -145,6 +179,9 @@ export default function DeckDetailPage() {
         .select('card_name')
         .eq('user_id', user.id);
       
+      // Guard
+      if (activeIdRef.current !== id) return;
+
       if (colData) {
         setUserCollection(new Set(colData.map(c => c.card_name.toLowerCase())));
       }
@@ -152,11 +189,9 @@ export default function DeckDetailPage() {
 
     // Fetch precon cards for zero-cost logic
     if (deckData?.precon_cards && deckData.precon_cards.length > 0) {
-      // 1. Use cached list from DB
       setPreconCardNames(new Set(deckData.precon_cards.map((n: string) => n.toLowerCase())));
     } 
     else if (deckData?.precon_url) {
-      // 2. Fallback: Fetch from API and BACKFILL DB
       try {
         let endpoint = '';
         if (deckData.precon_url.includes('archidekt.com')) endpoint = '/api/import/archidekt';
@@ -169,12 +204,14 @@ export default function DeckDetailPage() {
             body: JSON.stringify({ url: deckData.precon_url })
           });
           const data = await res.json();
+          // Guard
+          if (activeIdRef.current !== id) return;
+
           if (data.cards) {
             const rawNames = data.cards.map((c: any) => c.name);
             const lowerNames = new Set<string>(rawNames.map((n: string) => n.toLowerCase()));
             setPreconCardNames(lowerNames);
 
-            // BACKFILL: Save this list to the database so we don't have to fetch again
             await supabase
               .from('decks')
               .update({ precon_cards: rawNames })
@@ -191,10 +228,16 @@ export default function DeckDetailPage() {
   };
 
   const fetchTags = async () => {
+    // Guard
+    if (activeIdRef.current !== id) return;
+
     const { data, error } = await supabase
       .from('deck_card_tags')
       .select('card_name, tags')
       .eq('deck_id', id);
+    
+    // Guard
+    if (activeIdRef.current !== id) return;
     
     if (error) {
       console.error('Error fetching tags:', error);

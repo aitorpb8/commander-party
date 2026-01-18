@@ -20,15 +20,22 @@ export default function CardSearch({
   const [addResults, setAddResults] = useState<ScryfallCard[]>([]);
 
   useEffect(() => {
+    let cancelled = false;
     const timer = setTimeout(async () => {
       if (addQuery.length > 2) {
         const res = await searchCards(addQuery);
-        setAddResults(res.slice(0, 10));
+        if (!cancelled) {
+          setAddResults(res.slice(0, 10));
+        }
       } else {
-        setAddResults([]);
+        if (!cancelled) setAddResults([]);
       }
     }, 400);
-    return () => clearTimeout(timer);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [addQuery]);
 
   return (

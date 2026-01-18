@@ -88,17 +88,22 @@ export default function Wishlist({
   }, [wishlist]);
 
   useEffect(() => {
-    // ...
+    let cancelled = false;
     const timer = setTimeout(async () => {
       // Use the improved search logic from scryfall.ts
       if (query.length > 2) {
         const res = await searchCards(query);
-        setAddResults(res.slice(0, 5));
+        if (!cancelled) {
+          setAddResults(res.slice(0, 5));
+        }
       } else {
-        setAddResults([]);
+        if (!cancelled) setAddResults([]);
       }
     }, 400);
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [query]);
 
   const addToWishlist = async (card: ScryfallCard) => {
