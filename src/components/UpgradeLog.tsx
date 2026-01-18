@@ -192,81 +192,103 @@ export default function UpgradeLog({
         {loadingPrices && <div className="spinner-small" title="Actualizando precios de tendencia..."></div>}
       </div>
 
-      <div style={{ overflowX: 'auto', width: '100%', flex: 1, overflowY: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
-          <thead style={{ position: 'sticky', top: 0, background: '#111', zIndex: 1 }}>
-            <tr style={{ borderBottom: '2px solid #444', color: '#888', fontSize: '0.85rem', textTransform: 'uppercase' }}>
-              <th style={{ padding: '1rem 0.75rem' }}>Mes</th>
-              <th style={{ padding: '1rem 0.75rem' }}>Entra</th>
-              <th style={{ padding: '1rem 0.75rem' }}>Sale</th>
-              <th style={{ padding: '1rem 0.75rem', textAlign: 'right' }}>Coste Trend</th>
-              {isOwner && <th style={{ padding: '1rem 0.75rem', width: '50px' }}></th>}
-            </tr>
-          </thead>
-          <tbody>
-            {upgrades.length === 0 ? (
-              <tr><td colSpan={isOwner ? 5 : 4} style={{ padding: '3rem', textAlign: 'center', color: '#666' }}>No hay mejoras registradas.</td></tr>
-            ) : (
-              upgrades.map(u => {
-                const isCurrentMonth = u.month === currentMonth;
-                const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : (u.card_in ? trendingPrices[u.card_in.toLowerCase()] : null);
-                
-                // FIX: Check if card is precon
-                const isPrecon = u.card_in && preconCardNames?.has(u.card_in.toLowerCase());
-                
-                // If it's a precon card, FORCE 0€, otherwise use trending or recorded cost
-                const displayCost = isPrecon ? 0 : (isCurrentMonth && typeof trending === 'number') ? trending : (u.cost || 0);
+      <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
+        {/* Fixed height 1010px ensures it matches the neighbor card (~1014px) and forces the container size while preventing infinite grow */}
+        <div className="custom-scrollbar" style={{ overflowX: 'auto', width: '100%', height: '1010px', overflowY: 'auto', paddingRight: '4px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
+            <thead style={{ position: 'sticky', top: 0, background: '#151515', zIndex: 1 }}>
+              <tr style={{ borderBottom: '2px solid #444', color: '#888', fontSize: '0.85rem', textTransform: 'uppercase' }}>
+                <th style={{ padding: '1rem 0.75rem' }}>Mes</th>
+                <th style={{ padding: '1rem 0.75rem' }}>Entra</th>
+                <th style={{ padding: '1rem 0.75rem' }}>Sale</th>
+                <th style={{ padding: '1rem 0.75rem', textAlign: 'right' }}>Coste Trend</th>
+                {isOwner && <th style={{ padding: '1rem 0.75rem', width: '50px' }}></th>}
+              </tr>
+            </thead>
+            <tbody>
+              {upgrades.length === 0 ? (
+                <tr><td colSpan={isOwner ? 5 : 4} style={{ padding: '3rem', textAlign: 'center', color: '#666' }}>No hay mejoras registradas.</td></tr>
+              ) : (
+                upgrades.map(u => {
+                  const isCurrentMonth = u.month === currentMonth;
+                  const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : (u.card_in ? trendingPrices[u.card_in.toLowerCase()] : null);
+                  
+                  // FIX: Check if card is precon
+                  const isPrecon = u.card_in && preconCardNames?.has(u.card_in.toLowerCase());
+                  
+                  // If it's a precon card, FORCE 0€, otherwise use trending or recorded cost
+                  const displayCost = isPrecon ? 0 : (isCurrentMonth && typeof trending === 'number') ? trending : (u.cost || 0);
 
-                return (
-                  <tr key={u.id} style={{ borderBottom: '1px solid #222' }}>
-                    <td style={{ padding: '1rem 0.75rem', fontSize: '0.85rem', color: '#aaa' }}>{u.month}</td>
-                    <td style={{ padding: '1rem 0.75rem' }}>
-                      {u.card_in ? (
-                        <div 
-                          onClick={() => handleOpenVersionPicker(u)} 
-                          onMouseEnter={e => u.card_in && startHoverTimer(u.card_in, e)}
-                          onMouseLeave={stopHoverTimer}
-                          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isOwner ? 'pointer' : 'default' }}
-                        >
-                          <span style={{ color: 'var(--color-green)' }}>↑</span>
-                          <span style={{ color: 'var(--color-green)', textDecoration: isOwner ? 'underline dotted' : 'none' }}>{u.card_in}</span>
-                        </div>
-                      ) : '-'}
-                    </td>
-                    <td style={{ padding: '1rem 0.75rem' }}>
-                      {u.card_out ? (
-                        <div 
-                           onMouseEnter={e => u.card_out && startHoverTimer(u.card_out, e)}
-                           onMouseLeave={stopHoverTimer}
-                           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.7 }}
-                        >
-                          <span style={{ color: 'var(--color-red)' }}>↓</span>
-                          <span style={{ color: 'var(--color-red)' }}>{u.card_out}</span>
-                        </div>
-                      ) : '-'}
-                    </td>
-                    <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 'bold', color: 'var(--color-gold)' }}>
-                      {(displayCost || 0).toFixed(2)}€
-                      {isCurrentMonth && typeof trending === 'number' && !isPrecon && <span style={{ fontSize: '0.65rem', marginLeft: '4px', opacity: 0.5 }} title="Precio en tendencia real">🔥</span>}
-                    </td>
-                    {isOwner && (
-                      <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
-                        <button 
-                          onClick={() => setDeleteConfirmId(u.id)} 
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.2s' }}
-                          onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                          onMouseLeave={e => e.currentTarget.style.opacity = '0.5'}
-                        >
-                          🗑️
-                        </button>
+                  return (
+                    <tr key={u.id} style={{ borderBottom: '1px solid #222' }}>
+                      <td style={{ padding: '1rem 0.75rem', fontSize: '0.85rem', color: '#aaa' }}>{u.month}</td>
+                      <td style={{ padding: '1rem 0.75rem' }}>
+                        {u.card_in ? (
+                          <div 
+                            onClick={() => handleOpenVersionPicker(u)} 
+                            onMouseEnter={e => u.card_in && startHoverTimer(u.card_in, e)}
+                            onMouseLeave={stopHoverTimer}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: isOwner ? 'pointer' : 'default' }}
+                          >
+                            <span style={{ color: 'var(--color-green)' }}>↑</span>
+                            <span style={{ color: 'var(--color-green)', textDecoration: isOwner ? 'underline dotted' : 'none' }}>{u.card_in}</span>
+                          </div>
+                        ) : '-'}
                       </td>
-                    )}
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                      <td style={{ padding: '1rem 0.75rem' }}>
+                        {u.card_out ? (
+                          <div 
+                             onMouseEnter={e => u.card_out && startHoverTimer(u.card_out, e)}
+                             onMouseLeave={stopHoverTimer}
+                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: 0.7 }}
+                          >
+                            <span style={{ color: 'var(--color-red)' }}>↓</span>
+                            <span style={{ color: 'var(--color-red)' }}>{u.card_out}</span>
+                          </div>
+                        ) : '-'}
+                      </td>
+                      <td style={{ padding: '1rem 0.75rem', textAlign: 'right', fontWeight: 'bold', color: 'var(--color-gold)' }}>
+                        {(displayCost || 0).toFixed(2)}€
+                        {isCurrentMonth && typeof trending === 'number' && !isPrecon && <span style={{ fontSize: '0.65rem', marginLeft: '4px', opacity: 0.5 }} title="Precio en tendencia real">🔥</span>}
+                      </td>
+                      {isOwner && (
+                        <td style={{ padding: '1rem 0.75rem', textAlign: 'center' }}>
+                          <button 
+                            onClick={() => setDeleteConfirmId(u.id)} 
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5, transition: 'opacity 0.2s' }}
+                            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                            onMouseLeave={e => e.currentTarget.style.opacity = '0.5'}
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
+              )}
+              {/* Fill remaining space with empty rows to maintain grid height */}
+              {Array.from({ length: Math.max(0, 18 - upgrades.length) }).map((_, i) => (
+                <tr key={`empty-${i}`} style={{ borderBottom: '1px solid #222', height: '58px' }}>
+                  <td colSpan={isOwner ? 5 : 4}>&nbsp;</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Conditional Scroll Indicator */}
+        {upgrades.length > 18 && (
+           <div style={{
+             position: 'absolute', bottom: 0, left: 0, right: 0, height: '45px',
+             background: 'linear-gradient(to bottom, transparent, #151515 100%)',
+             pointerEvents: 'none',
+             zIndex: 2,
+             display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: '4px'
+           }}>
+             <span style={{ fontSize: '0.8rem', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>↓ Scroll ↓</span>
+           </div>
+        )}
       </div>
       {renderModal()}
       
@@ -332,6 +354,28 @@ export default function UpgradeLog({
         @keyframes fadeIn {
           from { opacity: 0; }
           to { opacity: 1; }
+        }
+
+        /* Custom Scrollbar for Upgrade Log */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #0a0a0a;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #333;
+          border-radius: 4px;
+          border: 2px solid #0a0a0a; /* Creates padding effect */
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #555;
+        }
+        /* Premium Gold Touch on Active Scroll */
+        .custom-scrollbar:active::-webkit-scrollbar-thumb {
+          background: var(--color-gold);
         }
       `}</style>
     </div>

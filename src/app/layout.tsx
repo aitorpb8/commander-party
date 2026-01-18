@@ -60,7 +60,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${cinzel.variable} ${ebGaramond.variable}`}>
+    <html lang="es" className={`${cinzel.variable} ${ebGaramond.variable}`} suppressHydrationWarning>
       <body>
         <Navbar />
         <main className="container">
