@@ -16,6 +16,8 @@ export default async function TestAtogPage() {
   // 2. Check Deck Cards for Atogatog commander
   const { data: cards } = await supabase
     .from('deck_cards')
+    .select('*')
+    .limit(10);
   // 4. Check the Specific Corrupted Deck
   const corruptedDeckId = '03466f1a-fd89-4ec3-b329-1b9ad97505b3';
   const { data: corruptedDeck } = await supabase
