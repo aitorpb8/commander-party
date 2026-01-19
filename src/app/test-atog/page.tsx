@@ -85,6 +85,7 @@ export default async function TestAtogPage() {
         type_line: c.type_line,
         mana_cost: c.mana_cost,
         image_url: c.image_url,
+        oracle_text: c.oracle_text, // FIX: Include oracle_text for mana calculation
         is_commander: c.name === 'Szarekh, the Silent King'
       });
     });
@@ -222,16 +223,30 @@ export default async function TestAtogPage() {
          )}
       </div>
 
-      {/* {cards && cards.length > 0 && (
-        <form action={deleteGhost}>
-          <button style={{ 
-            background: 'red', color: 'white', padding: '15px 30px', 
-            fontSize: '20px', cursor: 'pointer', border: 'none', borderRadius: '8px' 
-          }}>
-            🗑️ BORRAR FANTASMA AHORA
-          </button>
-        </form>
-      )} */}
+      <h2>Diagnóstico Metadata Necrones</h2>
+      {(() => {
+          // Diagnostic: Check if we have cards without oracle_text in the corrupted deck
+          return (
+             <form action={async () => {
+                 'use server';
+                 const supabase = await createClient();
+                 const { data: badCards } = await supabase
+                    .from('deck_cards')
+                    .select('card_name, type_line, oracle_text')
+                    .eq('deck_id', '03466f1a-fd89-4ec3-b329-1b9ad97505b3')
+                    .is('oracle_text', null);
+                 
+                 console.log("Cartas sin texto oracular:", badCards?.length);
+                 if (badCards && badCards.length > 0) {
+                     console.log("Ejemplos:", badCards.slice(0, 3));
+                 }
+             }}>
+                <button type="submit" style={{ padding: '10px', background: 'blue', color: 'white' }}>
+                    🔍 Verificar Oracle Text (Server Log)
+                </button>
+             </form>
+          )
+      })()}
       
       <h2>Decks with "Atog" in name:</h2>
       <pre>{JSON.stringify(decks, null, 2)}</pre>

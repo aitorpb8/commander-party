@@ -54,17 +54,26 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
     const text = c.oracle_text || '';
 
     // Check for mana sources (Lands AND Rocks/Dorks)
-    const producesMana = (str: string) => {
-        if (!str) return false;
-        // Check for specific color production in text (e.g., "Add {W}")
-        if (str.includes('{W}') || str.includes('Plains')) prod.W += c.quantity;
-        if (str.includes('{U}') || str.includes('Island')) prod.U += c.quantity;
-        if (str.includes('{B}') || str.includes('Swamp')) prod.B += c.quantity;
-        if (str.includes('{R}') || str.includes('Mountain')) prod.R += c.quantity;
-        if (str.includes('{G}') || str.includes('Forest')) prod.G += c.quantity;
+    const producesMana = (rawStr: string) => {
+        if (!rawStr) return false;
+        const str = rawStr.toLowerCase();
         
-        // Check for "Any color" production (e.g., Arcane Signet, Command Tower)
-        if (str.toLowerCase().includes('add one mana of any color')) {
+        // precise mapping
+        if (str.includes('{w}') || str.includes('plains')) prod.W += c.quantity;
+        if (str.includes('{u}') || str.includes('island')) prod.U += c.quantity;
+        if (str.includes('{b}') || str.includes('swamp')) prod.B += c.quantity;
+        if (str.includes('{r}') || str.includes('mountain')) prod.R += c.quantity;
+        if (str.includes('{g}') || str.includes('forest')) prod.G += c.quantity;
+        
+        // Check for "Any color" detection
+        // Matches: "add one mana of any color", "any type", "any one color"
+        // AND ALSO "search... basic land" (Evolving Wilds, etc.)
+        if (
+            str.includes('any color') || 
+            str.includes('any type') || 
+            str.includes('any one color') ||
+            str.includes('basic land')
+        ) {
             prod.W += c.quantity;
             prod.U += c.quantity;
             prod.B += c.quantity;
@@ -83,9 +92,9 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
         (cost.match(/R/g) || []).forEach(() => pips.R += c.quantity);
         (cost.match(/G/g) || []).forEach(() => pips.G += c.quantity);
 
-        // ...BUT ALSO check if they produce mana (Rocks, Dorks)
-        // Heuristic: Must have "Add" and "{" in text, or be a signet/talisman
-        if (text.includes('Add ')) {
+        // ...BUT ALSO check if they produce mana (Rocks, Dorks, Enchantments, RITUALS, RAMP)
+        // Heuristic: Must have "add" (Rituals/Rocks) OR "search" (Ramp/Fetch)
+        if (text.toLowerCase().includes('add') || text.toLowerCase().includes('search')) {
            producesMana(text);
         }
     }

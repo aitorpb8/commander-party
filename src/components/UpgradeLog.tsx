@@ -355,28 +355,6 @@ export default function UpgradeLog({
           from { opacity: 0; }
           to { opacity: 1; }
         }
-
-        /* Custom Scrollbar for Upgrade Log */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #0a0a0a;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #333;
-          border-radius: 4px;
-          border: 2px solid #0a0a0a; /* Creates padding effect */
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #555;
-        }
-        /* Premium Gold Touch on Active Scroll */
-        .custom-scrollbar:active::-webkit-scrollbar-thumb {
-          background: var(--color-gold);
-        }
       `}</style>
     </div>
   );

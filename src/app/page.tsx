@@ -93,7 +93,7 @@ export default async function Home() {
               {decks?.length || 0}
             </div>
             <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>
-              Proyectos
+              Decks
             </div>
           </div>
           <div className="hero-divider" />
