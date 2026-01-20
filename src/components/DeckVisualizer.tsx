@@ -14,6 +14,10 @@ import CardDetailsModal from '@/components/deck/CardDetailsModal';
 import VersionPickerModal from '@/components/deck/VersionPickerModal';
 import PreviewCardOverlay from '@/components/deck/PreviewCardOverlay';
 import { renderSymbols } from '@/components/ManaSymbols';
+import DeckFilterPanel, { AdvancedFilters } from '@/components/deck/DeckFilterPanel';
+import SyncCompleteModal from '@/components/deck/SyncCompleteModal';
+import { getCollection } from '@/lib/scryfall';
+import { createClient } from '@/lib/supabaseClient';
 
 interface DeckVisualizerProps {
   cards: DeckCard[];
@@ -76,6 +80,18 @@ export default function DeckVisualizer({
     setTimeout(() => setShareStatus('idle'), 2000);
   };
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+
+
+  const [showFilters, setShowFilters] = useState(false);
+  const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
+    type: '',
+    text: '',
+    edition: '',
+    colors: [],
+    cmc: [0, 20]
+  });
+
+  const [syncCount, setSyncCount] = useState<number | null>(null); // For success modal
 
   const [cardToRemove, setCardToRemove] = useState<DeckCard | null>(null);
 
@@ -151,6 +167,8 @@ export default function DeckVisualizer({
       image_url: newImageUrl,
       back_image_url: newBackUrl,
       oracle_text: combinedOracle,
+      set_code: card.set,
+      set_name: card.set_name,
       type_line: card.type_line || '',
       mana_cost: card.mana_cost || null
     };
@@ -173,9 +191,52 @@ export default function DeckVisualizer({
 
 
   const filteredCards = cards.filter(card => {
+    // 1. Basic Text Filter
     const matchesSearch = card.card_name.toLowerCase().includes(filter.toLowerCase());
     const matchesTag = !tagFilter || (cardTags[card.card_name] && cardTags[card.card_name].includes(tagFilter));
-    return matchesSearch && matchesTag;
+
+    if (!matchesSearch || !matchesTag) return false;
+
+    // 2. Advanced Filters
+    // Type
+    if (advancedFilters.type && !((card.type_line || '').toLowerCase().includes(advancedFilters.type.toLowerCase()))) {
+      return false;
+    }
+    // Text
+    if (advancedFilters.text && !((card.oracle_text || '').toLowerCase().includes(advancedFilters.text.toLowerCase()))) {
+      return false;
+    }
+    // Edition
+    if (advancedFilters.edition && card.set_code !== advancedFilters.edition) {
+      return false;
+    }
+    // CMC (Min check mainly, strict range if UI implemented)
+    // For now we assume default [0, 20] means "all"
+    
+    // Color
+    if (advancedFilters.colors.length > 0) {
+       const mc = card.mana_cost || '';
+       const cardColors: string[] = [];
+       if (mc.includes('W')) cardColors.push('W');
+       if (mc.includes('U')) cardColors.push('U');
+       if (mc.includes('B')) cardColors.push('B');
+       if (mc.includes('R')) cardColors.push('R');
+       if (mc.includes('G')) cardColors.push('G');
+       if (cardColors.length === 0) cardColors.push('C');
+       
+       // Intersection: Does card have ANY of the selected colors?
+       // Let's go with: Card must contain at least one of the selected colors.
+       // Special case: Colorless ('C') selected -> Card must be colorless.
+       
+       if (advancedFilters.colors.includes('C')) {
+          if (cardColors.includes('C')) return true; // Keep it
+       }
+
+       const hasMatch = advancedFilters.colors.some(c => cardColors.includes(c));
+       if (!hasMatch) return false;
+    }
+
+    return true;
   });
 
 
@@ -503,10 +564,11 @@ export default function DeckVisualizer({
             type="text" 
             placeholder="Filtrar..." 
             value={filter}
+
             onChange={e => setFilter(e.target.value)}
             style={{ 
                 padding: '0.6rem 1.2rem', 
-                borderRadius: '30px', 
+                borderRadius: '30px 0 0 30px', 
                 border: '1px solid #333', 
                 background: '#151515', 
                 color: 'white',
@@ -514,8 +576,165 @@ export default function DeckVisualizer({
                 width: '150px'
             }}
             />
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              style={{
+                padding: '0.6rem 1rem',
+                borderRadius: '0 30px 30px 0',
+                border: '1px solid #333',
+                borderLeft: 'none',
+                background: showFilters ? 'var(--color-gold)' : '#222',
+                color: showFilters ? '#000' : '#fff',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+              title="Filtros Avanzados"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="17" y1="16" x2="23" y2="16"></line>
+              </svg>
+            </button>
+            {showFilters && (
+              <DeckFilterPanel 
+                cards={cards} // Pass all cards to calculate available sets
+                filters={advancedFilters}
+                onChange={setAdvancedFilters}
+                onClose={() => setShowFilters(false)}
+                onSyncMetadata={async () => {
+                   const missingSet = cards.filter(c => !c.set_code);
+                   if (missingSet.length === 0) {
+                     alert("Todas las cartas tienen metadatos de set.");
+                     return;
+                   }
+                   if (!confirm(`Se van a actualizar ${missingSet.length} cartas. Esto puede tardar unos segundos. ¿Continuar?`)) return;
+
+                   // Unique identifiers
+                   // We prefer ID if present, else Name
+                   const identifiers = missingSet.map(c => c.scryfall_id ? { id: c.scryfall_id } : { name: c.card_name });
+                   
+                   // Chunk
+                   const chunks = [];
+                   for (let i = 0; i < identifiers.length; i += 75) {
+                     chunks.push(identifiers.slice(i, i + 75));
+                   }
+
+                   let updatedCount = 0;
+                   const supabase = createClient();
+
+                   for (const chunk of chunks) {
+                      const results = await getCollection(chunk);
+                      for (const scryCard of results) {
+                         const setCode = scryCard.set;
+                         const setName = scryCard.set_name;
+                         
+                         // Update in DB
+                         // Matches by scryfall_id OR name
+                         // Since our DB stores unique ID per row, but we don't have row ID easily matched here without iterating DeckCards...
+                         // Actually 'cards' are DeckCard objects, so they have 'id' (DB ID) presumably.
+                         
+                         const matchInDeck = missingSet.find(c => (c.scryfall_id === scryCard.id) || (c.card_name.toLowerCase() === scryCard.name.toLowerCase()));
+                         if (matchInDeck && matchInDeck.id) {
+                            await supabase
+                              .from('deck_cards')
+                              .update({ set_code: setCode, set_name: setName })
+                              .eq('id', matchInDeck.id);
+                            updatedCount++;
+                         }
+                      }
+                   }
+                   
+                   // Complete
+                   setShowFilters(false);
+                   setSyncCount(updatedCount);
+                   
+                   // Reload data in background or just wait for user to close modal to reload?
+                   // The modal will trigger reload on close.
+                }}
+                onFixMetadata={async () => {
+                   // Fix Logic: Extract ID from Image URL if scryfall_id is missing
+                   // This recovers the specific printing if the user had an image set but no metadata.
+                   const candidates = cards.filter(c => !c.scryfall_id && c.image_url && c.image_url.includes('scryfall.io'));
+                   if (candidates.length === 0) {
+                     alert("No se encontraron cartas recuperables (sin ID pero con imagen Scryfall).");
+                     return;
+                   }
+
+                   if (!confirm(`Se intentarán recuperar las ediciones correctas de ${candidates.length} cartas basándose en su imagen (útil para tierras básicas). ¿Continuar?`)) return;
+
+                   const identifiers: { id: string }[] = [];
+                   const cardMap = new Map<string, DeckCard>();
+
+                   candidates.forEach(c => {
+                      // Regex to find UUID in URL: .../front/x/y/UUID.jpg
+                      // or .../back/x/y/UUID.jpg
+                      const match = c.image_url?.match(/\/(?:front|back)\/.\/.\/([a-z0-9-]+)\.jpg/);
+                      if (match && match[1]) {
+                          identifiers.push({ id: match[1] });
+                          cardMap.set(match[1], c);
+                      }
+                   });
+
+                   if (identifiers.length === 0) {
+                       alert("No se pudieron extraer IDs válidos de las imágenes.");
+                       return;
+                   }
+
+                   // Chunk requests
+                   const chunks = [];
+                   for (let i = 0; i < identifiers.length; i += 75) {
+                      chunks.push(identifiers.slice(i, i + 75));
+                   }
+
+                   let updatedCount = 0;
+                   const supabase = createClient();
+
+                   for (const chunk of chunks) {
+                       const results = await getCollection(chunk);
+                       for (const scryCard of results) {
+                           // Find the card in our deck that matches this ID (via the map)
+                           const deckCard = cardMap.get(scryCard.id);
+                           if (deckCard && deckCard.id) {
+                               await supabase
+                                  .from('deck_cards')
+                                  .update({ 
+                                      scryfall_id: scryCard.id,
+                                      set_code: scryCard.set, 
+                                      set_name: scryCard.set_name 
+                                  })
+                                  .eq('id', deckCard.id);
+                               updatedCount++;
+                           }
+                       }
+                   }
+
+                   setShowFilters(false);
+                   setSyncCount(updatedCount);
+                }}
+              />
+            )}
         </div>
       </div>
+
+      {syncCount !== null && (
+          <SyncCompleteModal 
+            count={syncCount} 
+            onClose={() => {
+                setSyncCount(null);
+                window.location.reload();
+            }} 
+          />
+      )}
 
       {/* Add Card Interface (Always Visible for Owner) */}
       {isOwner && (
@@ -1003,6 +1222,7 @@ export default function DeckVisualizer({
                                       return (
                                        <tr 
                                          key={card.card_name} 
+                                         className="deck-list-row"
                                          style={{ borderBottom: '1px solid #222', cursor: 'pointer' }}
                                          onClick={() => setActiveInfoCard(card)}
                                          onMouseEnter={(e) => {
@@ -1118,6 +1338,12 @@ export default function DeckVisualizer({
       )}
 
       <style jsx>{`
+        .deck-list-row {
+          transition: background-color 0.2s ease;
+        }
+        .deck-list-row:hover {
+          background-color: rgba(255, 255, 255, 0.05) !important;
+        }
         .card-slice:hover .remove-btn {
           visibility: visible !important;
         }

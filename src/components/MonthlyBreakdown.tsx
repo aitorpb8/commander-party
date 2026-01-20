@@ -43,16 +43,16 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
   return (
     <div className="card" style={{ height: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
       <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)', flexShrink: 0 }}>Desglose</h3>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1, overflowY: 'auto', paddingRight: '0.5rem', minHeight: 0 }}>
+      <div className="custom-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1, overflowY: 'auto', paddingRight: '0.5rem', minHeight: 0 }}>
         {months.map(m => (
           <div key={m} style={{ borderBottom: '1px solid #333', paddingBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
               <h4 style={{ textTransform: 'capitalize', margin: 0 }}>{formatMonth(m)}</h4>
               <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{grouped[m].total.toFixed(2)}€</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
               {grouped[m].upgrades.map(u => (
-                <div key={u.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#aaa', gap: '0.5rem' }}>
+                <div key={u.id} className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#aaa', gap: '0.5rem', padding: '6px', borderRadius: '4px', transition: 'background 0.2s' }}>
                   <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
                     <span style={{ color: 'var(--color-green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↑ {u.card_in || 'N/A'}</span>
                     {u.card_out && <span style={{ color: 'var(--color-red)', opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↓ {u.card_out}</span>}
@@ -64,6 +64,12 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
           </div>
         ))}
       </div>
+      <style jsx>{`
+        .breakdown-row:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+            color: #fff !important;
+        }
+      `}</style>
     </div>
   );
 }

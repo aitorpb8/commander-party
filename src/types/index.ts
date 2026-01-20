@@ -45,6 +45,8 @@ export interface DeckCard {
   oracle_text: string | null;
   is_commander: boolean;
   scryfall_id?: string;
+  set_code?: string;
+  set_name?: string;
   created_at?: string;
 }
 

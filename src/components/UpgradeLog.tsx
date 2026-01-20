@@ -77,6 +77,9 @@ export default function UpgradeLog({
 
   const startHoverTimer = async (name: string, e: React.MouseEvent) => {
      if (!name) return;
+     // Clear any existing timer to prevent race conditions
+     if (hoverTimer) clearTimeout(hoverTimer);
+     
      const timer = setTimeout(async () => {
          const card = await getCardByName(name);
          if (card) {
@@ -89,6 +92,7 @@ export default function UpgradeLog({
 
   const stopHoverTimer = () => {
     if (hoverTimer) clearTimeout(hoverTimer);
+    setHoverTimer(null);
     setPreviewCard(null);
   };
 

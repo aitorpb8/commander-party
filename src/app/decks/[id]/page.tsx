@@ -359,7 +359,9 @@ export default function DeckDetailPage() {
                 scryfall_id: cardData.scryfall_id || cardData.id || firstRow.scryfall_id,
                 image_url: cardData.image_url || cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal,
                 back_image_url: cardData.back_image_url || cardData.card_faces?.[1]?.image_uris?.normal || null,
-                oracle_text: cardData.oracle_text || cardData.card_faces?.map((f: any) => `${f.name}: ${f.oracle_text}`).join('\n\n') || null
+                oracle_text: cardData.oracle_text || cardData.card_faces?.map((f: any) => `${f.name}: ${f.oracle_text}`).join('\n\n') || null,
+                set_code: cardData.set,
+                set_name: cardData.set_name
               })
               .eq('id', firstRow.id);
             
@@ -386,7 +388,9 @@ export default function DeckDetailPage() {
                  mana_cost: cardData.mana_cost,
                  image_url: cardData.image_url || cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal,
                  back_image_url: backImage,
-                 oracle_text: combinedOracle
+                 oracle_text: combinedOracle,
+                 set_code: cardData.set,
+                 set_name: cardData.set_name
                });
             if (insError) throw insError;
           }
@@ -894,17 +898,17 @@ export default function DeckDetailPage() {
            onFilterByTag={setTagFilter}
            activeFilter={tagFilter}
          />
-         <div className="budget-stats-grid" style={{ gridColumn: 'span 3', display: 'grid', gap: '2rem' }}>
-            <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {/* Budget Stats - Now independent columns */}
+            <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: '400px' }}>
               <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)' }}>Evolución del Presupuesto</h3>
               <div style={{ flex: 1, position: 'relative' }}>
                  <BudgetChart upgrades={upgrades} creationDate={deck.created_at} />
               </div>
             </div>
-            <div style={{ height: '100%', overflow: 'hidden' }}>
+            
+            <div style={{ height: '100%', minHeight: '400px' }}>
                <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} />
             </div>
-         </div>
          <div style={{ gridColumn: '1 / -1' }}>
             <Wishlist 
               deckId={id as string} 

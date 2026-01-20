@@ -1,5 +1,5 @@
-
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import PremiumDropdown from '@/components/ui/PremiumDropdown';
 
 export type GroupBy = 'type' | 'cmc' | 'color' | 'function';
 export type SortBy = 'cmc' | 'name';
@@ -22,6 +22,35 @@ export function DeckFilters({
   viewMode,
   setViewMode
 }: DeckFiltersProps) {
+  const [showViewMenu, setShowViewMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowViewMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const viewOptions = [
+    { value: 'stack', label: 'Stacks' },
+    { value: 'grid', label: 'Grid' },
+    { value: 'text', label: 'Text' },
+    { value: 'list', label: 'Table' },
+  ];
+  
+  const sortOptions = [
+    { value: 'cmc', label: 'Mana Value' },
+    { value: 'name', label: 'Nombre (A-Z)' },
+  ];
+
+  // Helper to get active label
+  const activeOption = viewOptions.find(o => o.value === viewMode);
+
   return (
     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
       {/* Group By */}
@@ -48,29 +77,21 @@ export function DeckFilters({
       </div>
 
       {/* Sort By */}
-      <select 
+      <PremiumDropdown 
         value={sortBy}
-        onChange={(e) => setSortBy(e.target.value as SortBy)}
-        style={{ padding: '0.3rem', borderRadius: '6px', background: '#151515', color: '#ccc', border: '1px solid #333', fontSize: '0.8rem' }}
-      >
-        <option value="cmc">Mana Value</option>
-        <option value="name">Nombre (A-Z)</option>
-      </select>
+        options={sortOptions as any}
+        onChange={(v) => setSortBy(v as SortBy)}
+        width="150px"
+      />
 
-      {/* View Mode Dropdown */}
-      <div className="view-as-container">
-          <span>View as</span>
-          <select 
-          value={viewMode}
-          onChange={(e) => setViewMode(e.target.value as ViewMode)}
-          className="view-as-select"
-          >
-            <option value="stack">🖼️ Pilas</option>
-            <option value="grid">⬛ Cuadrícula</option>
-            <option value="text">📄 Texto</option>
-            <option value="list">📝 Tabla</option>
-          </select>
-      </div>
+      {/* Custom View Mode Dropdown */}
+      <PremiumDropdown 
+        label="View as"
+        value={viewMode}
+        options={viewOptions as any}
+        onChange={(v) => setViewMode(v as ViewMode)}
+        width="160px"
+      />
     </div>
   );
 }

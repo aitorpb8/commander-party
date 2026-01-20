@@ -83,12 +83,11 @@ export async function getCardPrints(name: string): Promise<ScryfallCard[]> {
   try {
     const encodedName = encodeURIComponent(`!"${name}"`);
     let allPrints: ScryfallCard[] = [];
-    let nextUrl = `${SCRYFALL_API}/cards/search?q=${encodedName}&unique=prints&order=eur&dir=asc`;
+    let nextUrl = `${SCRYFALL_API}/cards/search?q=${encodedName}&unique=prints&order=released&dir=desc`;
     
-    // We fetch up to 3 pages (525 cards) to avoid excessive waiting, 
-    // but covering almost everything except some basic lands.
+    // We fetch up to 10 pages (1750 cards) to cover all basic lands (Forest has >600 prints).
     let pagesFetched = 0;
-    while (nextUrl && pagesFetched < 3) {
+    while (nextUrl && pagesFetched < 10) {
       const res = await fetch(nextUrl);
       if (!res.ok) break;
       const data = await res.json();
