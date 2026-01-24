@@ -1025,7 +1025,7 @@ export default function DeckDetailPage() {
             </div>
             
             <div style={{ height: '100%', minHeight: '400px' }}>
-               <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} />
+               <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} preconCardNames={preconCardNames} />
             </div>
          <div style={{ gridColumn: '1 / -1' }}>
             <Wishlist 

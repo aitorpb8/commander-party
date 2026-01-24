@@ -6,9 +6,10 @@ import { DeckUpgrade } from '@/types';
 interface MonthlyBreakdownProps {
   upgrades: DeckUpgrade[];
   trendingPrices?: Record<string, number>;
+  preconCardNames: Set<string>;
 }
 
-export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: MonthlyBreakdownProps) {
+export default function MonthlyBreakdown({ upgrades, trendingPrices = {}, preconCardNames }: MonthlyBreakdownProps) {
   const currentMonth = new Date().toISOString().slice(0, 7);
 
   // Group upgrades by month
@@ -16,11 +17,11 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {} }: Mont
     const m = u.month || 'Desconocido';
     if (!acc[m]) acc[m] = { upgrades: [], total: 0 };
     
-    // Resolve price (live if current month)
+    // Resolve price (Match page.tsx logic: Logged Cost, excluding Precon)
     let displayPrice = u.cost || 0;
-    if (m === currentMonth && u.card_in) {
-        const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : trendingPrices[u.card_in.toLowerCase()];
-        if (trending !== undefined) displayPrice = trending;
+    
+    if (u.card_in && preconCardNames.has(u.card_in.toLowerCase())) {
+        displayPrice = 0;
     }
 
     acc[m].upgrades.push({ ...u, cost: displayPrice });
