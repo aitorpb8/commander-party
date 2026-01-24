@@ -265,46 +265,126 @@ export default function DeckDetailPage() {
     // We remove the global setLoading(true) to avoid full page unmount/flicker
     try {
       const month = new Date().toISOString().slice(0, 7);
-      
-      // 1. Log the upgrade
-      const { error: upgradeError } = await supabase
-        .from('deck_upgrades')
-        .insert({
-          deck_id: id,
-          card_in: typeof change.card_in === 'string' ? change.card_in : (change.card_in?.card_name || change.card_in?.name || null),
-          card_out: change.card_out || null,
-          cost: change.cost || 0,
-          description: change.description || '',
-          month,
-          scryfall_id: typeof change.card_in === 'object' ? (change.card_in?.scryfall_id || change.card_in?.id) : null
-        });
-      if (upgradeError) {
-        // Fallback for when the column doesn't exist yet (user hasn't run the migration)
-        if (upgradeError.code === '42703') {
-           const { error: fallbackError } = await supabase
-            .from('deck_upgrades')
-            .insert({
-              deck_id: id,
-              card_in: typeof change.card_in === 'string' ? change.card_in : (change.card_in?.name || null),
-              card_out: change.card_out || null,
-              cost: change.cost || 0,
-              description: change.description || '',
-              month
-            });
-            if (fallbackError) throw fallbackError;
-        } else {
-          throw upgradeError;
-        }
+      let skipInsert = false;
+      let budgetDiff = 0;
+
+      // PRE-FETCH to determine Undo Strategy (Deep vs Shallow)
+      let isLastCopy = false;
+      if (change.card_out && !change.card_in) {
+          const cleanName = change.card_out.trim();
+          const { data: rows } = await supabase
+             .from('deck_cards')
+             .select('quantity')
+             .eq('deck_id', id)
+             .ilike('card_name', cleanName);
+          
+          const totalQty = rows?.reduce((a, b) => a + b.quantity, 0) || 0;
+          if (totalQty <= 1) isLastCopy = true;
       }
 
-      // 2. Update current mainboard (deck_cards)
+      // SMART UNDO LOGIC
+      if (change.card_out && !change.card_in) {
+          const cleanName = change.card_out.trim();
+          
+          const { data: logs } = await supabase
+            .from('deck_upgrades')
+            .select('*')
+            .eq('deck_id', id)
+            .or(`card_in.ilike.${cleanName},card_out.ilike.${cleanName}`) 
+            .eq('month', month)
+            .order('created_at', { ascending: false });
+
+          if (logs && logs.length > 0) {
+              const toDeleteIds: string[] = [];
+              let refundAccumulator = 0;
+              
+              if (isLastCopy) {
+                  // DEEP CLEAN: Trace back continuously
+                  for (const log of logs) {
+                      const isIn = log.card_in && log.card_in.trim().toLowerCase() === cleanName.toLowerCase();
+                      const isOut = log.card_out && log.card_out.trim().toLowerCase() === cleanName.toLowerCase();
+
+                      if (isOut && !isIn) {
+                          break; // Stop at previous removal
+                      }
+                      
+                      if (isIn) {
+                          toDeleteIds.push(log.id);
+                          refundAccumulator += (log.cost || 0);
+                      }
+                  }
+              } else {
+                  // SHALLOW CLEAN: Only most recent Add
+                   for (const log of logs) {
+                      const isIn = log.card_in && log.card_in.trim().toLowerCase() === cleanName.toLowerCase();
+                      const isOut = log.card_out && log.card_out.trim().toLowerCase() === cleanName.toLowerCase();
+                      
+                      if (isIn && !isOut) {
+                          toDeleteIds.push(log.id);
+                          refundAccumulator += (log.cost || 0);
+                          break; 
+                      }
+                   }
+              }
+
+              if (toDeleteIds.length > 0) {
+                  await supabase.from('deck_upgrades').delete().in('id', toDeleteIds);
+                  budgetDiff = -refundAccumulator;
+                  skipInsert = true;
+              }
+          }
+      }
+
+      if (!skipInsert) {
+        // 1. Log the upgrade (Normal)
+        const { error: upgradeError } = await supabase
+          .from('deck_upgrades')
+          .insert({
+            deck_id: id,
+            card_in: typeof change.card_in === 'string' ? change.card_in : (change.card_in?.card_name || change.card_in?.name || null),
+            card_out: change.card_out || null,
+            cost: change.cost || 0,
+            description: change.description || '',
+            month,
+            scryfall_id: typeof change.card_in === 'object' ? (change.card_in?.scryfall_id || change.card_in?.id) : null
+          });
+        
+        if (upgradeError) {
+          // Fallback for when the column doesn't exist yet
+          if (upgradeError.code === '42703') {
+             const { error: fallbackError } = await supabase
+              .from('deck_upgrades')
+              .insert({
+                deck_id: id,
+                card_in: typeof change.card_in === 'string' ? change.card_in : (change.card_in?.name || null),
+                card_out: change.card_out || null,
+                cost: change.cost || 0,
+                description: change.description || '',
+                month
+              });
+              if (fallbackError) throw fallbackError;
+          } else {
+            throw upgradeError;
+          }
+        }
+        
+        budgetDiff = change.cost || 0;
+      }
+      
+      // 2. Update deck budget if needed
+      if (budgetDiff !== 0) {
+         await supabase.from('decks').update({ budget_spent: (deck?.budget_spent || 0) + budgetDiff }).eq('id', id);
+      }
+
+      // 3. Update current mainboard (deck_cards)
       if (change.card_out) {
-        // Fetch current quantity - Use select instead of single to handle potential duplicates
+        const cleanOut = change.card_out.trim();
+        // Use ILIKE for query as well
         const { data: existingRows } = await supabase
           .from('deck_cards')
           .select('id, quantity')
           .eq('deck_id', id)
-          .eq('card_name', change.card_out);
+          .ilike('card_name', cleanOut);
 
         if (existingRows && existingRows.length > 0) {
           const firstRow = existingRows[0];
@@ -333,18 +413,20 @@ export default function DeckDetailPage() {
 
         if (cardData) {
           const cardName = cardData.card_name || cardData.name;
-          // Fetch all existing rows with this name to merge them if necessary
+          const cleanIn = cardName.trim();
+          
+          // Fetch existing rows
           const { data: existingRows } = await supabase
             .from('deck_cards')
             .select('id, quantity, scryfall_id')
             .eq('deck_id', id)
-            .eq('card_name', cardName);
+            .ilike('card_name', cleanIn);
 
           if (existingRows && existingRows.length > 0) {
             const firstRow = existingRows[0];
             const currentTotalQty = existingRows.reduce((acc, r) => acc + (r.quantity || 1), 0);
 
-            // If it's an increment (+ button)
+            // Calculate new quantity
             let newQty;
             if (change.card_in?.quantity !== undefined && (change.card_in.card_name === cardName || change.card_in.name === cardName)) {
               newQty = change.card_in.quantity;
@@ -367,7 +449,7 @@ export default function DeckDetailPage() {
             
             if (updError) throw updError;
 
-            // Cleanup: If there were duplicates, delete the others
+            // Cleanup duplicates
             if (existingRows.length > 1) {
               const otherIds = existingRows.slice(1).map(r => r.id);
               await supabase.from('deck_cards').delete().in('id', otherIds);
@@ -397,16 +479,6 @@ export default function DeckDetailPage() {
         }
       }
 
-      // 3. Update deck budget
-      if (change.cost && change.cost !== 0) {
-        const { error: budgetError } = await supabase
-          .from('decks')
-          .update({ budget_spent: (deck?.budget_spent || 0) + change.cost })
-          .eq('id', id);
-        if (budgetError) throw budgetError;
-      }
-
-
       await fetchData(5, false);
     } catch (err: any) {
       setMessageDialog({ title: 'Error al actualizar', message: `No se pudo actualizar el mazo: ${err.message}`, isError: true });
@@ -430,37 +502,50 @@ export default function DeckDetailPage() {
 
       // 1. Revert Card In (Remove)
       if (upgrade.card_in) {
-        const { data: existing } = await supabase
+        const cleanName = upgrade.card_in.trim();
+        // Use ILIKE for case-insensitive match
+        const { data: existingRows } = await supabase
           .from('deck_cards')
-          .select('id, quantity')
+          .select('id, quantity, scryfall_id, card_name')
           .eq('deck_id', id)
-          .eq('card_name', upgrade.card_in)
-          .maybeSingle();
+          .ilike('card_name', cleanName);
 
-        if (existing) {
-          if (existing.quantity > 1) {
-            await supabase.from('deck_cards').update({ quantity: existing.quantity - 1 }).eq('id', existing.id);
+        if (existingRows && existingRows.length > 0) {
+          // Try to match specific printing if known, otherwise first available
+          let target = upgrade.scryfall_id 
+            ? existingRows.find(r => r.scryfall_id === upgrade.scryfall_id) 
+            : existingRows[0];
+          
+          // Fallback if specific printing not found
+          if (!target) target = existingRows[0];
+
+          if (target.quantity > 1) {
+            await supabase.from('deck_cards').update({ quantity: target.quantity - 1 }).eq('id', target.id);
           } else {
-            await supabase.from('deck_cards').delete().eq('id', existing.id);
+            await supabase.from('deck_cards').delete().eq('id', target.id);
           }
+        } else {
+           // Debug: Log if not found
+           console.warn(`Card to revert not found in deck: ${cleanName}`);
         }
       }
 
       // 2. Revert Card Out (Add back)
       if (upgrade.card_out) {
-        const { data: existing } = await supabase
+        const cleanNameOut = upgrade.card_out.trim();
+        const { data: existingRows } = await supabase
           .from('deck_cards')
           .select('id, quantity')
           .eq('deck_id', id)
-          .eq('card_name', upgrade.card_out)
-          .maybeSingle();
+          .ilike('card_name', cleanNameOut);
 
-        if (existing) {
-          await supabase.from('deck_cards').update({ quantity: existing.quantity + 1 }).eq('id', existing.id);
+        if (existingRows && existingRows.length > 0) {
+          const firstRow = existingRows[0];
+          await supabase.from('deck_cards').update({ quantity: firstRow.quantity + 1 }).eq('id', firstRow.id);
         } else {
-          // Use scryfall_id if we ever start saving card_out metadata, 
-          // but for now card_out is just a name. We search Scryfall.
-          const results = await searchCards(upgrade.card_out);
+          // Use scryfall_id if available (not standard in current schema for card_out but good practice)
+          // Otherwise search
+          const results = await searchCards(cleanNameOut);
           const cardData = results[0];
           if (cardData) {
             await supabase.from('deck_cards').insert({
@@ -472,7 +557,10 @@ export default function DeckDetailPage() {
               mana_cost: cardData.mana_cost,
               image_url: cardData.image_uris?.normal || cardData.card_faces?.[0]?.image_uris?.normal,
               back_image_url: cardData.card_faces?.[1]?.image_uris?.normal || null,
-              oracle_text: cardData.oracle_text || cardData.card_faces?.map((f: any) => `${f.name}: ${f.oracle_text}`).join('\n\n') || null
+              oracle_text: cardData.oracle_text || cardData.card_faces?.map((f: any) => `${f.name}: ${f.oracle_text}`).join('\n\n') || null,
+              set_code: cardData.set,
+              set_name: cardData.set_name,
+              collector_number: cardData.collector_number
             });
           }
         }
@@ -514,6 +602,32 @@ export default function DeckDetailPage() {
       
       if (updateError) throw updateError;
 
+      // NEW: If scryfall_id changed (version change), update the actual deck card
+      // This ensures the visual editor matches the version selected in the log
+      if (updates.scryfall_id && current.card_in) {
+         // Fetch details for the new version (we need images, set name, etc.)
+         // We can't rely just on the ID, we need the metadata for deck_cards
+         const res = await fetch(`https://api.scryfall.com/cards/${updates.scryfall_id}`);
+         if (res.ok) {
+            const newCardData = await res.json();
+            
+            // Allow multiple matches update logic
+            // We update ALL instances of this card name to the new version
+            // This assumes consistency across the deck
+            await supabase.from('deck_cards')
+              .update({
+                  scryfall_id: newCardData.id,
+                  image_url: newCardData.image_uris?.normal || newCardData.card_faces?.[0]?.image_uris?.normal,
+                  back_image_url: newCardData.card_faces?.[1]?.image_uris?.normal || null,
+                  set_code: newCardData.set,
+                  set_name: newCardData.set_name,
+                  collector_number: newCardData.collector_number
+              })
+              .eq('deck_id', id)
+              .eq('card_name', current.card_in);
+         }
+      }
+
       // 3. Update deck budget if cost changed
       if (updates.cost !== undefined && updates.cost !== current.cost) {
         const diff = updates.cost - current.cost;
@@ -539,6 +653,10 @@ export default function DeckDetailPage() {
 
       if (upgradeData) setUpgrades(upgradeData);
       if (deckData) setDeck(deckData);
+      
+      // Also refetch cards to update the visualizer images immediately
+      const { data: cardsData } = await supabase.from('deck_cards').select('*').eq('deck_id', id);
+      if (cardsData) setDeckCards(cardsData);
 
     } catch (err: any) {
       setMessageDialog({ title: 'Error al actualizar', message: `No se pudo actualizar la mejora: ${err.message}`, isError: true });
@@ -935,7 +1053,7 @@ export default function DeckDetailPage() {
         message={messageDialog?.message || ''}
         confirmText="Entendido"
         cancelText=""
-        isDestructive={messageDialog?.isError || false}
+        isDestructive={false}
         onConfirm={() => setMessageDialog(null)}
         onCancel={() => setMessageDialog(null)}
       />

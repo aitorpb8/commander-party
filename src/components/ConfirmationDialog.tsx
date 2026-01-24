@@ -66,30 +66,32 @@ export default function ConfirmationDialog({
           {message}
         </p>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          <button 
-            onClick={onCancel} 
-            className="btn" 
-            style={{ 
-              flex: 1, 
-              background: '#222', 
-              border: '1px solid #444', 
-              color: '#888',
-              borderRadius: '12px',
-              padding: '0.8rem',
-              fontWeight: '600',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = '#333';
-              e.currentTarget.style.color = '#fff';
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = '#222';
-              e.currentTarget.style.color = '#888';
-            }}
-          >
-            {cancelText}
-          </button>
+          {cancelText && (
+            <button 
+              onClick={onCancel} 
+              className="btn" 
+              style={{ 
+                flex: 1, 
+                background: '#222', 
+                border: '1px solid #444', 
+                color: '#888',
+                borderRadius: '12px',
+                padding: '0.8rem',
+                fontWeight: '600',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = '#333';
+                e.currentTarget.style.color = '#fff';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = '#222';
+                e.currentTarget.style.color = '#888';
+              }}
+            >
+              {cancelText}
+            </button>
+          )}
           <button 
             onClick={onConfirm} 
             className="btn" 

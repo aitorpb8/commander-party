@@ -10,7 +10,7 @@ interface CardDetailsModalProps {
   onClose: () => void;
   isLoadingInfo: boolean;
   isOwner: boolean;
-  onUpdateDeck?: (change: { card_in?: any, card_out?: string, description?: string, quantity?: number, is_commander?: boolean }) => Promise<void> | void;
+  onUpdateDeck?: (change: { card_in?: any, card_out?: string, description?: string, quantity?: number, is_commander?: boolean, cost?: number }) => Promise<void> | void;
   onOpenVersionPicker: () => void;
   onEditTags: () => void;
   onRemoveCard: () => void;
@@ -134,10 +134,17 @@ export default function CardDetailsModal({
                    <div style={{ display: 'flex', alignItems: 'center', background: '#000', borderRadius: '8px', border: '1px solid #333' }}>
                       <button 
                         onClick={() => {
+                            const unitPrice = parseFloat(fullCardData?.prices?.eur || '0');
                             if (activeInfoCard.quantity > 1) {
                                const newQty = activeInfoCard.quantity - 1;
-                               onUpdateDeck?.({ card_in: {...activeInfoCard, quantity: newQty}, card_out: activeInfoCard.card_name }); 
+                               onUpdateDeck?.({ 
+                                   card_in: {...activeInfoCard, quantity: newQty}, 
+                                   card_out: activeInfoCard.card_name,
+                                   cost: -unitPrice,
+                                   description: 'Reducción de cantidad'
+                               }); 
                             } else {
+                               // For removal, logic is handled by parent, but ideally parent should also know price
                                onRemoveCard();
                             }
                          }}
@@ -147,8 +154,14 @@ export default function CardDetailsModal({
                       <span style={{ padding: '0 8px', fontWeight: 'bold', minWidth: '30px', textAlign: 'center' }}>{activeInfoCard.quantity}</span>
                       <button 
                          onClick={() => {
+                            const unitPrice = parseFloat(fullCardData?.prices?.eur || '0');
                             const newQty = activeInfoCard.quantity + 1;
-                            onUpdateDeck?.({ card_in: {...activeInfoCard, quantity: newQty}, card_out: activeInfoCard.card_name });
+                            onUpdateDeck?.({ 
+                                card_in: {...activeInfoCard, quantity: newQty}, 
+                                card_out: activeInfoCard.card_name,
+                                cost: unitPrice,
+                                description: 'Aumento de cantidad'
+                            });
                          }}
                         className="btn"
                          style={{ padding: '4px 12px', background: 'none', border: 'none', color: '#fff', fontSize: '1.2rem', cursor: 'pointer' }}

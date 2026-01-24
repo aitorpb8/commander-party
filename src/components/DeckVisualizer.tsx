@@ -170,16 +170,21 @@ export default function DeckVisualizer({
       set_code: card.set,
       set_name: card.set_name,
       type_line: card.type_line || '',
-      mana_cost: card.mana_cost || null
+      mana_cost: card.mana_cost || null,
+      collector_number: card.collector_number
     };
 
     setActiveInfoCard(updatedCard);
     
+    // Calculate new price
+    const newPrice = parseFloat(card.prices?.eur || '0');
+    
     // Notify parent to update the DB entry
     onUpdateDeck?.({ 
       card_in: updatedCard, 
-      card_out: activeInfoCard.card_name,
-      cost: 0 // Just a version change
+      card_out: activeInfoCard.card_name, // This triggers a "swap" in log
+      cost: newPrice,
+      description: `Cambio de edición: ${card.set_name} (${card.set.toUpperCase()})`
     });
 
     setEditingVersion(null);
@@ -1392,8 +1397,41 @@ export default function DeckVisualizer({
         confirmText="Sí, quitar"
         cancelText="No, mantener"
         isDestructive={true}
-        onConfirm={() => {
-          if (cardToRemove) onUpdateDeck?.({ card_out: cardToRemove.card_name });
+        onConfirm={async () => {
+          if (cardToRemove) {
+             let refund = 0;
+             const isPrecon = preconCardNames.has(cardToRemove.card_name.toLowerCase());
+             
+             if (!isPrecon) {
+                 try {
+                    if (cardToRemove.scryfall_id) {
+                        const res = await fetch(`https://api.scryfall.com/cards/${cardToRemove.scryfall_id}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            refund = parseFloat(data.prices?.eur || '0');
+                        }
+                    } 
+                    
+                    if (refund === 0) {
+                        const results = await searchCards(cardToRemove.card_name);
+                        const match = results.find(c => c.name.toLowerCase() === cardToRemove.card_name.toLowerCase()) || results[0];
+                        if (match && match.prices?.eur) refund = parseFloat(match.prices.eur);
+                    }
+                 } catch (e) {
+                     console.error("Error calculating refund:", e);
+                 }
+             }
+
+             const totalRefund = refund * (cardToRemove.quantity || 1);
+
+             if (onUpdateDeck) {
+                 await onUpdateDeck({ 
+                     card_out: cardToRemove.card_name,
+                     cost: -totalRefund,
+                     description: 'Eliminado desde editor visual'
+                 });
+             }
+          }
           setCardToRemove(null);
           setActiveInfoCard(null);
         }}

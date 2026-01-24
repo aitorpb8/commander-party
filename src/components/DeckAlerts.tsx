@@ -1,6 +1,5 @@
-'use client'
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getCollection } from '@/lib/scryfall';
 
 interface DeckCard {
   card_name: string;
@@ -9,6 +8,7 @@ interface DeckCard {
   mana_cost: string | null;
   oracle_text: string | null;
   is_commander?: boolean;
+  scryfall_id?: string | null;
 }
 
 interface Alert {
@@ -34,6 +34,48 @@ const MONTHLY_LIMIT = 10; // Not used for limit anymore, but could be ref for wa
 
 export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }: DeckAlertsProps) {
   const alerts: Alert[] = [];
+  const [validatedIdentities, setValidatedIdentities] = useState<Record<string, string[]> | null>(null);
+
+  // Fetch authoritative identities
+  useEffect(() => {
+    const fetchIdentities = async () => {
+      const uniqueCards = new Map<string, { id?: string, name: string }>();
+      cards.forEach(c => {
+        if (!uniqueCards.has(c.card_name)) {
+          uniqueCards.set(c.card_name, { 
+            id: c.scryfall_id || undefined, 
+            name: c.card_name 
+          });
+        }
+      });
+      
+      const identifiers = Array.from(uniqueCards.values());
+      const chunks = [];
+      for (let i = 0; i < identifiers.length; i += 75) {
+          chunks.push(identifiers.slice(i, i + 75));
+      }
+      
+      try {
+        const results = await Promise.all(chunks.map(chunk => getCollection(chunk)));
+        const flatResults = results.flat();
+        
+        const map: Record<string, string[]> = {};
+        flatResults.forEach(c => {
+             // Map by name (normalized)
+             map[c.name] = c.color_identity || [];
+             // Also try to map the request input name if different?
+             // Scryfall returns the canonical name. 
+             // Our map usage below should handle basic lookups.
+        });
+        setValidatedIdentities(map);
+      } catch (e) {
+        console.error("Error validando identidades:", e);
+      }
+    };
+    
+    if (cards.length > 0) fetchIdentities();
+  }, [cards]);
+
 
   // ... (keeping existing checks for Draw, Ramp, WinCon etc)
 
@@ -313,6 +355,70 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
       message: 'No has marcado ninguna carta como comandante en este mazo.',
       action: 'Abre el detalle de una carta y pulsa "Set Commander".'
     });
+  }
+
+  // Alert 10: Color Identity Validation
+  if (commanders.length > 0) {
+      const getIdentity = (c: DeckCard) => {
+          // 1. Try Authoritative (Scryfall)
+          // Includes handling of Color Indicators, Back Faces, Characteristics defining abilities
+          if (validatedIdentities && validatedIdentities[c.card_name]) {
+               return new Set(validatedIdentities[c.card_name]);
+          }
+
+          // 2. Fallback to Local Parser (while loading or if offline)
+          const identities = new Set<string>();
+          // Remove reminder text for oracle check (anything in parentheses)
+          const oracleClean = (c.oracle_text || '').replace(/\([^)]*\)/g, '');
+          const combined = (c.mana_cost || '') + ' ' + oracleClean;
+          
+          // Basic Land Types check (implicitly add identity)
+          const typeLine = c.type_line?.toLowerCase() || '';
+          if (typeLine.includes('plains')) identities.add('W');
+          if (typeLine.includes('island')) identities.add('U');
+          if (typeLine.includes('swamp')) identities.add('B');
+          if (typeLine.includes('mountain')) identities.add('R');
+          if (typeLine.includes('forest')) identities.add('G');
+          
+          // Scan for mana symbols
+          const matches = combined.match(/\{[^}]+\}/g) || [];
+          matches.forEach(s => {
+              const upper = s.toUpperCase();
+              // Ignore generic mana symbols purely, only care about colors
+              if (upper.includes('W')) identities.add('W');
+              if (upper.includes('U')) identities.add('U');
+              if (upper.includes('B')) identities.add('B');
+              if (upper.includes('R')) identities.add('R');
+              if (upper.includes('G')) identities.add('G');
+          });
+          return identities;
+      };
+
+      const commanderColors = new Set<string>();
+      commanders.forEach(c => {
+          getIdentity(c).forEach(color => commanderColors.add(color));
+      });
+
+      const invalidColorCards: string[] = [];
+      cards.forEach(c => {
+          if (c.is_commander) return;
+          const cardColors = getIdentity(c);
+          let valid = true;
+          cardColors.forEach(col => {
+              if (!commanderColors.has(col)) valid = false;
+          });
+          
+          if (!valid) invalidColorCards.push(c.card_name);
+      });
+
+      if (invalidColorCards.length > 0) {
+          alerts.push({
+              level: 'critical',
+              title: 'Identidad de Color Inválida',
+              message: `Las siguientes cartas incluyen colores (${[...commanderColors].join('') ? 'fuera de ' + [...commanderColors].join('') : 'y el comandante es incoloro'}) que no permite tu comandante: ${invalidColorCards.join(', ')}.`,
+              action: 'Elimina estas cartas, son ilegales en este mazo.' 
+          });
+      }
   }
 
   // If all good

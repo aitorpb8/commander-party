@@ -3,6 +3,7 @@ export interface ScryfallCard {
   name: string;
   set: string;
   set_name?: string;
+  collector_number?: string;
   image_uris?: {
     normal: string;
     small: string;
@@ -47,6 +48,7 @@ export interface DeckCard {
   scryfall_id?: string;
   set_code?: string;
   set_name?: string;
+  collector_number?: string;
   created_at?: string;
 }
 
