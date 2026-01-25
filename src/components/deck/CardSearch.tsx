@@ -25,7 +25,7 @@ export default function CardSearch({
       if (addQuery.length > 2) {
         const res = await searchCards(addQuery);
         if (!cancelled) {
-          setAddResults(res.slice(0, 10));
+          setAddResults(res.slice(0, 50));
         }
       } else {
         if (!cancelled) setAddResults([]);
@@ -66,7 +66,7 @@ export default function CardSearch({
            disabled={isSearchingPrice}
          />
          {addResults.length > 0 && (
-           <ul style={{ position: 'absolute', top: '140%', left: 0, right: 0, background: '#1a1a1a', border: '1px solid #444', zIndex: 2000, listStyle: 'none', padding: 0, margin: '0', borderRadius: '8px', boxShadow: '0 10px 40px rgba(0,0,0,0.8)' }}>
+           <ul style={{ position: 'absolute', top: '140%', left: 0, right: 0, background: '#1a1a1a', border: '1px solid #444', zIndex: 2000, listStyle: 'none', padding: 0, margin: '0', borderRadius: '8px', boxShadow: '0 10px 40px rgba(0,0,0,0.8)', maxHeight: '600px', overflowY: 'auto' }}>
              {addResults.map(res => (
                <li 
                  key={res.name} 
