@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -21,9 +22,16 @@ export default function ConfirmationDialog({
   cancelText = 'Cancelar',
   isDestructive = false
 }: ConfirmationDialogProps) {
-  if (!isOpen) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
+
+  return createPortal(
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
       background: 'rgba(0,0,0,0.85)', zIndex: 20000,
@@ -125,6 +133,7 @@ export default function ConfirmationDialog({
           100% { transform: scale(1); }
         }
       `}</style>
-    </div>
+    </div>,
+    document.body
   );
 }

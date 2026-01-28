@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { TournamentPlayer } from '@/lib/tournamentUtils';
 
 interface ManualPairingModalProps {
@@ -15,6 +16,12 @@ export default function ManualPairingModal({
   onCreate 
 }: ManualPairingModalProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   // Reset selection when opening
   useEffect(() => {
@@ -34,9 +41,9 @@ export default function ManualPairingModal({
     onCreate(Array.from(selectedPlayers));
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
         background: 'rgba(0,0,0,0.8)', zIndex: 1000,
@@ -103,6 +110,7 @@ export default function ManualPairingModal({
                 </button>
             </div>
         </div>
-    </div>
+    </div>,
+    document.body
   );
 }

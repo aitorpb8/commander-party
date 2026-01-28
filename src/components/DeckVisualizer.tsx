@@ -50,6 +50,18 @@ export default function DeckVisualizer({
   const [groupBy, setGroupBy] = useState<GroupBy>('type');
   const [sortBy, setSortBy] = useState<SortBy>('cmc');
   const [viewMode, setViewMode] = useState<ViewMode>('stack');
+
+  // Persist View Mode
+  useEffect(() => {
+    const saved = localStorage.getItem('deck_builder_view_mode') as ViewMode;
+    if (saved && ['stack', 'grid', 'text', 'list'].includes(saved)) {
+      setViewMode(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('deck_builder_view_mode', viewMode);
+  }, [viewMode]);
   
   const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
 

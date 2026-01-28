@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 interface SyncCompleteModalProps {
   count: number;
@@ -6,7 +7,16 @@ interface SyncCompleteModalProps {
 }
 
 export default function SyncCompleteModal({ count, onClose }: SyncCompleteModalProps) {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <div style={{
       position: 'fixed',
       top: 0,
@@ -72,6 +82,7 @@ export default function SyncCompleteModal({ count, onClose }: SyncCompleteModalP
             ¡Genial!
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

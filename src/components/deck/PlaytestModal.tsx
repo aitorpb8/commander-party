@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { DeckCard } from '@/types';
 
 interface PlaytestModalProps {
@@ -20,6 +21,12 @@ export default function PlaytestModal({
   const [deck, setDeck] = useState<DeckCard[]>([]);
   const [hand, setHand] = useState<DeckCard[]>([]);
   const [library, setLibrary] = useState<DeckCard[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,9 +58,9 @@ export default function PlaytestModal({
     setLibrary(shuffled.slice(7));
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <>
       <div 
         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', zIndex: 999 }}
@@ -90,6 +97,7 @@ export default function PlaytestModal({
           ))}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
