@@ -32,8 +32,8 @@ export async function getCardByName(
 export async function getCollection(identifiers: { name?: string, id?: string }[]): Promise<ScryfallCard[]> {
   if (identifiers.length === 0) return [];
   try {
-    // Scryfall allows up to 75 identifiers per request
-    const res = await fetch(`${SCRYFALL_API}/cards/collection`, {
+    // Use internal API route to avoid CORS issues with POST requests
+    const res = await fetch('/api/scryfall/collection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ identifiers })
