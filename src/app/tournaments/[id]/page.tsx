@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
 import { searchCards, ScryfallCard } from '@/lib/scryfall';
 import TournamentStandings from '@/components/TournamentStandings';
@@ -28,7 +28,8 @@ export default function TournamentDetailPage() {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
 
   // Confirmations
-  const [confirmAction, setConfirmAction] = useState<{ type: 'start' | 'next' | 'prev' | 'drop', id?: string, customMessage?: string } | null>(null);
+  const router = useRouter();
+  const [confirmAction, setConfirmAction] = useState<{ type: 'start' | 'next' | 'prev' | 'drop' | 'delete', id?: string, customMessage?: string } | null>(null);
 
   // Commander Modal
   const [cmdrModalOpen, setCmdrModalOpen] = useState(false);
@@ -244,6 +245,63 @@ export default function TournamentDetailPage() {
     }
   };
 
+  const handleDeleteTournament = async () => {
+    const loadingToast = toast.loading('Eliminando torneo y datos asociados...');
+
+    try {
+        // 1. Get all match IDs associated with this tournament
+        const { data: tmData, error: tmFetchError } = await supabase
+            .from('tournament_matches')
+            .select('match_id')
+            .eq('tournament_id', id);
+
+        if (tmFetchError) throw tmFetchError;
+        
+        const matchIds = tmData?.map((row: any) => row.match_id) || [];
+
+        // 2. Delete from tournament_matches (link table)
+        const { error: tmDeleteError } = await supabase
+            .from('tournament_matches')
+            .delete()
+            .eq('tournament_id', id);
+
+        if (tmDeleteError) throw tmDeleteError;
+
+        // 3. Delete from tournament_participants
+        const { error: tpDeleteError } = await supabase
+            .from('tournament_participants')
+            .delete()
+            .eq('tournament_id', id);
+
+        if (tpDeleteError) throw tpDeleteError;
+
+        // 4. Delete the actual matches (wins)
+        if (matchIds.length > 0) {
+            const { error: matchesDeleteError } = await supabase
+                .from('matches')
+                .delete()
+                .in('id', matchIds);
+            
+            if (matchesDeleteError) throw matchesDeleteError;
+        }
+
+        // 5. Delete the tournament itself
+        const { error: tDeleteError } = await supabase
+            .from('tournaments')
+            .delete()
+            .eq('id', id);
+
+        if (tDeleteError) throw tDeleteError;
+
+        toast.success('Torneo eliminado completamente', { id: loadingToast });
+        router.push('/tournaments');
+
+    } catch (error: any) {
+        console.error('Delete error:', error);
+        toast.error('Error al eliminar: ' + error.message, { id: loadingToast });
+    }
+  };
+
   if (loading || !tournament) return <div className="container" style={{ paddingTop: '2rem' }}>Cargando torneo...</div>;
   
   const currentRoundMatches = matches.filter(m => m.round_number === tournament.current_round);
@@ -306,6 +364,14 @@ export default function TournamentDetailPage() {
                     </button>
                 </>
             )}
+            <button 
+                onClick={() => setConfirmAction({ type: 'delete' })} 
+                className="btn" 
+                style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid #ff4444', color: '#ff4444', marginLeft: '0.5rem' }}
+                title="Eliminar Torneo"
+             >
+                🗑️
+             </button>
          </div>
        </header>
 
@@ -577,7 +643,19 @@ export default function TournamentDetailPage() {
           onCancel={() => setConfirmAction(null)}
           confirmText="Retirar"
           isDestructive={true}
-       />
+        />
+
+        <ConfirmationDialog 
+           isOpen={confirmAction?.type === 'delete'}
+           title="Eliminar Torneo"
+           message="¿ESTÁS SEGURO? Esta acción borrará el torneo y TODOS sus resultados permanentemente. No se puede deshacer."
+           onConfirm={() => { setConfirmAction(null); handleDeleteTournament(); }}
+           onCancel={() => setConfirmAction(null)}
+           confirmText="Eliminar Definitivamente"
+           isDestructive={true}
+        />
+
     </div>
   );
 }
+
