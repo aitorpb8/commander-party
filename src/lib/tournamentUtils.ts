@@ -131,18 +131,23 @@ export function generatePairings(
     const N = sortedPlayers.length;
     const pods: string[][] = [];
 
-    // 4. Determine Pod Structure (Maximize 4s)
+    // 4. Determine Pod Structure (Avoid 5s, prefer 3s)
     let num5s = 0, num4s = 0, num3s = 0;
-    const remainder = N % 4;
-    if (remainder === 0) num4s = N / 4;
-    else if (remainder === 1) { num5s = 1; num4s = (N - 5) / 4; }
-    else if (remainder === 2) { 
-        if (N < 10) num3s = 2; // 6 -> 3,3
-        else { num5s = 2; num4s = (N - 10) / 4; }
-    }
-    else if (remainder === 3) {
-        if (N === 7 || N === 11) { num3s = 1; num4s = (N - 3) / 4; }
-        else { num5s = 3; num4s = (N - 15) / 4; }
+    
+    if (N < 4) {
+        // Special case for tiny tourneys
+        num3s = (N === 3) ? 1 : 0;
+        // If N=2/1, logic below usually fails or we just do 1v1? 
+        // Current logic assumes multiplayer > 2 usually.
+    } else if (N === 5) {
+        // Unavoidable 5
+        num5s = 1;
+    } else {
+        // Strategy: Maximize 4s, Fill rest with 3s. No 5s.
+        // Formula: num3s = (4 - (remainder mod 4)) mod 4
+        const rem = N % 4;
+        num3s = (4 - rem) % 4;
+        num4s = (N - 3 * num3s) / 4;
     }
 
     // 5. Fill Pods

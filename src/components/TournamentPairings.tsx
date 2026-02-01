@@ -28,7 +28,7 @@ export default function TournamentPairings({
   onMatchUpdate 
 }: TournamentPairingsProps) {
   const [generating, setGenerating] = useState(false);
-  const [reportingMatchId, setReportingMatchId] = useState<string | null>(null);
+
   
   // Manual Pairing State
   const [showManualModal, setShowManualModal] = useState(false);
@@ -122,41 +122,23 @@ export default function TournamentPairings({
     }
   };
 
-  const reportWinner = async (matchId: string, winnerId: string) => {
+
+  const reportWinner = async (matchId: string, winnerId: string, playerIds: string[]) => {
     try {
-        // 1. Update Match Winner
-        const { error } = await supabase
-            .from('matches')
-            .update({ winner_id: winnerId })
-            .eq('id', matchId);
+        const { error } = await supabase.rpc('report_match_result', {
+            p_match_id: matchId,
+            p_winner_id: winnerId,
+            p_player_ids: playerIds
+        });
 
         if (error) throw error;
-
-        // 2. Update Points for Winner
-        const winnerPart = participants.find(p => p.player_id === winnerId);
-        if (winnerPart) {
-             const { data: currentP } = await supabase
-                .from('tournament_participants')
-                .select('*')
-                .eq('tournament_id', tournamentId)
-                .eq('player_id', winnerId)
-                .single();
-            
-             if (currentP) {
-                 await supabase.from('tournament_participants').update({
-                     points: (currentP.points || 0) + 3,
-                     wins: (currentP.wins || 0) + 1,
-                     matches_played: (currentP.matches_played || 0) + 1
-                 }).eq('id', currentP.id);
-             }
-        }
         
         onMatchUpdate(); 
-        setReportingMatchId(null);
-        toast.success('Resultado reportado');
-    } catch (err) {
+        onMatchUpdate(); 
+        toast.success('Resultado registrado correctamente');
+    } catch (err: any) {
         console.error('Error reporting result:', err);
-        toast.error('Error al reportar resultado');
+        toast.error('Error al reportar: ' + err.message);
     }
   };
 
@@ -283,57 +265,28 @@ export default function TournamentPairings({
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem', marginBottom: '1rem' }}>
                {tm.matches.players.map(pid => (
-                 <div key={pid} style={{ 
+                 <button 
+                   key={pid} 
+                   onClick={() => reportWinner(tm.matches.id, pid, tm.matches.players)}
+                   disabled={false} // Always enabled to allow changing winner
+                   style={{ 
                    background: pid === tm.matches.winner_id ? 'rgba(76, 175, 80, 0.2)' : '#222',
                    border: pid === tm.matches.winner_id ? '1px solid #4CAF50' : '1px solid #333',
                    padding: '0.5rem',
                    borderRadius: '8px',
                    textAlign: 'center',
                    fontSize: '0.9rem',
-                   color: '#fff'
+                   color: '#fff',
+                   cursor: 'pointer',
+                   width: '100%',
+                   transition: 'all 0.2s',
+                   // Hover effect logic usually needs CSS or a wrapper, using simple button behavior here
                  }}>
                    {getPlayerName(pid)}
                    {pid === tm.matches.winner_id && ' 🏆'}
-                 </div>
+                 </button>
                ))}
             </div>
-
-            {!tm.matches.winner_id && (
-               <div style={{ textAlign: 'center' }}>
-                 {!reportingMatchId ? (
-                   <button 
-                     onClick={() => setReportingMatchId(tm.match_id)}
-                     className="btn"
-                     style={{ background: '#333', fontSize: '0.8rem' }}
-                   >
-                     Reportar Resultado
-                   </button>
-                 ) : reportingMatchId === tm.match_id ? (
-                   <div style={{ background: '#222', padding: '0.5rem', borderRadius: '8px' }}>
-                     <p style={{ marginBottom: '0.5rem', fontSize: '0.9rem' }}>¿Quién ganó?</p>
-                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
-                       {tm.matches.players.map(pid => (
-                         <button 
-                           key={pid}
-                           onClick={() => reportWinner(tm.matches.id, pid)}
-                           className="btn btn-gold"
-                           style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem' }}
-                         >
-                           {getPlayerName(pid)}
-                         </button>
-                       ))}
-                       <button 
-                           onClick={() => setReportingMatchId(null)}
-                           className="btn"
-                           style={{ fontSize: '0.8rem', padding: '0.3rem 0.6rem', background: '#444' }}
-                         >
-                           Cancelar
-                       </button>
-                     </div>
-                   </div>
-                 ) : null}
-               </div>
-            )}
           </div>
         ))}
 

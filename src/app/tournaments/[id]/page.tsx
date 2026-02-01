@@ -28,7 +28,7 @@ export default function TournamentDetailPage() {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
 
   // Confirmations
-  const [confirmAction, setConfirmAction] = useState<{ type: 'start' | 'next' | 'drop', id?: string, customMessage?: string } | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ type: 'start' | 'next' | 'prev' | 'drop', id?: string, customMessage?: string } | null>(null);
 
   // Commander Modal
   const [cmdrModalOpen, setCmdrModalOpen] = useState(false);
@@ -77,6 +77,7 @@ export default function TournamentDetailPage() {
     if (pData) {
         // Calculate standings (OMW%)
         const typedParticipants = pData as unknown as TournamentPlayer[];
+        console.log('Fetched participants:', typedParticipants); // Debug log
         const stats = calculateStandings(typedParticipants, allMatches);
         setParticipants(stats);
     } else {
@@ -140,6 +141,24 @@ export default function TournamentDetailPage() {
         toast.success('¡Torneo iniciado! A jugar.');
         setActiveTab('pairings');
         loadData();
+    }
+  };
+
+  const handlePreviousRound = async () => {
+    // Modal-triggered logic
+    const prevRound = Math.max((tournament.current_round || 1) - 1, 1);
+    const { error } = await supabase
+        .from('tournaments')
+        .update({ 
+          current_round: prevRound,
+          current_round_start_time: new Date().toISOString() // Restart timer for the "new" round
+        })
+        .eq('id', id);
+
+    if (error) toast.error('Error al revertir ronda');
+    else {
+      toast.success(`Regresado a Ronda ${prevRound}`);
+      loadData();
     }
   };
 
@@ -276,9 +295,16 @@ export default function TournamentDetailPage() {
                 </button>
             )}
             {tournament.status === 'active' && (
-                <button onClick={() => setConfirmAction({ type: 'next' })} className="btn" style={{ background: '#333', border: '1px solid #555' }}>
-                    Siguiente Ronda →
-                </button>
+                <>
+                    {tournament.current_round > 1 && (
+                        <button onClick={() => setConfirmAction({ type: 'prev' })} className="btn" style={{ background: '#333', border: '1px solid #555', marginRight: '0.5rem' }}>
+                            ← Anterior Ronda
+                        </button>
+                    )}
+                    <button onClick={() => setConfirmAction({ type: 'next' })} className="btn" style={{ background: '#333', border: '1px solid #555' }}>
+                        Siguiente Ronda →
+                    </button>
+                </>
             )}
          </div>
        </header>
@@ -532,6 +558,15 @@ export default function TournamentDetailPage() {
           onConfirm={() => { setConfirmAction(null); handleNextRound(); }}
           onCancel={() => setConfirmAction(null)}
           confirmText="Avanzar"
+       />
+
+       <ConfirmationDialog 
+          isOpen={confirmAction?.type === 'prev'}
+          title="Revertir Ronda"
+          message="¿Volver a la ronda anterior? Ten en cuenta que las partidas de la ronda actual NO se borrarán, solo cambiará el indicador de ronda activa."
+          onConfirm={() => { setConfirmAction(null); handlePreviousRound(); }}
+          onCancel={() => setConfirmAction(null)}
+          confirmText="Revertir"
        />
 
        <ConfirmationDialog 
