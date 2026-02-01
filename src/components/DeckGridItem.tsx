@@ -10,14 +10,20 @@ import { calculateDeckBudget } from '@/lib/budgetUtils';
 interface DeckGridItemProps {
   deck: any;
   currentUserId?: string;
+  customSpent?: number;
+  customBudget?: number;
 }
 
-export default function DeckGridItem({ deck, currentUserId }: DeckGridItemProps) {
+export default function DeckGridItem({ deck, currentUserId, customSpent, customBudget }: DeckGridItemProps) {
   const router = useRouter();
   const supabase = createClient();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const { dynamicLimit, totalSpent } = calculateDeckBudget(deck.created_at, deck.budget_spent);
+  
+  const finalSpent = customSpent !== undefined ? customSpent : totalSpent;
+  const finalBudget = customBudget !== undefined ? customBudget : dynamicLimit;
+  
   const isOwner = currentUserId === deck.user_id;
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -49,8 +55,8 @@ export default function DeckGridItem({ deck, currentUserId }: DeckGridItemProps)
                 playerName={deck.profiles?.username || 'Invitado'}
                 deckName={deck.name}
                 commanderName={deck.commander}
-                spent={totalSpent}
-                budget={dynamicLimit}
+                spent={finalSpent}
+                budget={finalBudget}
                 imageUrl={deck.image_url || 'https://via.placeholder.com/150'}
                 colors={[]}
             />

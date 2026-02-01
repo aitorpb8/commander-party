@@ -914,26 +914,44 @@ export default function DeckDetailPage() {
              <p style={{ color: '#888', marginBottom: '1rem' }}>Comandante: {deck.commander}</p>
              
              {(() => {
-                const { monthsActive, dynamicLimit, totalSpent, remaining, statusColor } = budgetInfo;
+                const { dynamicLimit, totalSpent } = budgetInfo;
+                const currentMonth = new Date().toISOString().slice(0, 7);
+                const currentMonthSpent = upgrades.reduce((sum, u) => {
+                     if (u.month !== currentMonth) return sum;
+                     if (u.card_in && preconCardNames.has(u.card_in.toLowerCase())) return sum;
+                     return sum + (u.cost || 0);
+                }, 0);
+                
+                // Calculate Available Budget for this month (Accumulated + 10€)
+                // Effective Limit = Total Cumulative Limit - (Spent in Previous Months)
+                // Spent Previous = Total Spent - Current Month Spent
+                const spentPrevious = totalSpent - currentMonthSpent;
+                const effectiveMonthlyLimit = Math.max(0, dynamicLimit - spentPrevious);
+                
+                const remaining = effectiveMonthlyLimit - currentMonthSpent;
+                
+                let statusColor = 'var(--color-green)';
+                if (currentMonthSpent > effectiveMonthlyLimit + 1) statusColor = 'var(--color-red)';
+                else if (currentMonthSpent > effectiveMonthlyLimit) statusColor = '#ff9800';
 
                 return (
                  <div style={{ padding: '1rem', background: '#111', borderRadius: '8px', marginBottom: 'auto' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                        <span>Presupuesto (Mes {monthsActive}):</span>
+                        <span>Presupuesto Mensual (+Acumulado):</span>
                          <span style={{ color: statusColor }}>
-                            {totalSpent.toFixed(2)}€ / {dynamicLimit}€
+                            {currentMonthSpent.toFixed(2)}€ / {effectiveMonthlyLimit.toFixed(2)}€
                         </span>
                     </div>
                     <div style={{ background: '#222', height: '10px', borderRadius: '5px', overflow: 'hidden' }}>
                         <div style={{ 
-                            width: `${Math.min((totalSpent / dynamicLimit) * 100, 100)}%`, 
+                            width: `${effectiveMonthlyLimit > 0 ? Math.min((currentMonthSpent / effectiveMonthlyLimit) * 100, 100) : 100}%`, 
                             height: '100%', 
                             background: statusColor
                         }} />
                     </div>
                     <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '0.5rem', textAlign: 'right' }}>
-                        {totalSpent > dynamicLimit 
-                            ? `Te has pasado ${ Math.abs(remaining).toFixed(2) }€ del acumulado.` 
+                        {currentMonthSpent > effectiveMonthlyLimit 
+                            ? `Te has pasado ${ Math.abs(remaining).toFixed(2) }€.` 
                             : `Tienes ${ remaining.toFixed(2) }€ disponibles.`
                         }
                     </div>

@@ -539,7 +539,7 @@ export default function DeckVisualizer({
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #222' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <h2 style={{ color: 'var(--color-gold)', margin: 0, fontSize: '1.4rem' }}>Editor Visual</h2>
             
             {/* 1 & 2. Stats and Validator */}

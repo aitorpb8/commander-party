@@ -34,23 +34,9 @@ export default function CardDetailsModal({
   if (!activeInfoCard) return null;
 
   return createPortal(
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.85)', zIndex: 10000,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      padding: '1rem',
-      backdropFilter: 'blur(10px)'
-    }} onClick={onClose}>
+    <div className="card-modal-overlay" onClick={onClose}>
       <div 
-        className="card-detail-modal"
-        style={{ 
-          maxWidth: '1000px', width: '100%', maxHeight: '90vh', 
-          display: 'flex', gap: '2rem', 
-          padding: '2rem', border: '1px solid #444', 
-          boxShadow: '0 25px 50px rgba(0,0,0,0.9)',
-          background: '#121212', borderRadius: '24px',
-          position: 'relative'
-        }}
+        className="card-modal-content"
         onClick={e => e.stopPropagation()}
       >
         <button 
@@ -125,9 +111,19 @@ export default function CardDetailsModal({
             </div>
           </div>
 
-           {/* Mobile Management Controls */}
-           {isOwner && (
-             <div style={{ background: '#111', padding: '1rem', borderRadius: '12px', border: '1px solid #333', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+           {/* Management Controls */}
+           {isOwner ? (
+             <div style={{ 
+               background: '#111', 
+               padding: '1rem', 
+               borderRadius: '12px', 
+               border: '1px solid #333', 
+               display: 'flex', 
+               flexDirection: 'column', 
+               gap: '1rem',
+               width: '100%',
+               flexShrink: 0 
+             }}>
                 <h4 style={{ margin: 0, color: '#888', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '1px' }}>Gestión de Carta</h4>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
                    {/* Quantity */}
@@ -227,6 +223,10 @@ export default function CardDetailsModal({
                        return null;
                     })()}
                 </div>
+             </div>
+           ) : (
+             <div style={{ padding: '0.5rem', border: '1px dashed #333', borderRadius: '8px', color: '#666', fontSize: '0.8rem', textAlign: 'center' }}>
+               Modo Vista (No eres el propietario)
              </div>
            )}
           

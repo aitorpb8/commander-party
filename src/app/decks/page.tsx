@@ -1,4 +1,3 @@
-
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import DeckCard from '@/components/DeckCard';
@@ -49,6 +48,18 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
 
   const { data: decks } = await query;
 
+  // Fetch current month upgrades for budget calculation
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const { data: monthlyUpgrades } = await supabase
+    .from('deck_upgrades')
+    .select('deck_id, cost')
+    .eq('month', currentMonth);
+
+  const monthlySpendMap = new Map<string, number>();
+  monthlyUpgrades?.forEach((u: any) => {
+    monthlySpendMap.set(u.deck_id, (monthlySpendMap.get(u.deck_id) || 0) + (u.cost || 0));
+  });
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -64,9 +75,25 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '2rem' }}>
-          {decks.map((deck: any) => (
-             <DeckGridItem key={deck.id} deck={deck} currentUserId={user?.id} />
-          ))}
+          {decks.map((deck: any) => {
+             const { dynamicLimit } = calculateDeckBudget(deck.created_at);
+             const currentMonthSpent = monthlySpendMap.get(deck.id) || 0;
+             const totalSpent = deck.budget_spent || 0;
+             
+             // Effective Limit = Total Cumulative Limit - (Spent in Previous Months)
+             const spentPrevious = totalSpent - currentMonthSpent;
+             const effectiveBudget = Math.max(0, dynamicLimit - spentPrevious);
+
+             return (
+              <DeckGridItem 
+                key={deck.id} 
+                deck={deck} 
+                currentUserId={user?.id}
+                customSpent={currentMonthSpent}
+                customBudget={effectiveBudget}
+              />
+            );
+          })}
         </div>
       )}
     </div>

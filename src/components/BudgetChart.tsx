@@ -7,12 +7,14 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ChartData
 } from 'chart.js';
-import { Line } from 'react-chartjs-2';
+import { Chart } from 'react-chartjs-2';
 import { DeckUpgrade } from '@/types';
 
 ChartJS.register(
@@ -20,6 +22,7 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -78,38 +81,35 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
     }
   });
 
-  // Calculate cumulative data points over the FULL timeline
-  let cumulativeSpent = initialBudget;
-  const spentData = months.map(m => {
-    cumulativeSpent += (monthlyTotals[m] || 0);
-    return cumulativeSpent;
-  });
+  // Calculate data points (Monthly, non-cumulative)
+  const spentData = months.map(m => monthlyTotals[m] || 0);
 
-  // Calculate cumulative limit (10€ per month since start)
-  const limitData = months.map((_, i) => (i + 1) * 10);
+  // Constant limit (10€ per month)
+  const limitData = months.map(() => 10);
 
-  const data = {
+  const data: ChartData<'bar' | 'line', number[], string> = {
     labels: months,
     datasets: [
       {
-        label: 'Presupuesto Gastado (€)',
+        type: 'bar' as const,
+        label: 'Gasto Mensual (€)',
         data: spentData,
-        borderColor: '#D4AF37', // Gold
-        backgroundColor: 'rgba(212, 175, 55, 0.1)',
-        fill: true,
-        tension: 0.2, // Slightly smoother
-        pointRadius: 4,
-        pointBackgroundColor: '#D4AF37',
-        pointBorderColor: '#1a1a1a',
+        backgroundColor: 'rgba(212, 175, 55, 0.6)', // Gold with opacity
+        borderColor: '#D4AF37',
+        borderWidth: 1,
+        borderRadius: 4,
+        order: 2
       },
       {
-        label: 'Límite Acumulado (10€/mes)',
+        type: 'line' as const,
+        label: 'Límite (10€)',
         data: limitData,
-        borderColor: 'rgba(255, 255, 255, 0.3)', // Faint white
-        borderDash: [4, 4],
-        fill: false,
+        borderColor: 'rgba(255, 255, 255, 0.5)', // Faint white
+        borderDash: [5, 5],
         pointRadius: 0,
-        spanGaps: true
+        fill: false,
+        tension: 0,
+        order: 1
       }
     ],
   };
@@ -145,7 +145,8 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
     scales: {
       y: {
         grid: { color: 'rgba(255,255,255,0.05)' },
-        ticks: { color: '#666', callback: (val: any) => `${val}€` }
+        ticks: { color: '#666', callback: (val: any) => `${val}€` },
+        beginAtZero: true
       },
       x: {
         grid: { display: false },
@@ -156,7 +157,7 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
 
   return (
     <div style={{ height: '100%', width: '100%' }}>
-      <Line data={data} options={options} />
+      <Chart type='bar' data={data} options={options} />
     </div>
   );
 }

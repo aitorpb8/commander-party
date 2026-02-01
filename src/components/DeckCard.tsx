@@ -13,7 +13,7 @@ interface DeckCardProps {
 }
 
 export default function DeckCard({ playerName, playerAvatar, deckName, commanderName, spent, budget, imageUrl }: DeckCardProps) {
-  const percentage = (spent / budget) * 100; // Allow overflow to show visually
+  const percentage = budget > 0 ? (spent / budget) * 100 : (spent > 0 ? 100 : 0);
   const getStatusColor = () => {
     if (spent > budget + 1) return 'var(--color-red)';
     if (spent > budget) return '#ff9800'; // Orange

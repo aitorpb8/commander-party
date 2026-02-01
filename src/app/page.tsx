@@ -1,9 +1,8 @@
-import DeckCard from "@/components/DeckCard";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { createClient } from "@/lib/supabaseClient";
-import { calculateDeckBudget } from '@/lib/budgetUtils';
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
+import DeckCard from "@/components/DeckCard";
+import { calculateDeckBudget } from '@/lib/budgetUtils';
 
 // Force revalidation on every request to show fresh budget data
 export const revalidate = 0;
@@ -63,6 +62,17 @@ export default async function Home() {
       .eq("user_id", user.id);
     userDeckCount = count || 0;
   }
+  // Fetch current month upgrades for budget calculation
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const { data: monthlyUpgrades } = await supabase
+    .from('deck_upgrades')
+    .select('deck_id, cost')
+    .eq('month', currentMonth);
+
+  const monthlySpendMap = new Map<string, number>();
+  monthlyUpgrades?.forEach((u: any) => {
+    monthlySpendMap.set(u.deck_id, (monthlySpendMap.get(u.deck_id) || 0) + (u.cost || 0));
+  });
 
   return (
     <div className="container">
@@ -239,7 +249,11 @@ export default async function Home() {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
                 {decks.map((deck: any) => {
-                   const { dynamicLimit, totalSpent } = calculateDeckBudget(deck.created_at, deck.budget_spent);
+                   const { dynamicLimit } = calculateDeckBudget(deck.created_at);
+                   const spent = monthlySpendMap.get(deck.id) || 0;
+                   const totalSpent = deck.budget_spent || 0;
+                   const spentPrevious = totalSpent - spent;
+                   const effectiveBudget = Math.max(0, dynamicLimit - spentPrevious);
 
                    return (
                   <Link key={deck.id} href={`/decks/${deck.id}`} style={{ textDecoration: 'none' }}>
@@ -248,8 +262,8 @@ export default async function Home() {
                       playerAvatar={deck.profiles?.avatar_url}
                       deckName={deck.name}
                       commanderName={deck.commander}
-                      spent={totalSpent}
-                      budget={dynamicLimit}
+                      spent={spent}
+                      budget={effectiveBudget}
                       imageUrl={deck.image_url || "https://via.placeholder.com/150"}
                       colors={[]}
                     />
