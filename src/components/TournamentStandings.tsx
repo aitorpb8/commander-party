@@ -21,7 +21,7 @@ export default function TournamentStandings({ participants }: TournamentStanding
 
   return (
     <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-      <div style={{ padding: '1rem', background: '#111', borderBottom: '1px solid #333', fontWeight: 'bold' }}>
+      <div style={{ padding: '1.25rem', background: 'rgba(212, 175, 55, 0.1)', borderBottom: '1px solid rgba(212, 175, 55, 0.2)', fontWeight: 'bold', color: 'var(--color-gold)', textTransform: 'uppercase', letterSpacing: '1px' }}>
         Clasificación Actual
       </div>
       <div style={{ overflowX: 'auto' }}>

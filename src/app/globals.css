@@ -301,6 +301,82 @@ a {
   color: #121212;
 }
 
+/* Premium Button System */
+.btn-premium {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0.6rem 1.25rem;
+  border-radius: 8px;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+}
+
+.btn-premium:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn-premium:active {
+  transform: translateY(0);
+}
+
+.btn-premium-gold {
+  background: rgba(212, 175, 55, 0.1);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--color-gold);
+}
+
+.btn-premium-gold:hover {
+  background: var(--color-gold);
+  color: #000;
+  border-color: var(--color-gold);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+}
+
+.btn-premium-red {
+  background: rgba(221, 51, 51, 0.1);
+  border: 1px solid rgba(221, 51, 51, 0.4);
+  color: #ffaaaa;
+}
+
+.btn-premium-red:hover {
+  background: var(--color-red);
+  color: #fff;
+  border-color: var(--color-red);
+  box-shadow: 0 0 20px rgba(221, 51, 51, 0.4);
+}
+
+.btn-premium-dark {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-premium-dark:hover {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: var(--color-gold);
+}
+
+.btn-premium-sm {
+  padding: 0.3rem 0.75rem;
+  font-size: 0.7rem;
+  border-radius: 6px;
+}
+
 /* Card Style */
 .card {
   background-color: var(--bg-card);

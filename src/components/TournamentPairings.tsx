@@ -221,20 +221,20 @@ export default function TournamentPairings({
         <button 
           onClick={() => setShowGenerateConfirm(true)} 
           disabled={generating}
-          className="btn btn-gold"
-          style={{ fontSize: '0.9rem' }}
+          className="btn-premium btn-premium-gold"
+          style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}
         >
           {generating ? 'Generando...' : 'Autogenerar Resto'}
         </button>
       </div>
 
-      <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem' }}>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', gap: '0.5rem' }}>
           <button 
               onClick={() => {
                   setShowManualModal(true);
               }}
-              className="btn" 
-              style={{ background: '#333', fontSize: '0.8rem' }}
+              className="btn-premium btn-premium-dark" 
+              style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
           >
               + Crear Mesa Manual
           </button>
@@ -242,7 +242,14 @@ export default function TournamentPairings({
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {currentRoundMatches.map((tm) => (
-          <div key={tm.id} className="card" style={{ padding: '1rem', borderLeft: tm.matches.winner_id ? '4px solid #4CAF50' : '4px solid #888' }}>
+          <div key={tm.id} className="card" style={{ 
+              padding: '1.25rem', 
+              borderLeft: tm.matches.winner_id ? '4px solid #4CAF50' : '4px solid var(--color-gold)',
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255,255,255,0.05)',
+              borderLeftWidth: '4px'
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
               <span style={{ fontWeight: 'bold', color: 'var(--color-gold)' }}>Mesa {tm.table_number}</span>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>

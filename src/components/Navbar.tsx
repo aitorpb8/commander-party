@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabaseClient';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Z_INDEX_NAVBAR } from '@/lib/constants';
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
@@ -125,7 +126,7 @@ export default function Navbar() {
                 borderRadius: '8px',
                 padding: '0.5rem',
                 minWidth: '200px',
-                zIndex: 1000,
+                zIndex: Z_INDEX_NAVBAR,
                 boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
               }}>
                 {playerList.map(p => (
@@ -241,7 +242,7 @@ export default function Navbar() {
             display: flex !important;
             align-items: center;
             justify-content: flex-start;
-            z-index: 99;
+            z-index: ${Z_INDEX_NAVBAR - 1};
             overflow-y: auto;
             visibility: visible;
             pointer-events: auto;

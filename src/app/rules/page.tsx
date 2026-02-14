@@ -1,3 +1,4 @@
+import { MONTHLY_ALLOWANCE } from '@/lib/constants';
 
 export default function RulesPage() {
   return (
@@ -24,10 +25,10 @@ export default function RulesPage() {
 
         <section>
           <h2 style={{ color: 'var(--color-mythic)', marginBottom: '1rem' }}>2. El Presupuesto y Costes</h2>
-          <p>Cada mes se dispone de un presupuesto de **10.00€** que se añade a tu saldo acumulado disponible.</p>
+          <p>Cada mes se dispone de un presupuesto de **{MONTHLY_ALLOWANCE}.00€** que se añade a tu saldo acumulado disponible.</p>
           <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <li>
-              **Sistema Acumulativo**: El presupuesto total disponible es de **(meses desde creación del mazo + 1) × 10€**. Si un mes no gastas nada, ese dinero se acumula para el siguiente.
+              **Sistema Acumulativo**: El presupuesto se calcula desde el **inicio de la liga (Enero 2026)**. Esto significa que si te unes más tarde, tendrás disponible el presupuesto acumulado de los meses anteriores para ponerte al día. El límite actual es de **(meses desde Enero '26 + 1) × {MONTHLY_ALLOWANCE}€**.
             </li>
             <li>
               **Precios en Tiempo Real (🔥)**: Para el **mes en curso** y la **Wishlist**, la web muestra el precio de mercado actual (Trend) en tiempo real. Esto significa que el coste de tus últimas mejoras puede oscilar ligeramente según el mercado hasta que termine el mes.

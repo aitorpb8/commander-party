@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
+import { Z_INDEX_OVERLAY } from '@/lib/constants';
 
 export default function OnboardingModal() {
   const [isOpen, setIsOpen] = useState(false);
@@ -77,7 +78,7 @@ export default function OnboardingModal() {
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, zIndex: 9999,
+      position: 'fixed', inset: 0, zIndex: Z_INDEX_OVERLAY,
       background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(10px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem'
     }}>

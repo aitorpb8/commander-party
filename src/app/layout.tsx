@@ -16,14 +16,18 @@ const ebGaramond = EB_Garamond({
   variable: '--font-eb-garamond',
 });
 
+import { MONTHLY_ALLOWANCE } from "@/lib/constants";
+
+// ... (other imports)
+
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://commander-party.web.app'),
   title: "Commander Party",
-  description: "Evoluciona tu mazo con inteligencia. La liga de Commander más gamberra donde el presupuesto es limitado (10€/mes).",
+  description: `Evoluciona tu mazo con inteligencia. La liga de Commander más gamberra donde el presupuesto es limitado (${MONTHLY_ALLOWANCE}€/mes).`,
   keywords: ["Magic The Gathering", "Commander", "EDH", "League", "Budget Commander"],
   authors: [{ name: "Commander Party Team" }],
   openGraph: {
-    title: "Commander Party - La Liga de los 10€",
+    title: `Commander Party - La Liga de los ${MONTHLY_ALLOWANCE}€`,
     description: "Únete a la liga de Commander más gamberra. Construye, mejora y domina la mesa con presupuesto limitado.",
     url: "https://commander-party.web.app",
     siteName: "Commander Party",
@@ -40,7 +44,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Commander Party",
-    description: "10€, 100 cartas, gloria infinita.",
+    description: `${MONTHLY_ALLOWANCE}€, 100 cartas, gloria infinita.`,
     images: ["/og-image.jpg"],
   },
   manifest: "/manifest.json",
@@ -49,6 +53,7 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
 };
+
 
 export const viewport: Viewport = {
   themeColor: "#D4AF37",

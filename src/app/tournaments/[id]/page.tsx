@@ -10,8 +10,10 @@ import TournamentPairings from '@/components/TournamentPairings';
 import TournamentTimer from '@/components/TournamentTimer';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 import CommanderSearchModal from '@/components/CommanderSearchModal';
+import TournamentDeckModal from '@/components/TournamentDeckModal';
 import toast from 'react-hot-toast';
 import { calculateStandings, TournamentPlayer, TournamentMatchInfo } from '@/lib/tournamentUtils';
+import { Z_INDEX_OVERLAY } from '@/lib/constants';
 
 export default function TournamentDetailPage() {
   const { id } = useParams();
@@ -34,6 +36,11 @@ export default function TournamentDetailPage() {
   // Commander Modal
   const [cmdrModalOpen, setCmdrModalOpen] = useState(false);
   const [editingParticipantId, setEditingParticipantId] = useState<string | null>(null);
+  
+  // Deck Selection Modal
+  const [deckModalOpen, setDeckModalOpen] = useState(false);
+  const [activePlayerDecks, setActivePlayerDecks] = useState<any[]>([]);
+  const [currentParticipant, setCurrentParticipant] = useState<any>(null);
   
   const supabase = createClient();
 
@@ -69,16 +76,19 @@ export default function TournamentDetailPage() {
     const allMatches = (mData || []) as unknown as TournamentMatchInfo[];
     setMatches(allMatches);
 
-    // 3. Participants
-    const { data: pData } = await supabase
+    const { data: pData, error: pError } = await supabase
       .from('tournament_participants')
-      .select('*, profiles(username, avatar_url)')
+      .select('*, profiles(username, avatar_url), decks(name, commander, image_url)')
       .eq('tournament_id', id);
 
-    if (pData) {
+    if (pError) {
+        console.error('Error loading participants:', pError);
+        toast.error('Error al cargar participantes: ' + pError.message);
+        setParticipants([]);
+    } else if (pData) {
+        console.log('PARTICIPANTS DATA FROM DB:', pData);
         // Calculate standings (OMW%)
         const typedParticipants = pData as unknown as TournamentPlayer[];
-        console.log('Fetched participants:', typedParticipants); // Debug log
         const stats = calculateStandings(typedParticipants, allMatches);
         setParticipants(stats);
     } else {
@@ -89,12 +99,40 @@ export default function TournamentDetailPage() {
   };
 
   const handleOpenAddPlayer = async () => {
-      // Fetch all profiles only when opening modal to save bandwidth
-      const { data } = await supabase.from('profiles').select('id, username, avatar_url');
-      setAllProfiles(data || []);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          id, 
+          username, 
+          avatar_url
+        `);
+      
+      if (error) throw error;
+      
+      // Fetch deck counts and default deck name separately to be safe
+      const profilesWithCounts = await Promise.all((data || []).map(async (p: any) => {
+        const { data: userDecks, count } = await supabase
+          .from('decks')
+          .select('name', { count: 'exact' })
+          .eq('user_id', p.id)
+          .order('created_at', { ascending: false });
+        
+        return { 
+            ...p, 
+            deck_count: count || 0,
+            default_deck_name: userDecks?.[0]?.name || null
+        };
+      }));
+
+      setAllProfiles(profilesWithCounts);
       setSearchTerm('');
-      setSelectedPlayers(new Set()); // Reset selection
+      setSelectedPlayers(new Set()); 
       setShowPlayerModal(true);
+    } catch (err: any) {
+      console.error('Error fetching players:', err);
+      toast.error('Error al cargar jugadores: ' + err.message);
+    }
   };
 
   const togglePlayerSelection = (playerId: string) => {
@@ -107,27 +145,66 @@ export default function TournamentDetailPage() {
   const handleAddSelectedPlayers = async () => {
     if (selectedPlayers.size === 0) return;
 
-    const inserts = Array.from(selectedPlayers).map(pid => ({
-        tournament_id: id,
-        player_id: pid
-    }));
+    const loadingToast = toast.loading('Inscribiendo jugadores...');
+    
+    try {
+      const inserts = await Promise.all(Array.from(selectedPlayers).map(async pid => {
+        // Fetch the profile name for better logging
+        const profile = allProfiles.find(p => p.id === pid);
+        
+        const { data: userDecks, error: deckError } = await supabase
+          .from('decks')
+          .select('id, name, commander, image_url')
+          .eq('user_id', pid)
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-    const { error } = await supabase
-      .from('tournament_participants')
-      .insert(inserts);
+        if (deckError) {
+          console.error(`Error fetching decks for ${profile?.username || pid}:`, deckError);
+        }
 
-    if (error) {
-      console.error(error);
-      toast.error('Error al añadir jugadores');
-    } else {
-      toast.success('Jugadores añadidos');
+        const defaultDeck = userDecks?.[0];
+        if (!defaultDeck) {
+          console.warn(`Player ${profile?.username || pid} has no decks registered.`);
+        } else {
+          console.log(`Assigning default deck "${defaultDeck.name}" to ${profile?.username || pid}`);
+        }
+        
+        return {
+          tournament_id: id,
+          player_id: pid,
+          deck_id: defaultDeck?.id || null,
+          commander_name: defaultDeck?.commander || null,
+          commander_image_url: defaultDeck?.image_url || null
+        };
+      }));
+
+      console.log('INSERTING TO tournament_participants:', inserts);
+      const { error } = await supabase
+        .from('tournament_participants')
+        .insert(inserts);
+
+      if (error) throw error;
+
+      // Create a better success message
+      const assignedDecks = inserts
+        .map(i => {
+           const p = allProfiles.find(profile => profile.id === i.player_id);
+           return i.commander_name ? `${p?.username} (${i.commander_name})` : `${p?.username} (Sin mazo)`;
+        })
+        .join(', ');
+
+      toast.success(`Inscritos: ${assignedDecks}`, { id: loadingToast, duration: 5000 });
+      
       loadData();
       setShowPlayerModal(false);
+    } catch (error: any) {
+      console.error(error);
+      toast.error('Error al añadir jugadores: ' + error.message, { id: loadingToast });
     }
   };
 
   const handleStartTournament = async () => {
-    // Modal-triggered logic
     const { error } = await supabase
       .from('tournaments')
       .update({ 
@@ -146,13 +223,12 @@ export default function TournamentDetailPage() {
   };
 
   const handlePreviousRound = async () => {
-    // Modal-triggered logic
     const prevRound = Math.max((tournament.current_round || 1) - 1, 1);
     const { error } = await supabase
         .from('tournaments')
         .update({ 
           current_round: prevRound,
-          current_round_start_time: new Date().toISOString() // Restart timer for the "new" round
+          current_round_start_time: new Date().toISOString() 
         })
         .eq('id', id);
 
@@ -164,7 +240,6 @@ export default function TournamentDetailPage() {
   };
 
   const handleNextRound = async () => {
-    // Modal-triggered logic
     const nextRound = (tournament.current_round || 0) + 1;
     const { error } = await supabase
         .from('tournaments')
@@ -199,7 +274,6 @@ export default function TournamentDetailPage() {
   };
 
   const checkDropPlayer = (participant: TournamentPlayer) => {
-      // Check if player is in an active match
       const currentRoundMatches = matches.filter(m => m.round_number === tournament.current_round);
       const activeMatch = currentRoundMatches.find(m => 
           !m.matches.winner_id && m.matches.players.includes(participant.player_id)
@@ -245,11 +319,46 @@ export default function TournamentDetailPage() {
     }
   };
 
+  const openDeckModal = async (participant: any) => {
+    setCurrentParticipant(participant);
+    setLoading(true);
+    const { data } = await supabase
+      .from('decks')
+      .select('*')
+      .eq('user_id', participant.player_id)
+      .order('created_at', { ascending: false });
+    
+    setActivePlayerDecks(data || []);
+    setLoading(false);
+    setDeckModalOpen(true);
+  };
+
+  const handleSelectDeck = async (deck: any) => {
+    if (!currentParticipant) return;
+    setDeckModalOpen(false);
+    const loadingToast = toast.loading(`Cambiando mazo a: ${deck.name}...`);
+
+    const { error } = await supabase
+      .from('tournament_participants')
+      .update({
+        deck_id: deck.id,
+        commander_name: deck.commander,
+        commander_image_url: deck.image_url
+      })
+      .eq('id', currentParticipant.id);
+
+    if (error) {
+      toast.error('Error al cambiar mazo', { id: loadingToast });
+    } else {
+      toast.success('Mazo actualizado', { id: loadingToast });
+      loadData();
+    }
+  };
+
   const handleDeleteTournament = async () => {
     const loadingToast = toast.loading('Eliminando torneo y datos asociados...');
 
     try {
-        // 1. Get all match IDs associated with this tournament
         const { data: tmData, error: tmFetchError } = await supabase
             .from('tournament_matches')
             .select('match_id')
@@ -259,7 +368,6 @@ export default function TournamentDetailPage() {
         
         const matchIds = tmData?.map((row: any) => row.match_id) || [];
 
-        // 2. Delete from tournament_matches (link table)
         const { error: tmDeleteError } = await supabase
             .from('tournament_matches')
             .delete()
@@ -267,7 +375,6 @@ export default function TournamentDetailPage() {
 
         if (tmDeleteError) throw tmDeleteError;
 
-        // 3. Delete from tournament_participants
         const { error: tpDeleteError } = await supabase
             .from('tournament_participants')
             .delete()
@@ -275,7 +382,6 @@ export default function TournamentDetailPage() {
 
         if (tpDeleteError) throw tpDeleteError;
 
-        // 4. Delete the actual matches (wins)
         if (matchIds.length > 0) {
             const { error: matchesDeleteError } = await supabase
                 .from('matches')
@@ -285,7 +391,6 @@ export default function TournamentDetailPage() {
             if (matchesDeleteError) throw matchesDeleteError;
         }
 
-        // 5. Delete the tournament itself
         const { error: tDeleteError } = await supabase
             .from('tournaments')
             .delete()
@@ -306,7 +411,6 @@ export default function TournamentDetailPage() {
   
   const currentRoundMatches = matches.filter(m => m.round_number === tournament.current_round);
   
-  // Filter available players for modal - using simplified interface local logic
   const registeredIds = new Set(participants.map(p => p.player_id));
   const availablePlayers = allProfiles.filter(p => 
       !registeredIds.has(p.id) && 
@@ -315,7 +419,6 @@ export default function TournamentDetailPage() {
 
   return (
     <div className="container" style={{ paddingTop: '2rem' }}>
-       {/* Breadcrumbs */}
        <div style={{ marginBottom: '1rem', fontSize: '0.9rem' }}>
          <Link href="/tournaments" style={{ color: '#888', textDecoration: 'none' }}>Torneos</Link>
          <span style={{ margin: '0 0.5rem', color: '#444' }}>/</span>
@@ -348,26 +451,26 @@ export default function TournamentDetailPage() {
             )}
             
             {tournament.status === 'registration' && (
-                <button onClick={() => setConfirmAction({ type: 'start' })} className="btn btn-gold">
+                <button onClick={() => setConfirmAction({ type: 'start' })} className="btn-premium btn-premium-gold">
                     Comenzar Torneo
                 </button>
             )}
             {tournament.status === 'active' && (
                 <>
                     {tournament.current_round > 1 && (
-                        <button onClick={() => setConfirmAction({ type: 'prev' })} className="btn" style={{ background: '#333', border: '1px solid #555', marginRight: '0.5rem' }}>
+                        <button onClick={() => setConfirmAction({ type: 'prev' })} className="btn-premium btn-premium-dark" style={{ marginRight: '0.5rem' }}>
                             ← Anterior Ronda
                         </button>
                     )}
-                    <button onClick={() => setConfirmAction({ type: 'next' })} className="btn" style={{ background: '#333', border: '1px solid #555' }}>
+                    <button onClick={() => setConfirmAction({ type: 'next' })} className="btn-premium btn-premium-gold">
                         Siguiente Ronda →
                     </button>
                 </>
             )}
             <button 
                 onClick={() => setConfirmAction({ type: 'delete' })} 
-                className="btn" 
-                style={{ background: 'rgba(255,0,0,0.1)', border: '1px solid #ff4444', color: '#ff4444', marginLeft: '0.5rem' }}
+                className="btn-premium btn-premium-red" 
+                style={{ marginLeft: '0.5rem' }}
                 title="Eliminar Torneo"
              >
                 🗑️
@@ -375,19 +478,16 @@ export default function TournamentDetailPage() {
          </div>
        </header>
 
-       {/* Tabs */}
-       <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid #333' }}>
-         {tournament.status === 'registration' && (
+       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', background: 'rgba(255,255,255,0.03)', padding: '4px', borderRadius: '12px', width: 'fit-content' }}>
+         {(tournament.status === 'registration') && (
             <button 
                 onClick={() => setActiveTab('registration')}
+                className={`btn-premium ${activeTab === 'registration' ? 'btn-premium-gold' : 'btn-premium-dark'}`}
                 style={{
-                    padding: '0.8rem 1.2rem',
-                    background: 'none',
+                    padding: '0.6rem 1.5rem',
+                    fontSize: '0.9rem',
                     border: 'none',
-                    borderBottom: activeTab === 'registration' ? '2px solid var(--color-gold)' : '2px solid transparent',
-                    color: activeTab === 'registration' ? 'var(--color-gold)' : '#888',
-                    cursor: 'pointer',
-                    fontSize: '1rem'
+                    boxShadow: activeTab === 'registration' ? '0 4px 12px rgba(212, 175, 55, 0.2)' : 'none'
                 }}
             >
                 Inscripción ({participants.length})
@@ -395,94 +495,102 @@ export default function TournamentDetailPage() {
          )}
          <button 
             onClick={() => setActiveTab('pairings')}
+            className={`btn-premium ${activeTab === 'pairings' ? 'btn-premium-gold' : 'btn-premium-dark'}`}
             style={{
-                padding: '0.8rem 1.2rem',
-                background: 'none',
+                padding: '0.6rem 1.5rem',
+                fontSize: '0.9rem',
                 border: 'none',
-                borderBottom: activeTab === 'pairings' ? '2px solid var(--color-gold)' : '2px solid transparent',
-                color: activeTab === 'pairings' ? 'var(--color-gold)' : '#888',
-                cursor: 'pointer',
-                fontSize: '1rem'
+                boxShadow: activeTab === 'pairings' ? '0 4px 12px rgba(212, 175, 55, 0.2)' : 'none'
             }}
          >
             Ronda {tournament.current_round}
          </button>
          <button 
             onClick={() => setActiveTab('standings')}
+            className={`btn-premium ${activeTab === 'standings' ? 'btn-premium-gold' : 'btn-premium-dark'}`}
             style={{
-                padding: '0.8rem 1.2rem',
-                background: 'none',
+                padding: '0.6rem 1.5rem',
+                fontSize: '0.9rem',
                 border: 'none',
-                borderBottom: activeTab === 'standings' ? '2px solid var(--color-gold)' : '2px solid transparent',
-                color: activeTab === 'standings' ? 'var(--color-gold)' : '#888',
-                cursor: 'pointer',
-                fontSize: '1rem'
+                boxShadow: activeTab === 'standings' ? '0 4px 12px rgba(212, 175, 55, 0.2)' : 'none'
             }}
          >
             Clasificación
          </button>
        </div>
 
-       {/* Content */}
        {activeTab === 'registration' && tournament.status === 'registration' && (
          <div className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                <h3>Jugadores Inscritos</h3>
-                <button onClick={handleOpenAddPlayer} className="btn" style={{ background: '#333' }}>+ Añadir Jugador</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ margin: 0 }}>Jugadores Inscritos</h3>
+                <button onClick={handleOpenAddPlayer} className="btn-premium btn-premium-gold" style={{ gap: '4px' }}>
+                    <span style={{ fontSize: '1.2rem', lineHeight: 1 }}>+</span> Añadir Jugador
+                </button>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
                 {participants.map(p => (
                     <div key={p.id} style={{ 
-                        background: p.is_dropped ? '#2a1a1a' : '#222', 
-                        padding: '1rem', 
-                        borderRadius: '8px', 
+                        background: p.is_dropped ? 'rgba(255, 68, 68, 0.05)' : 'rgba(255, 255, 255, 0.03)', 
+                        padding: '1.25rem', 
+                        borderRadius: '16px', 
                         display: 'flex', 
                         alignItems: 'center', 
-                        gap: '0.8rem',
-                        border: p.is_dropped ? '1px solid #442222' : '1px solid transparent',
-                        opacity: p.is_dropped ? 0.7 : 1
-                    }}>
-                       <div style={{ position: 'relative' }}>
+                        gap: '1rem',
+                        border: p.is_dropped ? '1px solid rgba(255, 68, 68, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
+                        opacity: p.is_dropped ? 0.7 : 1,
+                        transition: 'all 0.3s ease',
+                        position: 'relative'
+                    }} className="participant-card-premium">
+                       <div style={{ position: 'relative', flexShrink: 0 }}>
                            {p.profiles?.avatar_url ? (
-                               <img src={p.profiles.avatar_url} style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
+                               <img src={p.profiles.avatar_url} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.1)' }} />
                            ) : (
-                               <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#444', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1rem' }}>
+                               <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1.2rem', border: '1px solid rgba(255,255,255,0.1)' }}>
                                    {p.profiles?.username?.charAt(0)}
                                </div>
                            )}
-                           {/* Using any cast for untyped extra props if needed, but interfaces should match */}
                            {(p as any).commander_image_url && (
                                <img 
                                  src={(p as any).commander_image_url} 
                                  style={{ 
-                                     position: 'absolute', bottom: -5, right: -5, 
-                                     width: '24px', height: '24px', borderRadius: '50%', 
-                                     border: '2px solid #222', objectFit: 'cover'
+                                     position: 'absolute', bottom: -2, right: -2, 
+                                     width: '28px', height: '28px', borderRadius: '50%', 
+                                     border: '2px solid #111', objectFit: 'cover',
+                                     boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
                                  }} 
                                  title={(p as any).commander_name}
                                />
                            )}
                        </div>
                        
-                       <div style={{ flex: 1 }}>
-                           <div style={{ fontWeight: 'bold' }}>{p.profiles?.username}</div>
-                           {p.is_dropped && <div style={{ fontSize: '0.75rem', color: '#ff6666' }}>RETIRADO</div>}
-                           {(p as any).commander_name && <div style={{ fontSize: '0.75rem', color: '#888' }}>{(p as any).commander_name}</div>}
+                       <div style={{ flex: 1, minWidth: 0 }}>
+                           <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.profiles?.username}</div>
+                           {p.is_dropped && <div style={{ fontSize: '0.7rem', color: '#ff6666', fontWeight: 'bold', letterSpacing: '0.5px' }}>RETIRADO</div>}
+                           <div style={{ fontSize: '0.85rem', color: 'var(--color-gold)', fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                               {(p as any).decks?.name || (p as any).commander_name || 'Sin mazo'}
+                           </div>
                        </div>
 
-                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                           <button 
+                               onClick={() => openDeckModal(p)}
+                               className="btn-premium btn-premium-gold btn-premium-sm"
+                               style={{ width: '100%', minWidth: '70px' }}
+                           >
+                               Mazo
+                           </button>
                            <button 
                                onClick={() => openCommanderModal(p.id)}
-                               className="btn"
-                               style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', background: '#333' }}
+                               className="btn-premium btn-premium-dark btn-premium-sm"
+                               style={{ width: '100%' }}
                            >
                                Cmdr
                            </button>
                            {!p.is_dropped && (
                                <button 
                                    onClick={() => checkDropPlayer(p)}
-                                   className="btn"
-                                   style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', background: '#442222', color: '#ffaaaa' }}
+                                   className="btn-premium btn-premium-red btn-premium-sm"
+                                   style={{ width: '100%' }}
                                >
                                    Drop
                                </button>
@@ -490,8 +598,8 @@ export default function TournamentDetailPage() {
                        </div>
                     </div>
                 ))}
-            </div>
-         </div>
+             </div>
+          </div>
        )}
 
        {activeTab === 'pairings' && (
@@ -512,12 +620,12 @@ export default function TournamentDetailPage() {
 
        {/* Player Selection Modal */}
        {showPlayerModal && (
-           <div style={{
-               position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-               background: 'rgba(0,0,0,0.8)', zIndex: 1000,
-               display: 'flex', alignItems: 'center', justifyContent: 'center',
-               backdropFilter: 'blur(4px)'
-           }} onClick={() => setShowPlayerModal(false)}>
+            <div style={{
+                position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.8)', zIndex: Z_INDEX_OVERLAY,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(4px)'
+            }} onClick={() => setShowPlayerModal(false)}>
                <div style={{
                    background: '#1a1a1a', padding: '2rem', borderRadius: '12px',
                    width: '90%', maxWidth: '500px', maxHeight: '80vh', border: '1px solid #333',
@@ -568,7 +676,12 @@ export default function TournamentDetailPage() {
                                            {p.username?.charAt(0)}
                                        </div>
                                    )}
-                                   <span>{p.username}</span>
+                                   <div style={{ flex: 1 }}>
+                                       <div style={{ fontWeight: 'bold' }}>{p.username}</div>
+                                       <div style={{ fontSize: '0.7rem', color: '#666' }}>
+                                            {p.deck_count || 0} mazos {p.default_deck_name ? `• ${p.default_deck_name}` : ""}
+                                       </div>
+                                   </div>
                                </div>
                            );
                        })}
@@ -582,15 +695,15 @@ export default function TournamentDetailPage() {
                    <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem' }}>
                        <button 
                            onClick={() => setShowPlayerModal(false)}
-                           className="btn"
-                           style={{ flex: 1, background: '#333' }}
+                           className="btn-premium btn-premium-dark"
+                           style={{ flex: 1 }}
                        >
                            Cancelar
                        </button>
                        <button 
                            onClick={handleAddSelectedPlayers}
                            disabled={selectedPlayers.size === 0}
-                           className="btn btn-gold"
+                           className="btn-premium btn-premium-gold"
                            style={{ flex: 1 }}
                        >
                            Añadir Seleccionados ({selectedPlayers.size})
@@ -600,14 +713,20 @@ export default function TournamentDetailPage() {
            </div>
        )}
 
-       {/* Commander Search Modal */}
        <CommanderSearchModal 
           isOpen={cmdrModalOpen}
           onClose={() => setCmdrModalOpen(false)}
           onSelect={handleSelectCommander}
        />
 
-       {/* Confirmations */}
+       <TournamentDeckModal 
+          isOpen={deckModalOpen}
+          onClose={() => setDeckModalOpen(false)}
+          playerDecks={activePlayerDecks}
+          playerName={currentParticipant?.profiles?.username || ''}
+          onSelect={handleSelectDeck}
+       />
+
        <ConfirmationDialog 
           isOpen={confirmAction?.type === 'start'}
           title="Iniciar Torneo"
@@ -658,4 +777,3 @@ export default function TournamentDetailPage() {
     </div>
   );
 }
-

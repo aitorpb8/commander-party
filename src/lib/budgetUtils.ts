@@ -7,7 +7,8 @@ export interface BudgetInfo {
   statusColor: string;
 }
 
-export const MONTHLY_ALLOWANCE = 10;
+import { LEAGUE_START_DATE, MONTHLY_ALLOWANCE } from './constants';
+
 
 /**
  * Calculates budget information.
@@ -16,11 +17,12 @@ export const MONTHLY_ALLOWANCE = 10;
  * @param liveTrendingSpent (Optional) If provided, this replaces the current month's registered cost for a live view.
  */
 export function calculateDeckBudget(createdAt: string | Date, spent: number = 0, liveTrendingSpent?: number): BudgetInfo {
-  const createdDate = new Date(createdAt);
+  // We ignore createdAt for budget cap purposes now, everyone starts from League Start
+  const startDate = LEAGUE_START_DATE;
   const now = new Date();
   
-  // Calculate months difference
-  const monthsDiff = (now.getFullYear() - createdDate.getFullYear()) * 12 + (now.getMonth() - createdDate.getMonth());
+  // Calculate months difference from League Start
+  const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
   // Active months starts at 1
   const monthsActive = Math.max(1, monthsDiff + 1);
   

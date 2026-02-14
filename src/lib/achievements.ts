@@ -7,14 +7,17 @@ export interface Badge {
   color: string;
 }
 
+import { MONTHLY_ALLOWANCE, WHALE_THRESHOLD, HIGH_ROLLER_THRESHOLD } from './constants';
+
 export const BADGES: { [key: string]: Badge } = {
   budget_master: {
     id: 'budget_master',
     name: 'Budget Master',
-    description: 'Ha gastado exactamente 10.00€ en mejoras en un solo mes.',
+    description: `Ha gastado exactamente ${MONTHLY_ALLOWANCE}.00€ en mejoras en un solo mes.`,
     icon: '🎯',
     color: '#D4AF37'
   },
+
   slayer: {
     id: 'slayer',
     name: 'Slayer',
@@ -39,14 +42,14 @@ export const BADGES: { [key: string]: Badge } = {
   high_roller: {
     id: 'high_roller',
     name: 'High Roller',
-    description: 'Ha realizado una mejora de 5.00€ o más.',
+    description: `Ha realizado una mejora de ${HIGH_ROLLER_THRESHOLD}.00€ o más.`,
     icon: '💎',
     color: '#00FFFF'
   },
   whale: {
     id: 'whale',
     name: 'Ballena',
-    description: 'Uno de sus mazos supera los 20€ de inversión total.',
+    description: `Uno de sus mazos supera los ${WHALE_THRESHOLD}€ de inversión total.`,
     icon: '🐋',
     color: '#1E90FF'
   }
@@ -82,12 +85,12 @@ export function calculateAchievements(data: {
   }
 
   // 4. High Roller
-  if (userUpgrades.some(u => parseFloat(u.cost) >= 5)) {
+  if (userUpgrades.some(u => parseFloat(u.cost) >= HIGH_ROLLER_THRESHOLD)) {
     earned.push(BADGES.high_roller);
   }
 
   // 5. Whale
-  if (userDecks.some(d => d.budget_spent >= 20)) {
+  if (userDecks.some(d => d.budget_spent >= WHALE_THRESHOLD)) {
     earned.push(BADGES.whale);
   }
 
@@ -97,7 +100,8 @@ export function calculateAchievements(data: {
   userUpgrades.forEach(u => {
     monthlyTotals[u.month] = (monthlyTotals[u.month] || 0) + parseFloat(u.cost);
   });
-  if (Object.values(monthlyTotals).some(total => total === 10)) {
+  if (Object.values(monthlyTotals).some(total => total === MONTHLY_ALLOWANCE)) {
+
     earned.push(BADGES.budget_master);
   }
 

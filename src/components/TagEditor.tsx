@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabaseClient';
+import { Z_INDEX_MODAL } from '@/lib/constants';
 
 interface TagEditorProps {
   deckId: string;
@@ -92,7 +93,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
           right: 0, 
           bottom: 0, 
           background: 'rgba(0,0,0,0.85)', 
-          zIndex: 11000,
+          zIndex: Z_INDEX_MODAL,
           backdropFilter: 'blur(4px)'
         }}
         onClick={onClose}
@@ -107,7 +108,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
           padding: '2rem',
           borderRadius: 'var(--border-radius)',
           border: '1px solid var(--border-color)',
-          zIndex: 11001,
+          zIndex: Z_INDEX_MODAL + 1,
           width: '90%',
           maxWidth: '500px',
           maxHeight: '80vh',

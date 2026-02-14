@@ -3,6 +3,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { searchCards, ScryfallCard, getAveragePrice, getCollection, getCardPrints } from '@/lib/scryfall';
 import { createPortal } from 'react-dom';
 import ConfirmationDialog from './ConfirmationDialog';
+import { MONTHLY_ALLOWANCE, Z_INDEX_MODAL } from '@/lib/constants';
 
 interface WishlistCard {
   id: string;
@@ -225,7 +226,7 @@ export default function Wishlist({
     return createPortal(
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        background: 'rgba(0,0,0,0.85)', zIndex: 11000,
+        background: 'rgba(0,0,0,0.85)', zIndex: Z_INDEX_MODAL,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         padding: '1rem',
         backdropFilter: 'blur(5px)'
@@ -432,7 +433,7 @@ export default function Wishlist({
               headerBg = 'rgba(244, 67, 54, 0.1)';
               textColor = 'var(--color-red)';
               borderColor = 'var(--color-red)';
-            } else if (monthTotal > 10) {
+            } else if (monthTotal > MONTHLY_ALLOWANCE) {
               statusColor = '#ff9800'; // Orange
               headerBg = 'rgba(255, 152, 0, 0.1)';
               textColor = '#ff9800';
@@ -491,9 +492,9 @@ export default function Wishlist({
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: '0.8rem', color: '#aaa', textTransform: 'uppercase' }}>Total</div>
-                    <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: !isBacklog && monthTotal > 10 ? textColor : 'var(--color-gold)' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '1.1rem', color: !isBacklog && monthTotal > MONTHLY_ALLOWANCE ? textColor : 'var(--color-gold)' }}>
                         {monthTotal.toFixed(2)}€
-                        {!isBacklog && <span style={{ fontSize: '0.8rem', color: '#666', marginLeft: '5px' }}>/ 10.00€</span>}
+                        {!isBacklog && <span style={{ fontSize: '0.8rem', color: '#666', marginLeft: '5px' }}>/ {MONTHLY_ALLOWANCE}.00€</span>}
                     </div>
                 </div>
               </div>

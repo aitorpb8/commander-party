@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { Z_INDEX_TOAST } from '@/lib/constants';
+
 
 interface PreviewCardOverlayProps {
   previewCard: { name: string, image: string, x: number, y: number } | null;
@@ -30,7 +32,7 @@ export default function PreviewCardOverlay({ previewCard }: PreviewCardOverlayPr
         position: 'fixed', 
         top: top, 
         left: left, 
-        zIndex: 9999999, 
+        zIndex: Z_INDEX_TOAST, 
         pointerEvents: 'none',
         animation: 'fadeIn 0.2s ease-out'
       }}

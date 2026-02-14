@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import React from 'react';
 import BudgetChart from '@/components/BudgetChart'; // Maybe reuse part of it or create something else
+import { MONTHLY_ALLOWANCE } from '@/lib/constants';
 
 export default async function MetaPage() {
   const cookieStore = await cookies();
@@ -71,7 +72,7 @@ export default async function MetaPage() {
         <div className="card" style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.5rem' }}>GASTO MEDIO / MAZO</div>
           <div style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--color-gold)' }}>{avgSpent.toFixed(2)}€</div>
-          <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '0.5rem' }}>De un máximo de 10€/mes</div>
+          <div style={{ fontSize: '0.7rem', color: '#555', marginTop: '0.5rem' }}>De un máximo de {MONTHLY_ALLOWANCE}€/mes</div>
         </div>
         <div className="card" style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.5rem' }}>TOTAL MEJORAS</div>

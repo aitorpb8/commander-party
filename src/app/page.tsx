@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import DeckCard from "@/components/DeckCard";
 import { calculateDeckBudget } from '@/lib/budgetUtils';
+import { MONTHLY_ALLOWANCE } from '@/lib/constants';
 
 // Force revalidation on every request to show fresh budget data
 export const revalidate = 0;
@@ -79,7 +80,7 @@ export default async function Home() {
       {/* HERO SECTION */}
       <section className="hero-section">
         <div className="hide-mobile" style={{ position: 'absolute', top: '20px', right: '30px', transform: 'rotate(15deg)', color: 'rgba(212,175,55,0.15)', fontSize: '2.5rem', fontWeight: '900', userSelect: 'none' }}>PARTY!</div>
-        <div className="hide-mobile" style={{ position: 'absolute', bottom: '20px', left: '30px', transform: 'rotate(-10deg)', color: 'rgba(212,175,55,0.1)', fontSize: '1.5rem', fontWeight: '900', userSelect: 'none' }}>10€ BUDGET</div>
+        <div className="hide-mobile" style={{ position: 'absolute', bottom: '20px', left: '30px', transform: 'rotate(-10deg)', color: 'rgba(212,175,55,0.1)', fontSize: '1.5rem', fontWeight: '900', userSelect: 'none' }}>{MONTHLY_ALLOWANCE}€ BUDGET</div>
 
         <h1 className="hero-title">
           Commander Party
@@ -109,7 +110,7 @@ export default async function Home() {
           <div className="hero-divider" />
           <div className="hero-stat-item">
             <div style={{ color: "var(--color-gold)", fontSize: "2rem", fontWeight: "900", lineHeight: "1" }}>
-              10€
+              {MONTHLY_ALLOWANCE}€
             </div>
             <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>
               Presupuesto
@@ -138,7 +139,7 @@ export default async function Home() {
           <div style={{ maxWidth: '600px' }}>
             <h4 style={{ color: 'var(--color-gold)', marginBottom: '0.5rem', fontSize: '1.2rem', fontFamily: 'var(--font-title)' }}>¿ERES NUEVO EN LA PARTY?</h4>
             <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
-              Todo jugador necesita un plan. Empieza tu proyecto de 10€ y demuestra quién manda en la mesa.
+              Todo jugador necesita un plan. Empieza tu proyecto de {MONTHLY_ALLOWANCE}€ y demuestra quién manda en la mesa.
             </p>
           </div>
           <Link 
@@ -301,7 +302,7 @@ export default async function Home() {
         <div style={{ position: "absolute", top: "-50%", left: "-20%", width: "60%", height: "200%", background: "radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
         <h2 style={{ fontSize: "3rem", fontWeight: "900", marginBottom: "1rem", letterSpacing: '-2px' }}>¿Te unes a la Party?</h2>
         <p style={{ color: "#888", marginBottom: "3rem", maxWidth: "600px", margin: "0 auto 3rem", fontSize: '1.1rem' }}>
-          Demuestra que el dinero no gana partidas, la astucia lo hace. 10€, 100 cartas, gloria infinita.
+          Demuestra que el dinero no gana partidas, la astucia lo hace. {MONTHLY_ALLOWANCE}€, 100 cartas, gloria infinita.
         </p>
         <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
           <Link 

@@ -16,6 +16,14 @@ export interface TournamentPlayer {
     profiles: TournamentProfile;
     // Computed
     omw?: number; 
+    deck_id?: string | null;
+    commander_name?: string | null;
+    commander_image_url?: string | null;
+    decks?: {
+        name: string;
+        commander: string;
+        image_url: string;
+    };
 }
 
 export interface MatchInfo {
@@ -134,34 +142,30 @@ export function generatePairings(
     // 4. Determine Pod Structure (Avoid 5s, prefer 3s)
     let num5s = 0, num4s = 0, num3s = 0;
     
-    if (N < 4) {
-        // Special case for tiny tourneys
-        num3s = (N === 3) ? 1 : 0;
-        // If N=2/1, logic below usually fails or we just do 1v1? 
-        // Current logic assumes multiplayer > 2 usually.
+    if (N === 0) return [];
+    
+    if (N < 3) {
+        // Special case for tiny tourneys: 1v1 Pod
+        return [activePlayers.map(p => p.player_id)];
     } else if (N === 5) {
         // Unavoidable 5
         num5s = 1;
     } else {
         // Strategy: Maximize 4s, Fill rest with 3s. No 5s.
-        // Formula: num3s = (4 - (remainder mod 4)) mod 4
         const rem = N % 4;
         num3s = (4 - rem) % 4;
         num4s = (N - 3 * num3s) / 4;
     }
 
     // 5. Fill Pods
-    // A simple greedy approach:
-    // Take the highest pointed player, then try to find 3 others closest in points
-    // who have NOT played this player.
-    
     const availableSet = new Set(sortedPlayers.map(p => p.player_id));
     const finalPods: string[][] = [];
 
     const createPod = (size: number) => {
+         if (availableSet.size === 0) return;
          // Pick highest seed available
          const seedId = getHighestSeed(sortedPlayers, availableSet);
-         if (!seedId) return; // Should not happen if logic is correct
+         if (!seedId) return;
 
          const currentPod = [seedId];
          availableSet.delete(seedId);

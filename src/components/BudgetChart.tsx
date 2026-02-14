@@ -33,6 +33,9 @@ ChartJS.register(
   Filler
 );
 
+import { LEAGUE_START_DATE, MONTHLY_ALLOWANCE } from '@/lib/constants';
+
+
 interface BudgetChartProps {
   upgrades: DeckUpgrade[];
   initialBudget?: number;
@@ -56,22 +59,23 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
   };
 
   const now = new Date();
-  // Default start date: Creation date OR first upgrade date OR 3 months ago
-  let startDate = new Date();
-  if (creationDate) {
+  
+  // Force start date to be League Start Date to show full history/accumulation context
+  let startDate = new Date(LEAGUE_START_DATE);
+
+  // If we have data OLDER than league start (legacy?), we extend backwards, but otherwise default to league start
+  if (creationDate && new Date(creationDate) < startDate) {
       startDate = new Date(creationDate);
   } else if (upgrades.length > 0) {
-      // Filter out upgrades with null month for sorting
       const validUpgrades = upgrades.filter(u => u.month);
       if (validUpgrades.length > 0) {
         const sorted = [...validUpgrades].sort((a, b) => a.month!.localeCompare(b.month!));
         const [y, m] = sorted[0].month!.split('-');
-        startDate = new Date(parseInt(y), parseInt(m) - 1);
-      } else {
-        startDate.setMonth(now.getMonth() - 2);
+        const firstUpgrade = new Date(parseInt(y), parseInt(m) - 1);
+        if (firstUpgrade < startDate) {
+             startDate = firstUpgrade;
+        }
       }
-  } else {
-      startDate.setMonth(now.getMonth() - 2); 
   }
 
   // Generate full month list
@@ -88,8 +92,8 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
   // Calculate data points (Monthly, non-cumulative)
   const spentData = months.map(m => monthlyTotals[m] || 0);
 
-  // Constant limit (10€ per month)
-  const limitData = months.map(() => 10);
+  // Constant limit from config
+  const limitData = months.map(() => MONTHLY_ALLOWANCE);
 
   const data: ChartData<'bar' | 'line', number[], string> = {
     labels: months,
@@ -106,9 +110,10 @@ export default function BudgetChart({ upgrades, initialBudget = 0, creationDate 
       },
       {
         type: 'line' as const,
-        label: 'Límite (10€)',
+        label: `Límite (${MONTHLY_ALLOWANCE}€)`,
         data: limitData,
         borderColor: 'rgba(255, 255, 255, 0.5)', // Faint white
+
         borderDash: [5, 5],
         pointRadius: 0,
         fill: false,

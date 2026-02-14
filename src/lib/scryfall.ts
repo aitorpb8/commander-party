@@ -1,20 +1,14 @@
 import { ScryfallCard } from '@/types';
-
-const SCRYFALL_API = "https://api.scryfall.com";
-
 export type { ScryfallCard };
 
-// Removed local interface definition
-
+const PROXY_GET = "/api/scryfall/proxy";
 
 export async function getCardByName(
   name: string
 ): Promise<ScryfallCard | null> {
   try {
-    // Instead of using /cards/named, we use /cards/search with exact name and order=eur
-    // to ensure we get the cheapest printing available.
     const encodedName = encodeURIComponent(`!"${name}"`);
-    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedName}&order=eur&dir=asc`);
+    const res = await fetch(`${PROXY_GET}?path=cards/search&q=${encodedName}&order=eur&dir=asc`);
 
     if (!res.ok) {
       if (res.status === 404) return null;
@@ -53,23 +47,18 @@ export async function searchCards(query: string): Promise<ScryfallCard[]> {
   
   const performSearch = async (q: string) => {
     const encodedQuery = encodeURIComponent(q);
-    // Add order=eur&dir=asc to prioritize the cheapest printing
-    const res = await fetch(`${SCRYFALL_API}/cards/search?q=${encodedQuery}&order=eur&dir=asc`);
+    const res = await fetch(`${PROXY_GET}?path=cards/search&q=${encodedQuery}&order=eur&dir=asc`);
     if (!res.ok) return [];
     const data = await res.json();
     return data.data || [];
   };
 
   try {
-    // 1. Try strict search (No special treatments, no digital)
-    // We filter out promos, extended art, borderless, and Secret Lair
     const strictQuery = `${query} -is:promo -frame:extendedart -frame:borderless -is:digital -set:sld`;
     const strictResults = await performSearch(strictQuery);
 
     if (strictResults.length > 0) return strictResults;
 
-    // 2. Fallback: Relaxed search (allow everything)
-    // useful for cards that ONLY exist as promos or special versions
     console.log(`No standard results for "${query}", falling back to relaxed search.`);
     return await performSearch(query);
 
@@ -83,16 +72,23 @@ export async function getCardPrints(name: string): Promise<ScryfallCard[]> {
   try {
     const encodedName = encodeURIComponent(`!"${name}"`);
     let allPrints: ScryfallCard[] = [];
-    let nextUrl = `${SCRYFALL_API}/cards/search?q=${encodedName}&unique=prints&order=released&dir=desc`;
+    let nextUrl: string | null = `${PROXY_GET}?path=cards/search&q=${encodedName}&unique=prints&order=released&dir=desc`;
     
-    // We fetch up to 10 pages (1750 cards) to cover all basic lands (Forest has >600 prints).
     let pagesFetched = 0;
     while (nextUrl && pagesFetched < 10) {
-      const res = await fetch(nextUrl);
+      const res: Response = await fetch(nextUrl);
       if (!res.ok) break;
-      const data = await res.json();
+      const data: any = await res.json();
       if (data.data) allPrints = [...allPrints, ...data.data];
-      nextUrl = data.has_more ? data.next_page : null;
+      
+      if (data.has_more && data.next_page) {
+        const urlObj: URL = new URL(data.next_page);
+        const path: string = urlObj.pathname.slice(1);
+        const params: string = urlObj.search;
+        nextUrl = `${PROXY_GET}?path=${path}${params.replace('?', '&')}`;
+      } else {
+        nextUrl = null;
+      }
       pagesFetched++;
     }
     
@@ -102,6 +98,8 @@ export async function getCardPrints(name: string): Promise<ScryfallCard[]> {
     return [];
   }
 }
+
+
 
 export async function getAveragePrice(name: string): Promise<{ price: number, sets: string[] } | null> {
   const prints = await getCardPrints(name);

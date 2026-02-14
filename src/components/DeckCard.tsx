@@ -7,7 +7,8 @@ interface DeckCardProps {
   deckName: string;
   commanderName: string;
   spent: number;
-  budget: number; // usually 10
+  budget: number; // monthly limit (usually from MONTHLY_ALLOWANCE)
+
   imageUrl: string;
   colors: string[]; // e.g. ['R', 'U']
 }
