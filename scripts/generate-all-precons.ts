@@ -26,6 +26,15 @@ interface Card {
   oracle_text?: string;
 }
 
+const PRECONS_2026: PreconData[] = [
+  // Teenage Mutant Ninja Turtles (Feb 2026)
+  { name: 'Turtle Power!', commander: 'Leonardo, the Balance', series: 'Teenage Mutant Ninja Turtles', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+
+  //Lorwyn Ecliped (Jan 2026)
+  { name: 'Dance of the Elements', commander: 'Ashling, the Limitless', series: 'Lorwyn Ecliped', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+  { name: 'Blight Course', commander: 'Auntie Ool, Cursewretch', series: 'Lorwyn Ecliped', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+];
+
 const PRECONS_2025: PreconData[] = [
   // Edge of Eternities (Aug 2025)
   { name: 'Counter Intelligence', commander: 'Inspirit, Flagship Vessel', series: 'Edge of Eternities', year: 2025, archidektId: '9545201' },
@@ -370,6 +379,7 @@ async function generatePrecons() {
   console.log('🚀 Generating COMPLETE Precon Database (2011-2025)\n');
   
   const allPreconsList = [
+    ...PRECONS_2026,
     ...PRECONS_2025, ...PRECONS_2024, ...PRECONS_2023, ...PRECONS_2022, 
     ...PRECONS_2021, ...PRECONS_2020, ...PRECONS_2019, ...PRECONS_HISTO
     // PRECONS_HISTO.find(p => p.name === 'Heavenly Inferno')!

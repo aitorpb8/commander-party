@@ -1051,6 +1051,7 @@ export default function DeckDetailPage() {
               isOwner={isOwner} 
               onUpdateDeck={handleUpdateDeck}
               trendingPrices={trendingPrices}
+              deckCards={deckCards}
             />
          </div>
       </div>

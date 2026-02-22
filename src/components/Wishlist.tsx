@@ -4,6 +4,7 @@ import { searchCards, ScryfallCard, getAveragePrice, getCollection, getCardPrint
 import { createPortal } from 'react-dom';
 import ConfirmationDialog from './ConfirmationDialog';
 import { MONTHLY_ALLOWANCE, Z_INDEX_MODAL } from '@/lib/constants';
+import { DeckCard } from '@/types';
 
 interface WishlistCard {
   id: string;
@@ -13,18 +14,21 @@ interface WishlistCard {
   priority: 'High' | 'Medium' | 'Low';
   target_month?: string; // YYYY-MM
   scryfall_id?: string;
+  card_out?: string;
 }
 
 export default function Wishlist({ 
   deckId, 
   isOwner = false, 
   onUpdateDeck,
-  trendingPrices: externalTrendingPrices 
+  trendingPrices: externalTrendingPrices,
+  deckCards = []
 }: { 
   deckId: string; 
   isOwner?: boolean;
   onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<void> | void;
   trendingPrices?: Record<string, number>;
+  deckCards?: DeckCard[];
 }) {
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [query, setQuery] = useState('');
@@ -38,6 +42,11 @@ export default function Wishlist({
   const [prints, setPrints] = useState<ScryfallCard[]>([]);
   const [loadingPrints, setLoadingPrints] = useState(false);
   const [versionFilter, setVersionFilter] = useState('');
+  
+  // Single Card Swap State
+  const [swapSelectionCard, setSwapSelectionCard] = useState<WishlistCard | null>(null);
+  const [cardOutSearch, setCardOutSearch] = useState('');
+  const [selectedCardOut, setSelectedCardOut] = useState<string | null>(null);
   
   // Dialog state
   const [errorDialog, setErrorDialog] = useState<{ title: string, message: string } | null>(null);
@@ -95,7 +104,7 @@ export default function Wishlist({
       if (query.length > 2) {
         const res = await searchCards(query);
         if (!cancelled) {
-          setAddResults(res.slice(0, 5));
+          setAddResults(res.slice(0, 50));
         }
       } else {
         if (!cancelled) setAddResults([]);
@@ -159,8 +168,9 @@ export default function Wishlist({
         
         await onUpdateDeck({
           card_in: card.card_name,
+          card_out: card.card_out || undefined,
           cost: price,
-          description: `Añadido desde Wishlist (${monthKey})`
+          description: `Añadido desde Wishlist (${monthKey})${card.card_out ? ` (Sustituye a ${card.card_out})` : ''}`
         });
       }
       
@@ -306,6 +316,130 @@ export default function Wishlist({
               </div>
             </div>
           )}
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  const updateSwap = async (id: string, cardOut: string | null) => {
+    const { error } = await supabase
+      .from('deck_wishlist')
+      .update({ card_out: cardOut })
+      .eq('id', id);
+    
+    if (!error) {
+       setWishlist(wishlist.map(w => w.id === id ? { ...w, card_out: cardOut || undefined } : w));
+    } else {
+       setErrorDialog({ title: 'Error', message: 'No se pudo guardar la sustitución.' });
+    }
+  };
+
+  const renderSwapModal = () => {
+    if (!swapSelectionCard) return null;
+
+    const filteredDeckCards = deckCards.filter(c => 
+      c.card_name.toLowerCase().includes(cardOutSearch.toLowerCase())
+    );
+
+    const handleConfirmSwap = async () => {
+      await updateSwap(swapSelectionCard.id, selectedCardOut);
+      setSwapSelectionCard(null);
+      setSelectedCardOut(null);
+      setCardOutSearch('');
+    };
+
+    return createPortal(
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        background: 'rgba(0,0,0,0.85)', zIndex: Z_INDEX_MODAL + 10,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+        backdropFilter: 'blur(5px)'
+      }} onClick={() => setSwapSelectionCard(null)}>
+        <div 
+          className="card" 
+          style={{ 
+            maxWidth: '500px', width: '100%', maxHeight: '85vh', 
+            display: 'flex', flexDirection: 'column', 
+            padding: '3rem', border: '1px solid #444', 
+            boxShadow: '0 20px 50px rgba(0,0,0,0.9)',
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Seleccionar Sustitución</h3>
+            <button onClick={() => setSwapSelectionCard(null)} className="modal-close-btn" style={{ position: 'relative', top: 0, right: 0 }}>&times;</button>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', background: '#1c1c1c', padding: '1rem', borderRadius: '8px', border: '1px solid #333' }}>
+            <img src={swapSelectionCard.image_url} alt={swapSelectionCard.card_name} style={{ width: '60px', borderRadius: '4px' }} />
+            <div>
+               <div style={{ fontWeight: 'bold' }}>{swapSelectionCard.card_name}</div>
+               <div style={{ color: 'var(--color-green)', fontSize: '0.9rem' }}>+ Entra al mazo</div>
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '1rem' }}>
+             <label style={{ display: 'block', marginBottom: '0.5rem', color: '#aaa', fontSize: '0.9rem' }}>
+               ¿Sustituir por otra carta? (Opcional)
+             </label>
+             <input 
+               type="text"
+               placeholder="🔍 Buscar carta actual del mazo..."
+               value={cardOutSearch}
+               onChange={e => setCardOutSearch(e.target.value)}
+               style={{ 
+                 width: '100%', padding: '0.8rem 1rem', 
+                 background: '#000', border: '1px solid #444', 
+                 color: '#fff', borderRadius: '8px', fontSize: '0.9rem' 
+               }}
+             />
+          </div>
+
+          <div className="custom-scrollbar" style={{ flex: 1, minHeight: '150px', maxHeight: '300px', overflowY: 'auto', marginBottom: '1.5rem', border: '1px solid #333', borderRadius: '8px', background: '#111' }}>
+             {selectedCardOut && (
+                 <div 
+                   onClick={() => setSelectedCardOut(null)}
+                   style={{ padding: '0.8rem', background: 'rgba(244, 67, 54, 0.2)', borderBottom: '1px solid var(--color-red)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                 >
+                    <span style={{ color: '#fff' }}><span style={{ color: 'var(--color-red)' }}>-</span> {selectedCardOut}</span>
+                    <span style={{ color: 'var(--color-red)', fontSize: '0.8rem' }}>✕ Quitar selección</span>
+                 </div>
+             )}
+             {filteredDeckCards.length === 0 ? (
+                 <div style={{ padding: '1rem', textAlign: 'center', color: '#666', fontSize: '0.9rem' }}>No se encontraron cartas en tu mazo.</div>
+             ) : (
+                 filteredDeckCards.filter(c => c.card_name !== selectedCardOut).map(c => (
+                     <div 
+                       key={c.id}
+                       onClick={() => setSelectedCardOut(c.card_name)}
+                       style={{ padding: '0.6rem 0.8rem', borderBottom: '1px solid #222', cursor: 'pointer', fontSize: '0.9rem', transition: 'background 0.2s' }}
+                       onMouseEnter={e => e.currentTarget.style.background = '#222'}
+                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                     >
+                       {c.card_name}
+                     </div>
+                 ))
+             )}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+             <button 
+               onClick={() => setSwapSelectionCard(null)}
+               className="btn"
+               style={{ background: 'transparent', border: '1px solid #444' }}
+             >
+               Cancelar
+             </button>
+             <button 
+               onClick={handleConfirmSwap}
+               className="btn"
+               style={{ background: 'var(--color-gold)', color: '#000', fontWeight: 'bold' }}
+             >
+               Guardar Sustitución
+             </button>
+          </div>
         </div>
       </div>,
       document.body
@@ -541,6 +675,16 @@ export default function Wishlist({
                                         );
                                     })()}
                                  </div>
+                                 {card.card_out && (
+                                   <div 
+                                      onClick={() => isOwner && updateSwap(card.id, null)}
+                                      style={{ fontSize: '0.75rem', color: 'var(--color-red)', marginTop: '4px', cursor: isOwner ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', background: 'rgba(244, 67, 54, 0.1)', padding: '2px 8px', borderRadius: '4px' }}
+                                      title="Quitar sustitución"
+                                   >
+                                      <span>⟲ Sale: {card.card_out}</span>
+                                      {isOwner && <span>✖</span>}
+                                   </div>
+                                 )}
                                </div>
                              </div>
 
@@ -560,13 +704,27 @@ export default function Wishlist({
                                        </optgroup>
                                    </select>
                                    
-                                   <button 
-                                      onClick={() => removeFromWishlist(card.id)}
-                                      className="btn"
-                                      style={{ padding: '8px 12px', background: '#333', fontSize: '0.85rem', border: '1px solid #444', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                                   >
-                                      🗑️ Eliminar
-                                   </button>
+                                   <div style={{ display: 'flex', gap: '6px' }}>
+                                       <button 
+                                          onClick={() => {
+                                            setSelectedCardOut(card.card_out || null);
+                                            setSwapSelectionCard(card);
+                                          }}
+                                          className="btn"
+                                          title="Seleccionar carta a sustituir"
+                                          style={{ flex: 1, padding: '8px 0', background: card.card_out ? '#333' : 'var(--color-green)', color: card.card_out ? '#ccc' : '#000', fontSize: '0.85rem', border: 'none', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
+                                       >
+                                          {card.card_out ? '✏️ Cambiar' : '🔄 Sustituir...'}
+                                       </button>
+                                       <button 
+                                          onClick={() => removeFromWishlist(card.id)}
+                                          className="btn"
+                                          title="Eliminar del backlog"
+                                          style={{ padding: '8px 12px', background: '#333', fontSize: '0.85rem', border: '1px solid #444', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                       >
+                                          🗑️
+                                       </button>
+                                   </div>
                                </div>
                              )}
                         </div>
@@ -577,6 +735,7 @@ export default function Wishlist({
           );
         })}
       </div>
+      {renderSwapModal()}
       {renderVersionModal()}
       
       {/* Error Dialog */}
