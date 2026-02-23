@@ -377,6 +377,15 @@ a {
   border-radius: 6px;
 }
 
+@media (max-width: 768px) {
+  .btn-premium-responsive {
+    padding: 0.4rem 0.8rem !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0 !important;
+    gap: 4px !important;
+  }
+}
+
 /* Card Style */
 .card {
   background-color: var(--bg-card);

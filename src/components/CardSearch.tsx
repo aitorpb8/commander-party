@@ -16,6 +16,16 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
   // Filter state
   const [colors, setColors] = useState<string[]>([]);
   const [type, setType] = useState('');
+  const [rarity, setRarity] = useState('');
+  const [cmc, setCmc] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [hoveredCard, setHoveredCard] = useState<ScryfallCard | null>(null);
 
@@ -29,8 +39,17 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
   ];
 
   const typeOptions = [
-    'Creature', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Planeswalker', 'Land'
+    'Creature', 'Instant', 'Sorcery', 'Enchantment', 'Artifact', 'Planeswalker', 'Battle', 'Land'
   ];
+
+  const rarityOptions = [
+    { label: 'Común', value: 'c' },
+    { label: 'Infrecuente', value: 'u' },
+    { label: 'Rara', value: 'r' },
+    { label: 'Mítica', value: 'm' }
+  ];
+
+  const cmcOptions = ['0', '1', '2', '3', '4', '5', '6', '7+'];
 
   useEffect(() => {
     const timer = setTimeout(async () => {
@@ -44,6 +63,16 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
         if (type) {
           finalQuery += ` type:${type}`;
         }
+        if (rarity) {
+          finalQuery += ` rarity:${rarity}`;
+        }
+        if (cmc) {
+          if(cmc === '7+') {
+            finalQuery += ` cmc>=7`;
+          } else {
+            finalQuery += ` cmc=${cmc}`;
+          }
+        }
 
         console.log(`Searching Scryfall for: ${finalQuery}`);
         const cards = await searchCards(finalQuery);
@@ -55,7 +84,7 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [query, colors, type]);
+  }, [query, colors, type, rarity, cmc]);
 
   const toggleColor = (c: string) => {
     setColors(prev => prev.includes(c) ? prev.filter(x => x !== c) : [...prev, c]);
@@ -63,35 +92,58 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
 
   return (
     <div style={{ position: 'relative', width: '100%' }}>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '0.5rem', alignItems: 'center' }}>
         <input
           type="text"
-          placeholder="Buscar carta en Scryfall..."
+          placeholder={isMobile ? "Buscar carta..." : "Buscar carta en Scryfall..."}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           style={{
             flex: 1,
-            padding: '0.75rem',
+            padding: '0.6rem 0.8rem',
             borderRadius: '8px',
             border: '1px solid #444',
             background: '#222',
-            color: 'white'
+            color: 'white',
+            minWidth: '0'
           }}
         />
         <button 
           onClick={() => setShowFilters(!showFilters)}
-          className="btn"
-          style={{ padding: '0.5rem 1rem', background: showFilters ? 'var(--color-gold)' : '#333', color: showFilters ? 'black' : 'white' }}
+          className={`btn-premium ${showFilters ? 'btn-premium-gold' : 'btn-premium-dark'}`}
+          style={{
+            margin: '0', 
+            padding: '0.4rem', 
+            borderRadius: '50%',
+            width: '36px',
+            height: '36px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}
+          title="Filtros"
         >
-          {showFilters ? 'Filtros ▲' : 'Filtros ▼'}
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
         </button>
       </div>
 
       {showFilters && (
-        <div className="card" style={{ marginBottom: '1rem', padding: '1rem', background: '#1a1a1a', border: '1px solid #333' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <label style={{ display: 'block', fontSize: '0.7rem', color: '#888', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Colores (Identidad)</label>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div className="card" style={{ 
+          marginBottom: '1rem', 
+          padding: '1rem', 
+          background: '#1a1a1a', 
+          border: '1px solid #333',
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '1.5rem',
+          alignItems: 'flex-start'
+        }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: '#888', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Colores (Identidad)</label>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
               {colorOptions.map(c => (
                 <button
                   key={c.value}
@@ -99,31 +151,80 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
                   style={{
                     width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #444',
                     background: colors.includes(c.value) ? 'var(--color-gold)' : '#111',
-                    color: colors.includes(c.value) ? 'black' : 'white',
-                    fontWeight: 'bold', cursor: 'pointer'
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                    boxShadow: colors.includes(c.value) ? '0 0 10px rgba(255, 215, 0, 0.5)' : 'none',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  {c.label}
+                  <img 
+                    src={`https://svgs.scryfall.io/card-symbols/${c.value.toUpperCase()}.svg`} 
+                    alt={c.label} 
+                    style={{ width: '18px', height: '18px', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }} 
+                  />
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.7rem', color: '#888', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Tipo de Carta</label>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: '#888', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Tipo de Carta</label>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               {typeOptions.map(t => (
                 <button
                   key={t}
                   onClick={() => setType(type === t ? '' : t)}
                   style={{
-                    padding: '4px 10px', borderRadius: '4px', border: '1px solid #444',
+                    padding: '4px 10px', borderRadius: '6px', border: '1px solid #444',
                     background: type === t ? 'var(--color-gold)' : '#111',
                     color: type === t ? 'black' : 'white',
-                    fontSize: '0.75rem', cursor: 'pointer'
+                    fontSize: '0.8rem', cursor: 'pointer',
+                    transition: 'all 0.2s'
                   }}
                 >
                   {t}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: '#888', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Rareza</label>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+              {rarityOptions.map(r => (
+                <button
+                  key={r.value}
+                  onClick={() => setRarity(rarity === r.value ? '' : r.value)}
+                  style={{
+                    padding: '4px 10px', borderRadius: '6px', border: '1px solid #444',
+                    background: rarity === r.value ? 'var(--color-gold)' : '#111',
+                    color: rarity === r.value ? 'black' : 'white',
+                    fontSize: '0.8rem', cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.7rem', color: '#888', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Coste Convertido de Maná</label>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+              {cmcOptions.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setCmc(cmc === c ? '' : c)}
+                  style={{
+                    width: '32px', height: '32px', borderRadius: '50%', border: '1px solid #444',
+                    background: cmc === c ? 'var(--color-gold)' : '#111',
+                    color: cmc === c ? 'black' : 'white',
+                    fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {c}
                 </button>
               ))}
             </div>
@@ -159,6 +260,8 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
                 setResults([]);
                 setColors([]);
                 setType('');
+                setRarity('');
+                setCmc('');
               }}
               style={{
                 padding: '0.75rem',
@@ -197,6 +300,8 @@ export default function CardSearch({ onSelect }: CardSearchProps) {
                     setResults([]);
                     setColors([]);
                     setType('');
+                    setRarity('');
+                    setCmc('');
                   }}
                 >
                   +
