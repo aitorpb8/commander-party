@@ -1037,15 +1037,18 @@ export default function DeckDetailPage() {
             {/* Budget Stats - Now independent columns */}
             <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: '400px' }}>
               <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)' }}>Evolución del Presupuesto</h3>
-              <div style={{ flex: 1, position: 'relative' }}>
+              <div style={{ flex: 1, minHeight: '300px', position: 'relative' }}>
                  <BudgetChart upgrades={upgrades} creationDate={deck.created_at} />
               </div>
             </div>
-            
-            <div style={{ height: '100%', minHeight: '400px' }}>
-               <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} preconCardNames={preconCardNames} />
-            </div>
-         <div style={{ gridColumn: '1 / -1' }}>
+      </div>
+
+      {/* FULL WIDTH ROW: Monthly Breakdown */}
+      <div style={{ width: '100%' }}>
+         <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} preconCardNames={preconCardNames} />
+      </div>
+
+      <div style={{ width: '100%' }}>
             <Wishlist 
               deckId={id as string} 
               isOwner={isOwner} 
@@ -1053,9 +1056,7 @@ export default function DeckDetailPage() {
               trendingPrices={trendingPrices}
               deckCards={deckCards}
             />
-         </div>
       </div>
-
 
       {showPicker && (
         <CommanderPicker 

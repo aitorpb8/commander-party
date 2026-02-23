@@ -17,9 +17,19 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {}, precon
     const m = u.month || 'Desconocido';
     if (!acc[m]) acc[m] = { upgrades: [], total: 0 };
     
-    // Resolve price (Match page.tsx logic: Logged Cost, excluding Precon)
+    // Default to the locked historical price from the database
     let displayPrice = u.cost || 0;
     
+    // If it's the current month, try to use the dynamic trending price
+    if (m === currentMonth) {
+      if (u.scryfall_id && trendingPrices[u.scryfall_id] !== undefined) {
+        displayPrice = trendingPrices[u.scryfall_id];
+      } else if (u.card_in && trendingPrices[u.card_in.toLowerCase()] !== undefined) {
+        displayPrice = trendingPrices[u.card_in.toLowerCase()];
+      }
+    }
+    
+    // If it's a precon card, it's always included for free
     if (u.card_in && preconCardNames.has(u.card_in.toLowerCase())) {
         displayPrice = 0;
     }
@@ -42,33 +52,78 @@ export default function MonthlyBreakdown({ upgrades, trendingPrices = {}, precon
   if (upgrades.length === 0) return null;
 
   return (
-    <div className="card" style={{ height: '100%', maxHeight: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)', flexShrink: 0 }}>Desglose</h3>
-      <div className="custom-scrollbar" style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1, overflowY: 'auto', paddingRight: '0.5rem', minHeight: 0 }}>
+    <div className="card" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
+      <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)', flexShrink: 0 }}>Desglose de Mejoras</h3>
+      
+      {/* Horizontal Scroll Container */}
+      <div 
+        className="custom-scrollbar" 
+        style={{ 
+          display: 'flex', 
+          flexDirection: 'row', 
+          gap: '1.5rem', 
+          overflowX: 'auto', 
+          paddingBottom: '1rem' 
+        }}
+      >
         {months.map(m => (
-          <div key={m} style={{ borderBottom: '1px solid #333', paddingBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-              <h4 style={{ textTransform: 'capitalize', margin: 0 }}>{formatMonth(m)}</h4>
-              <span style={{ color: 'var(--color-gold)', fontWeight: 'bold' }}>{grouped[m].total.toFixed(2)}€</span>
+          <div 
+            key={m} 
+            style={{ 
+              minWidth: '300px', 
+              maxWidth: '350px', 
+              background: '#1a1a1a', 
+              border: '1px solid #333', 
+              borderRadius: '8px', 
+              padding: '1.2rem',
+              display: 'flex',
+              flexDirection: 'column',
+              maxHeight: '400px'
+            }}
+          >
+            {/* Month Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #333', paddingBottom: '0.8rem' }}>
+              <h4 style={{ textTransform: 'capitalize', margin: 0, fontSize: '1.1rem' }}>{formatMonth(m)}</h4>
+              <span style={{ color: 'var(--color-gold)', fontWeight: 'bold', fontSize: '1.1rem' }}>{grouped[m].total.toFixed(2)}€</span>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            
+            {/* Scrollable Upgrades within the Month Card */}
+            <div className="custom-scrollbar custom-scrollbar-thin" style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto', paddingRight: '4px' }}>
               {grouped[m].upgrades.map(u => (
                 <div key={u.id} className="breakdown-row" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#aaa', gap: '0.5rem', padding: '6px', borderRadius: '4px', transition: 'background 0.2s' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0 }}>
-                    <span style={{ color: 'var(--color-green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↑ {u.card_in || 'N/A'}</span>
-                    {u.card_out && <span style={{ color: 'var(--color-red)', opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>↓ {u.card_out}</span>}
+                  <div style={{ display: 'flex', gap: '0.5rem', flex: 1, minWidth: 0, flexDirection: 'column' }}>
+                    {u.card_in && (
+                      <span style={{ color: 'var(--color-green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        ↑ {u.card_in}
+                      </span>
+                    )}
+                    {u.card_out && (
+                      <span style={{ color: 'var(--color-red)', opacity: 0.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingLeft: u.card_in ? '1rem' : '0' }}>
+                        ↓ {u.card_out}
+                      </span>
+                    )}
+                    {!u.card_in && !u.card_out && (
+                      <span style={{ color: 'var(--color-green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        ↑ N/A
+                      </span>
+                    )}
                   </div>
-                  <span style={{ flexShrink: 0 }}>{(u.cost || 0).toFixed(2)}€</span>
+                  <span style={{ flexShrink: 0, alignSelf: 'center' }}>{(u.cost || 0).toFixed(2)}€</span>
                 </div>
               ))}
             </div>
           </div>
         ))}
       </div>
+      
       <style jsx>{`
         .breakdown-row:hover {
             background: rgba(255, 255, 255, 0.05) !important;
             color: #fff !important;
+        }
+        /* Custom scrollbar sizing specifically for inner lists */
+        .custom-scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
         }
       `}</style>
     </div>
