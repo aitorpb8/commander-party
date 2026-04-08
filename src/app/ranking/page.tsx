@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { createClient } from '@/lib/supabaseClient';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 function RankingContent() {
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -11,6 +12,8 @@ function RankingContent() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (searchParams.get('add')) {
@@ -63,7 +66,16 @@ function RankingContent() {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h1 style={{ color: 'var(--color-gold)' }}>Clasificación de la Liga</h1>
-        <button onClick={() => setShowAdd(!showAdd)} className="btn btn-gold">
+        <button 
+          onClick={() => {
+            if (!user) {
+              router.push('/login?returnUrl=/ranking?add=true');
+              return;
+            }
+            setShowAdd(!showAdd);
+          }} 
+          className="btn btn-gold"
+        >
           {showAdd ? 'Cancelar' : 'Registrar Resultado'}
         </button>
       </div>

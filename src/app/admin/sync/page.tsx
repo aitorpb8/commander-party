@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SyncPage() {
   const [mounted, setMounted] = useState(false);
@@ -17,12 +20,22 @@ export default function SyncPage() {
     setLogs(prev => [msg, ...prev].slice(0, 100));
   };
 
+  const supabase = createClient();
+  const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    if (authLoading) return;
+
+    if (user?.email !== 'aitoor91@gmail.com') {
+      router.push('/');
+      return;
+    }
     setMounted(true);
     fetch('/api/admin/precons')
       .then(res => res.json())
       .then(data => setPrecons(data));
-  }, []);
+  }, [router, user, authLoading]);
 
   if (!mounted) return null;
 

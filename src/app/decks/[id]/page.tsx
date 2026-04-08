@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
-import { User } from '@supabase/supabase-js';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { Deck, DeckCard, DeckUpgrade } from '@/types';
 import UpgradeLog from '@/components/UpgradeLog';
@@ -27,7 +27,7 @@ export default function DeckDetailPage() {
   const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [userCollection, setUserCollection] = useState<Set<string>>(new Set());
   const [showPicker, setShowPicker] = useState(false);
 
@@ -66,13 +66,9 @@ export default function DeckDetailPage() {
   const supabase = createClient();
 
   const fetchData = async (retries = 5, silent = false) => {
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    
     // Guard: If we navigated away, stop
     if (activeIdRef.current !== id) return;
     
-    setUser(authUser);
-    const user = authUser; 
     if (!silent) setLoading(true);
 
     const { data: deckData, error: dbError } = await supabase
@@ -782,22 +778,10 @@ export default function DeckDetailPage() {
   }, [upgrades]);
 
   // 2. Calculate coordinated budget info
+  // 2. Calculate coordinated budget info
   const budgetInfo = React.useMemo(() => {
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    
-    // Sum all registered costs
-    // We use the LOGGED cost (u.cost) as the source of truth for the budget.
-    // Trending prices are for information only, not for the official budget cap.
-    const totalSpent = upgrades.reduce((sum, u) => {
-      // FIX: If the card is from the original precon, it should ALWAYS be 0 cost.
-      const isPrecon = u.card_in && preconCardNames.has(u.card_in.toLowerCase());
-      if (isPrecon) return sum; // Cost is 0
-
-      return sum + (u.cost || 0);
-    }, 0);
-
-    return calculateDeckBudget(deck?.created_at || new Date(), deck?.budget_spent || 0, totalSpent);
-  }, [deck, upgrades, preconCardNames]);
+    return calculateDeckBudget(deck?.created_at || new Date(), deck?.budget_spent || 0);
+  }, [deck]);
 
   // 3. Sync budget_spent to database IF there is a discrepancy (e.g. initial calculation error or manual edit)
   React.useEffect(() => {
@@ -824,9 +808,19 @@ export default function DeckDetailPage() {
   }, [budgetInfo?.totalSpent, deck?.budget_spent, deck?.id, id, supabase]);
 
   if (loading) return (
-    <div style={{ textAlign: 'center', marginTop: '5rem' }}>
-      <div className="spinner" style={{ marginBottom: '1rem' }}></div>
-      <p>Cargando mazo...</p>
+    <div className="container" style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '3rem', opacity: 0.6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+        <div style={{ background: '#111', height: '450px', borderRadius: '12px', animation: 'pulse 2s infinite' }} />
+        <div style={{ background: '#111', height: '450px', borderRadius: '12px', animation: 'pulse 2s infinite' }} />
+      </div>
+      <div style={{ background: '#111', height: '600px', borderRadius: '12px', animation: 'pulse 2s infinite' }} />
+      <style jsx>{`
+        @keyframes pulse {
+          0% { opacity: 0.4; }
+          50% { opacity: 0.7; }
+          100% { opacity: 0.4; }
+        }
+      `}</style>
     </div>
   );
   

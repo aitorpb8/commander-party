@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<any[]>([]);
@@ -15,6 +16,7 @@ export default function TournamentsPage() {
   const [creating, setCreating] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchTournaments();
@@ -70,7 +72,16 @@ export default function TournamentsPage() {
           <h1 style={{ color: 'var(--color-gold)', marginBottom: '0.5rem' }}>Torneos</h1>
           <p style={{ color: '#888' }}>Gestiona tus eventos de Commander.</p>
         </div>
-        <button onClick={() => setShowCreateModal(true)} className="btn btn-gold">
+        <button 
+          onClick={() => {
+            if (!user) {
+              router.push('/login?returnUrl=/tournaments');
+              return;
+            }
+            setShowCreateModal(true);
+          }} 
+          className="btn btn-gold"
+        >
           + Nuevo Torneo
         </button>
       </header>

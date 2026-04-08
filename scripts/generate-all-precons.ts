@@ -27,6 +27,13 @@ interface Card {
 }
 
 const PRECONS_2026: PreconData[] = [
+  // Secrets of Strixhaven (2026)
+  { name: 'Silverquill Influence', commander: 'Killian, Decisive Mentor', series: 'Secrets of Strixhaven', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+  { name: 'Prismari Artistry', commander: 'Rootha, Mastering the Moment', series: 'Secrets of Strixhaven', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+  { name: 'Witherbloom Pestilence', commander: 'Dina, Essence Brewer', series: 'Secrets of Strixhaven', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+  { name: 'Lorehold Spirit', commander: 'Quintorius, History Chaser', series: 'Secrets of Strixhaven', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+  { name: 'Quandrix Unlimited', commander: 'Zimone, Infinite Analyst', series: 'Secrets of Strixhaven', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
+  
   // Teenage Mutant Ninja Turtles (Feb 2026)
   { name: 'Turtle Power!', commander: 'Leonardo, the Balance', series: 'Teenage Mutant Ninja Turtles', year: 2026, moxfieldId: 'JHjwO92ZUEyNdPzE7D5d7A' },
 

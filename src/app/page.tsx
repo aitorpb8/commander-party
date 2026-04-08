@@ -250,11 +250,9 @@ export default async function Home() {
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
                 {decks.map((deck: any) => {
-                   const { dynamicLimit } = calculateDeckBudget(deck.created_at);
-                   const spent = monthlySpendMap.get(deck.id) || 0;
-                   const totalSpent = deck.budget_spent || 0;
-                   const spentPrevious = totalSpent - spent;
-                   const effectiveBudget = Math.max(0, dynamicLimit - spentPrevious);
+                   const currentMonthSpent = monthlySpendMap.get(deck.id) || 0;
+                   const budgetInfo = calculateDeckBudget(deck.created_at, deck.budget_spent || 0);
+                   const monthlyCupo = Math.max(0, budgetInfo.remaining + currentMonthSpent);
 
                    return (
                   <Link key={deck.id} href={`/decks/${deck.id}`} style={{ textDecoration: 'none' }}>
@@ -263,8 +261,8 @@ export default async function Home() {
                       playerAvatar={deck.profiles?.avatar_url}
                       deckName={deck.name}
                       commanderName={deck.commander}
-                      spent={spent}
-                      budget={effectiveBudget}
+                      spent={currentMonthSpent}
+                      budget={monthlyCupo}
                       imageUrl={deck.image_url || "https://via.placeholder.com/150"}
                       colors={[]}
                     />

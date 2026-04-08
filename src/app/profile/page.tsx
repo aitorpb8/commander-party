@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { calculateAchievements, Badge } from '@/lib/achievements';
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<any>(null);
+  const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [decks, setDecks] = useState<any[]>([]);
+  const [upgrades, setUpgrades] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -26,12 +28,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      if (authLoading) return;
       if (!user) {
         router.push('/login');
         return;
       }
-      setUser(user);
+
+      setLoading(true);
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -44,25 +47,32 @@ export default function ProfilePage() {
         .select('*')
         .eq('user_id', user.id);
 
-      const { data: matchesData } = await supabase
-        .from('matches')
-        .select('*');
+      const deckIds = decksData?.map(d => d.id) || [];
 
+      // Fetch upgrades for these decks
       const { data: upgradesData } = await supabase
         .from('deck_upgrades')
-        .select('*');
+        .select('*')
+        .in('deck_id', deckIds);
+
+      // Optimized: Fetch only matches where the user is a participant
+      const { data: matchesData } = await supabase
+        .from('matches')
+        .select('*')
+        .contains('players', [user.id]);
 
       setProfile(profileData);
       setUsername(profileData?.username || '');
       setBio(profileData?.bio || ''); 
       setCollectionUrl(profileData?.collection_url || '');
       setDecks(decksData || []);
+      setUpgrades(upgradesData || []);
       setMatches(matchesData || []);
       setLoading(false);
     };
 
     fetchData();
-  }, [router, supabase]);
+  }, [router, supabase, user, authLoading]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,7 +86,7 @@ export default function ProfilePage() {
         bio,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', user.id);
+      .eq('id', user?.id);
 
     if (error) {
       setMessage('Error: ' + error.message);
@@ -111,15 +121,15 @@ export default function ProfilePage() {
 
   if (loading) return <div className="container" style={{ paddingTop: '2rem' }}>Cargando perfil...</div>;
 
-  const userWins = matches.filter(m => m.winner_id === user.id).length;
-  const userPlayed = matches.filter(m => m.players.includes(user.id)).length;
+  const userWins = matches.filter(m => m.winner_id === user?.id).length;
+  const userPlayed = matches.filter(m => m.players.includes(user?.id)).length;
   const winRate = userPlayed > 0 ? (userWins / userPlayed) * 100 : 0;
 
   const badges = calculateAchievements({
-    decks: [], // Logic already handles filtering by userId if passed correctly
-    upgrades: [],
+    decks: decks,
+    upgrades: upgrades,
     matches: matches,
-    userId: user.id
+    userId: user?.id || ''
   });
 
   return (
@@ -150,7 +160,7 @@ export default function ProfilePage() {
               {username.charAt(0).toUpperCase() || '?'}
             </div>
             <h3>{username || 'Sin nombre'}</h3>
-            <p style={{ fontSize: '0.8rem', color: '#666' }}>{user.email}</p>
+            <p style={{ fontSize: '0.8rem', color: '#666' }}>{user?.email}</p>
           </div>
 
           <div className="card">

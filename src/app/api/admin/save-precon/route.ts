@@ -4,8 +4,17 @@ import path from 'path';
 import { apiError } from '@/lib/api-error';
 import { DeckCard } from '@/types';
 
+import { createClient } from '@/lib/supabase/server';
+
 export async function POST(request: Request) {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user?.email !== 'aitoor91@gmail.com') {
+      return apiError('Unauthorized: Admin access required', 403);
+    }
+
     const { preconName, cards } = await request.json();
     
     if (!preconName || !cards) {

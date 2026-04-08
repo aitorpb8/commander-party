@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabaseClient';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { Z_INDEX_NAVBAR } from '@/lib/constants';
 
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null);
+  const { user, loading, signOut } = useAuth();
   const [stats, setStats] = useState({ players: 0, decks: 0 });
   const [playerList, setPlayerList] = useState<any[]>([]);
   const [showPlayers, setShowPlayers] = useState(false);
@@ -16,10 +17,6 @@ export default function Navbar() {
   const supabase = createClient();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-    };
     const fetchData = async () => {
       const { count: pCount, data: pData } = await supabase.from('profiles').select('*', { count: 'exact' });
       const { count: dCount } = await supabase.from('decks').select('*', { count: 'exact', head: true });
@@ -27,16 +24,8 @@ export default function Navbar() {
       setPlayerList(pData || []);
     };
     
-    checkUser();
     fetchData();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      router.refresh(); 
-    });
-
-    return () => subscription.unsubscribe();
-  }, [router, supabase]);
+  }, [supabase]);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -48,7 +37,7 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     setIsMenuOpen(false);
     router.refresh();
   };
@@ -161,7 +150,9 @@ export default function Navbar() {
  
           <Link href="/rules" className="nav-link" onClick={() => setIsMenuOpen(false)}>Reglas</Link>
           
-          {user ? (
+          {loading ? (
+            <div style={{ width: '100px', height: '32px', background: 'rgba(212,175,55,0.05)', borderRadius: '16px', animation: 'pulse 2s infinite ease-in-out' }} />
+          ) : user ? (
             <div className="nav-auth-section" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                <button 
                  onClick={() => {
@@ -173,6 +164,9 @@ export default function Navbar() {
                >
                  + Partida
                </button>
+               {user.email === 'aitoor91@gmail.com' && (
+                 <Link href="/admin/sync" className="nav-link" style={{ fontSize: '0.7rem', color: 'var(--color-gold)', fontWeight: 'bold' }} onClick={() => setIsMenuOpen(false)}>Admin</Link>
+               )}
                <Link href="/profile" className="nav-profile-link" style={{ fontSize: '0.8rem', color: '#888', textDecoration: 'none' }} onClick={() => setIsMenuOpen(false)}>
                  {playerList.find(p => p.id === user.id)?.username || user.email?.split('@')[0]}
                </Link>
@@ -189,6 +183,11 @@ export default function Navbar() {
       </div>
       
       <style jsx>{`
+        @keyframes pulse {
+          0% { opacity: 0.5; }
+          50% { opacity: 1; }
+          100% { opacity: 0.5; }
+        }
         .navbar-content-wrapper {
           display: flex;
           justify-content: space-between;

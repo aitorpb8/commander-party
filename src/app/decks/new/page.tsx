@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
+import { useAuth } from '@/contexts/AuthContext';
 
 import PreconSelector from '@/components/PreconSelector';
 import preconsData from '@/data/precons.json';
@@ -31,6 +32,13 @@ export default function NewDeckPage() {
 
   const [importMode, setImportMode] = useState<'url' | 'text' | 'precon'>('precon');
   const [decklist, setDecklist] = useState('');
+  const { user, loading: authLoading } = useAuth();
+
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login?returnUrl=/decks/new');
+    }
+  }, [user, authLoading, router]);
 
   const handleImport = async (e?: React.FormEvent, overrideUrl?: string, cachedCards?: any[], overrideMetadata?: { name: string, commander: string }) => {
     if (e) e.preventDefault();
@@ -38,7 +46,6 @@ export default function NewDeckPage() {
     setError('');
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Debes iniciar sesión para registrar un mazo.');
 
       let data: any = { name: '', commander: '', cards: [] };

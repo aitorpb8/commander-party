@@ -52,6 +52,20 @@ export const BADGES: { [key: string]: Badge } = {
     description: `Uno de sus mazos supera los ${WHALE_THRESHOLD}€ de inversión total.`,
     icon: '🐋',
     color: '#1E90FF'
+  },
+  pata_negra: {
+    id: 'pata_negra',
+    name: 'Pata Negra',
+    description: 'Juega con un mazo original (0€ gastados) tras al menos una partida.',
+    icon: '🐗',
+    color: '#8B4513'
+  },
+  streak: {
+    id: 'streak',
+    name: 'Imparable',
+    description: 'Ha conseguido una racha de 2 o más victorias consecutivas.',
+    icon: '🔥',
+    color: '#FFD700'
   }
 };
 
@@ -101,8 +115,28 @@ export function calculateAchievements(data: {
     monthlyTotals[u.month] = (monthlyTotals[u.month] || 0) + parseFloat(u.cost);
   });
   if (Object.values(monthlyTotals).some(total => total === MONTHLY_ALLOWANCE)) {
-
     earned.push(BADGES.budget_master);
+  }
+
+  // 7. Pata Negra
+  if (userDecks.some(d => (d.budget_spent || 0) <= 0.01) && userMatches.length >= 1) {
+    earned.push(BADGES.pata_negra);
+  }
+
+  // 8. Imparable (Streak)
+  const sortedMatches = [...userMatches].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  let currentStreak = 0;
+  let maxStreak = 0;
+  sortedMatches.forEach(m => {
+    if (m.winner_id === userId) {
+      currentStreak++;
+      if (currentStreak > maxStreak) maxStreak = currentStreak;
+    } else {
+      currentStreak = 0;
+    }
+  });
+  if (maxStreak >= 2) {
+    earned.push(BADGES.streak);
   }
 
   return earned;

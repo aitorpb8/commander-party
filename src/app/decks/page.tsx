@@ -76,13 +76,9 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '2rem' }}>
           {decks.map((deck: any) => {
-             const { dynamicLimit } = calculateDeckBudget(deck.created_at);
              const currentMonthSpent = monthlySpendMap.get(deck.id) || 0;
-             const totalSpent = deck.budget_spent || 0;
-             
-             // Effective Limit = Total Cumulative Limit - (Spent in Previous Months)
-             const spentPrevious = totalSpent - currentMonthSpent;
-             const effectiveBudget = Math.max(0, dynamicLimit - spentPrevious);
+             const budgetInfo = calculateDeckBudget(deck.created_at, deck.budget_spent || 0);
+             const monthlyCupo = Math.max(0, budgetInfo.remaining + currentMonthSpent);
 
              return (
               <DeckGridItem 
@@ -90,7 +86,7 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
                 deck={deck} 
                 currentUserId={user?.id}
                 customSpent={currentMonthSpent}
-                customBudget={effectiveBudget}
+                customBudget={monthlyCupo}
               />
             );
           })}

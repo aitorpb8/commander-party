@@ -59,6 +59,8 @@ export const viewport: Viewport = {
   themeColor: "#D4AF37",
 };
 
+import { AuthProvider } from "@/contexts/AuthContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -67,10 +69,12 @@ export default function RootLayout({
   return (
     <html lang="es" className={`${cinzel.variable} ${ebGaramond.variable}`} suppressHydrationWarning>
       <body>
-        <Navbar />
-        <main className="container">
-          {children}
-        </main>
+        <AuthProvider>
+          <Navbar />
+          <main className="container">
+            {children}
+          </main>
+        </AuthProvider>
         <Toaster position="bottom-right" toastOptions={{
           style: {
             background: '#222',

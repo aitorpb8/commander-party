@@ -4,8 +4,17 @@ import path from 'path';
 import { apiError } from '@/lib/api-error';
 import { Precon } from '@/types';
 
+import { createClient } from '@/lib/supabase/server';
+
 export async function GET() {
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user?.email !== 'aitoor91@gmail.com') {
+      return apiError('Unauthorized: Admin access required', 403);
+    }
+
     const metaPath = path.join(process.cwd(), 'src/data/precons.json');
     const content = await fs.readFile(metaPath, 'utf8');
     const precons: Precon[] = JSON.parse(content);
