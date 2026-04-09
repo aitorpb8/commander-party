@@ -63,7 +63,7 @@ export default function ParticipantsPage() {
         </div>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', gap: '1.5rem' }}>
         {players.map((player) => (
           <div key={player.id} className="card" style={{ 
             display: 'flex', 

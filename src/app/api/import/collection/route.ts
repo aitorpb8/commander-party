@@ -16,34 +16,22 @@ export async function POST(request: Request) {
     let cards: any[] = [];
     let source = '';
 
-    if (url.includes('moxfield.com')) {
-      source = 'moxfield';
-      const match = url.match(/decks\/([^/\?]+)/);
-      if (!match) throw new Error('URL de Moxfield inválida');
-      
-      const deckId = match[1];
-      const response = await fetch(`https://api.moxfield.com/v2/decks/all/${deckId}`);
-      if (!response.ok) throw new Error('No se pudo obtener la colección de Moxfield');
-      
-      const data = await response.json();
-      cards = Object.values(data.mainboard || {}).map((item: any) => ({
-        name: item.card.name,
-        quantity: item.quantity
-      }));
-    } else if (url.includes('archidekt.com')) {
+    if (url.includes('archidekt.com')) {
       source = 'archidekt';
       const match = url.match(/decks\/(\d+)/);
       if (!match) throw new Error('URL de Archidekt inválida');
       
       const deckId = match[1];
       const response = await fetch(`https://archidekt.com/api/decks/${deckId}/`, { redirect: 'follow' });
+      if (!response.ok) throw new Error('No se pudo obtener la colección de Archidekt');
+
       const data = await response.json();
       cards = data.cards.map((item: any) => ({
         name: item.card.oracleCard.name,
         quantity: item.quantity
       }));
     } else {
-      throw new Error('Fuente no soportada. Usa Moxfield o Archidekt.');
+      throw new Error('Fuente no soportada. Actualmente solo aceptamos colecciones de Archidekt.');
     }
 
     if (cards.length === 0) {

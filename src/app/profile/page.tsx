@@ -139,8 +139,7 @@ export default function ProfilePage() {
         <p style={{ color: '#888' }}>Gestiona tus datos y consulta tus estadísticas de la liga.</p>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
-        
+      <div className="deck-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem' }}>
         {/* Left Column: Stats & Badges */}
         <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           <div className="card" style={{ textAlign: 'center' }}>
@@ -241,7 +240,7 @@ export default function ProfilePage() {
               <div style={{ padding: '1.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px', border: '1px solid #333' }}>
                 <h4 style={{ color: 'var(--color-gold)', marginBottom: '1rem', fontSize: '0.9rem', textTransform: 'uppercase' }}>Colección Personal</h4>
                 <p style={{ fontSize: '0.8rem', color: '#888', marginBottom: '1rem' }}>
-                  Conecta tu colección de Moxfield o Archidekt (mazo de tipo colección) para marcar automáticamente las cartas que ya tienes como coste 0€.
+                  Conecta tu colección de Archidekt (mazo de tipo colección) para marcar automáticamente las cartas que ya tienes como coste 0€.
                 </p>
                 <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
                   <input 
@@ -250,7 +249,7 @@ export default function ProfilePage() {
                     onChange={(e) => setCollectionUrl(e.target.value)}
                     className="card"
                     style={{ flex: 1, padding: '0.75rem', background: '#111', border: '1px solid #333' }}
-                    placeholder="URL de Moxfield o Archidekt..."
+                    placeholder="URL de Archidekt..."
                   />
                   <button 
                     type="button" 

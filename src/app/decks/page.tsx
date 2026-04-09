@@ -74,7 +74,7 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
           <p style={{ color: '#888' }}>Aún no hay mazos en esta liga.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))', gap: '2rem' }}>
           {decks.map((deck: any) => {
              const currentMonthSpent = monthlySpendMap.get(deck.id) || 0;
              const budgetInfo = calculateDeckBudget(deck.created_at, deck.budget_spent || 0);

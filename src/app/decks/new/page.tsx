@@ -63,13 +63,12 @@ export default function NewDeckPage() {
       } 
       // Priority 2: Import from URL
       else if (importMode === 'url' || overrideUrl) {
-        let endpoint = '';
-        if (targetUrl.includes('archidekt.com')) endpoint = '/api/import/archidekt';
-        else if (targetUrl.includes('moxfield.com')) endpoint = '/api/import/moxfield';
-        else throw new Error('URL no soportada. Solo Archidekt y Moxfield por ahora.');
+        if (!targetUrl.includes('archidekt.com')) {
+          throw new Error('URL no soportada. Actualmente solo aceptamos importaciones desde Archidekt.');
+        }
 
         try {
-          const res = await fetch(endpoint, {
+          const res = await fetch('/api/import/archidekt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url: targetUrl })
@@ -95,7 +94,6 @@ export default function NewDeckPage() {
           name: 'Mazo Manual',
           commander: (commanderLine || '').replace(/^\d+\s+/, '').replace(/\(.*\)/, '').trim(),
           archidekt_id: null,
-          moxfield_id: null,
           cards: [] 
         };
       }
@@ -110,7 +108,6 @@ export default function NewDeckPage() {
           commander: data.commander || overrideMetadata?.commander || metaForPrecon?.commander || 'Desconocido',
           image_url: metaForPrecon?.imageUrl || data.cards?.find((c: any) => c.is_commander)?.image_url || null,
           archidekt_id: data.archidekt_id || null,
-          moxfield_id: data.moxfield_id || null,
           precon_url: overrideUrl || preconUrl || null,
           precon_cards: data.cards && data.cards.length > 0 ? data.cards.map((c: any) => c.name) : null,
           budget_spent: 0,
@@ -131,7 +128,8 @@ export default function NewDeckPage() {
           type_line: c.type_line || null,
           mana_cost: c.mana_cost || null,
           image_url: c.image_url || null,
-          oracle_text: c.oracle_text || null
+          oracle_text: c.oracle_text || null,
+          scryfall_id: c.scryfall_id || null
         }));
 
         const { error: cardsError } = await supabase
@@ -238,7 +236,7 @@ export default function NewDeckPage() {
             {importMode === 'url' ? (
               <input 
                 type="text" 
-                placeholder="URL de Moxfield o Archidekt..." 
+                placeholder="URL de Archidekt..." 
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #444', background: '#111', color: 'white' }}

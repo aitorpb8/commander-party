@@ -91,30 +91,18 @@ export default async function Home() {
 
         <div className="hero-stats-container">
           <div className="hero-stat-item">
-            <div style={{ color: "var(--color-gold)", fontSize: "2rem", fontWeight: "900", lineHeight: "1" }}>
-              {playerCount || 0}
-            </div>
-            <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>
-              Jugadores
-            </div>
+            <span className="hero-stat-value">{playerCount || 0}</span>
+            <span className="hero-stat-label">Jugadores</span>
           </div>
           <div className="hero-divider" />
           <div className="hero-stat-item">
-            <div style={{ color: "var(--color-gold)", fontSize: "2rem", fontWeight: "900", lineHeight: "1" }}>
-              {decks?.length || 0}
-            </div>
-            <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>
-              Decks
-            </div>
+            <span className="hero-stat-value">{decks?.length || 0}</span>
+            <span className="hero-stat-label">Decks</span>
           </div>
           <div className="hero-divider" />
           <div className="hero-stat-item">
-            <div style={{ color: "var(--color-gold)", fontSize: "2rem", fontWeight: "900", lineHeight: "1" }}>
-              {MONTHLY_ALLOWANCE}€
-            </div>
-            <div style={{ fontSize: "0.75rem", color: "#666", textTransform: "uppercase", letterSpacing: "2px", marginTop: "0.5rem" }}>
-              Presupuesto
-            </div>
+            <span className="hero-stat-value">{MONTHLY_ALLOWANCE}€</span>
+            <span className="hero-stat-label">Presupuesto</span>
           </div>
         </div>
       </section>
@@ -122,19 +110,19 @@ export default async function Home() {
       {/* NEW PARTICIPANT CTA - Only show if user has NO decks */}
       {userDeckCount === 0 && (
         <div 
+          className="new-deck-cta glass-panel premium-border"
           style={{ 
             marginBottom: '4rem', 
-            padding: '2rem', 
-            background: 'rgba(212, 175, 55, 0.03)', 
-            borderRadius: '20px', 
-            border: '1px dashed rgba(212, 175, 55, 0.2)',
+            padding: '3rem 2rem', 
+            borderRadius: '24px', 
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '1.5rem',
-            textAlign: 'center'
+            textAlign: 'center',
+            position: 'relative',
+            overflow: 'hidden'
           }}
-          className="new-deck-cta"
         >
           <div style={{ maxWidth: '600px' }}>
             <h4 style={{ color: 'var(--color-gold)', marginBottom: '0.5rem', fontSize: '1.2rem', fontFamily: 'var(--font-title)' }}>¿ERES NUEVO EN LA PARTY?</h4>
@@ -164,7 +152,7 @@ export default async function Home() {
       <div className="main-grid-layout">
         {/* COLUMNA IZQUIERDA: FEED & RANKING */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '2rem' }}>
             {/* RECENT ACTIVITY */}
             <div className="card" style={{ display: "flex", flexDirection: "column" }}>
               <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -248,7 +236,7 @@ export default async function Home() {
                 <Link href="/profile" className="btn btn-gold" style={{ padding: '1rem 3rem' }}>CREAR MI PRIMER DECK</Link>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "1.5rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))", gap: "2rem" }}>
                 {decks.map((deck: any) => {
                    const currentMonthSpent = monthlySpendMap.get(deck.id) || 0;
                    const budgetInfo = calculateDeckBudget(deck.created_at, deck.budget_spent || 0);

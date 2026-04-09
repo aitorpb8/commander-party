@@ -33,14 +33,15 @@ export async function POST(request: Request) {
     }
     
     // Parse cards
-    // Parse cards
     const cards = data.cards.map((item: any) => {
       const oc = item.card.oracleCard;
-      // Reconstruct type_line if missing or simple
-      const typeLine = oc.typeLine || [
+      if (!oc) return null;
+
+      // Reconstruct type_line correctly
+      const typeLine = [
         ...(oc.superTypes || []),
         ...(oc.types || []),
-        ...(oc.subTypes ? ["—", ...oc.subTypes] : [])
+        ...(oc.subTypes && oc.subTypes.length > 0 ? ["\u2014", ...oc.subTypes] : [])
       ].join(' ');
 
       return {
@@ -48,12 +49,12 @@ export async function POST(request: Request) {
         quantity: item.quantity,
         is_commander: item.categories?.includes('Commander') || false,
         image_url: oc.imageUri || `https://api.scryfall.com/cards/${item.card.uid}?format=image`,
-        // back_image_url: (oc.cardFaces && oc.cardFaces.length > 1) ? (oc.cardFaces[1].imageUri || null) : null, // Not strictly needed for import but good to have
         type_line: typeLine,
-        mana_cost: oc.manaCost,
-        oracle_text: oc.oracleText
+        mana_cost: oc.manaCost || '',
+        oracle_text: oc.text || '',
+        scryfall_id: item.card.uid || null
       };
-    });
+    }).filter((c: any) => c !== null);
 
     const commander = cards.find((c: any) => c.is_commander)?.name || 'Desconocido';
     const deckName = data.name;

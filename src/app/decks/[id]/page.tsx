@@ -44,6 +44,7 @@ export default function DeckDetailPage() {
 
   // Dialog state
   const [messageDialog, setMessageDialog] = useState<{ title: string, message: string, isError?: boolean } | null>(null);
+  const [activeCmcFilter, setActiveCmcFilter] = useState<number | null>(null);
 
   // FIX: Race Condition Guard
   // When navigating quickly between decks, a previous fetch might finish AFTER our current fetch started
@@ -686,22 +687,19 @@ export default function DeckDetailPage() {
   };
 
   const handleSyncCards = async () => {
-    if (!deck || (!deck.moxfield_id && !deck.archidekt_id)) {
-      setMessageDialog({ title: 'Sincronización no disponible', message: 'No se puede sincronizar un mazo manual. Solo los mazos importados desde Moxfield o Archidekt pueden sincronizarse.', isError: false });
+    if (!deck || !deck.archidekt_id) {
+      setMessageDialog({ 
+        title: 'Sincronización no disponible', 
+        message: 'Solo los mazos importados desde Archidekt pueden sincronizarse automáticamente.', 
+        isError: false 
+      });
       return;
     }
 
     setLoading(true);
     try {
-      let endpoint = '';
-      let url = '';
-      if (deck.moxfield_id) {
-        endpoint = '/api/import/moxfield';
-        url = `https://www.moxfield.com/decks/${deck.moxfield_id}`;
-      } else {
-        endpoint = '/api/import/archidekt';
-        url = `https://www.archidekt.com/decks/${deck.archidekt_id}`;
-      }
+      const endpoint = '/api/import/archidekt';
+      const url = `https://www.archidekt.com/decks/${deck.archidekt_id}`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -722,7 +720,8 @@ export default function DeckDetailPage() {
         type_line: c.type_line || null,
         mana_cost: c.mana_cost || null,
         image_url: c.image_url || null,
-        oracle_text: c.oracle_text || null
+        oracle_text: c.oracle_text || null,
+        scryfall_id: c.scryfall_id || null
       }));
 
       const { error: cardsError } = await supabase
@@ -731,7 +730,7 @@ export default function DeckDetailPage() {
 
       if (cardsError) throw cardsError;
       
-      setMessageDialog({ title: '¡Éxito!', message: 'Mazo sincronizado correctamente con la plataforma externa.', isError: false });
+      setMessageDialog({ title: '¡Éxito!', message: 'Mazo sincronizado correctamente con Archidekt.', isError: false });
     } catch (err: any) {
       setMessageDialog({ title: 'Error al sincronizar', message: `No se pudo sincronizar el mazo: ${err.message}`, isError: true });
     } finally {
@@ -809,7 +808,7 @@ export default function DeckDetailPage() {
 
   if (loading) return (
     <div className="container" style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '3rem', opacity: 0.6 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+      <div className="deck-detail-grid" style={{ display: 'grid', gap: '2rem' }}>
         <div style={{ background: '#111', height: '450px', borderRadius: '12px', animation: 'pulse 2s infinite' }} />
         <div style={{ background: '#111', height: '450px', borderRadius: '12px', animation: 'pulse 2s infinite' }} />
       </div>
@@ -849,7 +848,7 @@ export default function DeckDetailPage() {
             Este mazo se ha registrado correctamente, pero la lista de cartas no se ha cargado todavía.
           </p>
           
-          {isOwner && (deck.moxfield_id || deck.archidekt_id) ? (
+          {isOwner && deck.archidekt_id ? (
             <div style={{ background: '#111', padding: '2rem', borderRadius: '12px' }}>
               <p style={{ marginBottom: '1.5rem', fontWeight: 'bold' }}>¿Quieres intentar sincronizar las cartas ahora?</p>
               <button 
@@ -857,7 +856,7 @@ export default function DeckDetailPage() {
                 className="btn btn-gold" 
                 style={{ padding: '0.8rem 2rem' }}
               >
-                🔄 Sincronizar con {deck.moxfield_id ? 'Moxfield' : 'Archidekt'}
+                🔄 Sincronizar con Archidekt
               </button>
             </div>
           ) : (
@@ -870,6 +869,7 @@ export default function DeckDetailPage() {
       </div>
     );
   }
+
 
   return (
     <div className="container" style={{ 
@@ -961,13 +961,13 @@ export default function DeckDetailPage() {
                    Exportar Mazo
                 </button>
               </div>
-              {isOwner && (deck.moxfield_id || deck.archidekt_id) && (
+              {isOwner && deck.archidekt_id && (
                 <button 
                   onClick={handleSyncCards} 
                   className="btn" 
                   style={{ width: '100%', marginTop: '0.5rem', background: '#222', fontSize: '0.8rem', border: '1px solid #333' }}
                 >
-                  🔄 Sincronizar con Web
+                  🔄 Sincronizar con Archidekt
                 </button>
               )}
           </div>
@@ -999,6 +999,7 @@ export default function DeckDetailPage() {
           cardTags={cardTags}
           onTagsUpdate={fetchTags}
           userCollection={userCollection}
+          externalCmcFilter={activeCmcFilter}
         />
       </div>
 
@@ -1018,9 +1019,12 @@ export default function DeckDetailPage() {
 
       {/* SECTION 4: Stats & Details */}
       <div className="stats-grid">
-        <div className="card">
-           <h3 style={{ marginBottom: '1.5rem' }}>Análisis de Maná</h3>
-           <ManaAnalysis cards={deckCards} />
+        <div className="card glass-panel" style={{ padding: '1.5rem' }}>
+           <ManaAnalysis 
+             cards={deckCards} 
+             onCMCFilter={setActiveCmcFilter}
+             activeFilter={activeCmcFilter}
+           />
         </div>
 
          <TagStats 

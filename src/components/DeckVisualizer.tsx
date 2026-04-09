@@ -18,6 +18,7 @@ import DeckFilterPanel, { AdvancedFilters } from '@/components/deck/DeckFilterPa
 import SyncCompleteModal from '@/components/deck/SyncCompleteModal';
 import { getCollection } from '@/lib/scryfall';
 import { createClient } from '@/lib/supabaseClient';
+import { calculateCMC, getCardFunction } from '@/lib/magicUtils';
 
 interface DeckVisualizerProps {
   cards: DeckCard[];
@@ -28,6 +29,7 @@ interface DeckVisualizerProps {
   cardTags?: Record<string, string[]>;
   onTagsUpdate?: () => void;
   userCollection?: Set<string>;
+  externalCmcFilter?: number | null;
 }
 
 
@@ -44,7 +46,8 @@ export default function DeckVisualizer({
   deckId, 
   cardTags = {}, 
   onTagsUpdate,
-  userCollection = new Set() 
+  userCollection = new Set(),
+  externalCmcFilter = null
 }: DeckVisualizerProps) {
   const [filter, setFilter] = useState('');
   const [groupBy, setGroupBy] = useState<GroupBy>('type');
@@ -194,7 +197,6 @@ export default function DeckVisualizer({
     // Notify parent to update the DB entry
     onUpdateDeck?.({ 
       card_in: updatedCard, 
-      card_out: activeInfoCard.card_name, // This triggers a "swap" in log
       cost: newPrice,
       description: `Cambio de edición: ${card.set_name} (${card.set.toUpperCase()})`
     });
@@ -206,13 +208,23 @@ export default function DeckVisualizer({
 
 
 
-
   const filteredCards = cards.filter(card => {
+    // 0. External CMC Filter (from Graph)
+    if (externalCmcFilter !== null) {
+      const cardCmc = calculateCMC(card.mana_cost);
+      if (externalCmcFilter === 7) {
+        if (cardCmc < 7) return false;
+      } else {
+        if (cardCmc !== externalCmcFilter) return false;
+      }
+    }
+
     // 1. Basic Text Filter
     const matchesSearch = card.card_name.toLowerCase().includes(filter.toLowerCase());
     const matchesTag = !tagFilter || (cardTags[card.card_name] && cardTags[card.card_name].includes(tagFilter));
 
     if (!matchesSearch || !matchesTag) return false;
+
 
     // 2. Advanced Filters
     // Type
@@ -281,39 +293,8 @@ export default function DeckVisualizer({
     setPreviewCard(null);
   };
 
-  // Helper to parse CMC
-  const getCMC = (mana_cost: string | null) => {
-    if (!mana_cost) return 0;
-    const matches = mana_cost.match(/\{(\d+|X|W|U|B|R|G|C|S|P)\}/g);
-    if (!matches) return 0;
-    let cmc = 0;
-    matches.forEach(m => {
-      const val = m.replace(/\{|\}/g, '');
-      if (!isNaN(parseInt(val))) cmc += parseInt(val);
-      else if (['W', 'U', 'B', 'R', 'G', 'C', 'S', 'P'].includes(val)) cmc += 1;
-    });
-    return cmc;
-  };
 
-  // Helper to detect Function
-  const getFunction = (card: DeckCard) => {
-    const text = (card.oracle_text || '').toLowerCase();
-    const type = (card.type_line || '').toLowerCase();
 
-    if (text.includes('search your library for a land') || text.includes('add {') || text.includes('put a land card from your hand onto the battlefield')) {
-      if (!type.includes('land')) return 'Ramp';
-    }
-    if (text.includes('draw a card') || text.includes('draw two cards') || text.includes('draw three cards') || text.includes('reveal the top') && text.includes('put it into your hand')) {
-      return 'Draw';
-    }
-    if (text.includes('destroy target') || text.includes('exile target') || text.includes('deals damage to target creature') || text.includes('-1/-1 until end of turn')) {
-      return 'Removal';
-    }
-    if (text.includes('destroy all') || text.includes('exile all') || text.includes('each player sacrifices') || text.includes('each creature')) {
-       return 'Board Wipe';
-    }
-    return 'Other';
-  };
 
   const categories: { [key in GroupBy]: string[] } = {
     type: ['Commander', 'Creature', 'Planeswalker', 'Sorcery', 'Instant', 'Artifact', 'Enchantment', 'Battle', 'Land', 'Other'],
@@ -340,7 +321,7 @@ export default function DeckVisualizer({
       else if (typeLine.includes('land')) key = 'Land';
       else key = 'Other';
     } else if (groupBy === 'cmc') {
-      const cmc = getCMC(card.mana_cost);
+      const cmc = calculateCMC(card.mana_cost);
       key = cmc >= 6 ? '6+' : cmc.toString();
     } else if (groupBy === 'color') {
       const mc = card.mana_cost || '';
@@ -356,7 +337,7 @@ export default function DeckVisualizer({
       else key = 'Colorless';
     } else if (groupBy === 'function') {
       if (card.is_commander) key = 'Commander';
-      else key = getFunction(card);
+      else key = getCardFunction(card);
     }
 
     if (!grouped[key]) grouped[key] = [];
@@ -370,8 +351,8 @@ export default function DeckVisualizer({
   const sortCards = (list: DeckCard[]) => {
     return [...list].sort((a, b) => {
       if (sortBy === 'cmc') {
-         const costA = getCMC(a.mana_cost);
-         const costB = getCMC(b.mana_cost);
+         const costA = calculateCMC(a.mana_cost);
+         const costB = calculateCMC(b.mana_cost);
          if (costA !== costB) return costA - costB;
       }
       return a.card_name.localeCompare(b.card_name);
@@ -527,101 +508,82 @@ export default function DeckVisualizer({
 
   return (
     <div className="card deck-builder-container" style={{ 
-      background: '#222', 
-      border: '1px solid #333', 
+      background: 'radial-gradient(circle at top left, #1a1a1a, #0a0a0a)',
+      border: '1px solid rgba(161, 139, 74, 0.2)', // Subtle gold border
       minHeight: '600px', 
       position: 'relative',
-      padding: '1.5rem',
-      overflow: 'visible' // Allow tooltips to overflow
+      padding: '2rem',
+      overflow: 'visible',
+      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+      borderRadius: '24px'
     }}>
       
-      {/* Header */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid #222' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+      {/* Header Section */}
+      <div className="visualizer-header">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-            <h2 style={{ color: 'var(--color-gold)', margin: 0, fontSize: '1.4rem' }}>Editor Visual</h2>
-            
-            {/* 1 & 2. Stats and Validator */}
-            <DeckStats cards={cards} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
+              <h2 className="premium-title">Editor Visual</h2>
+              <DeckStats cards={cards} />
+            </div>
 
+            <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+              <button 
+                onClick={() => setShowPlaytest(true)}
+                className="btn-action"
+                title="Probar Mazo"
+              >
+                🚀 Playtest
+              </button>
+              <button 
+                onClick={handleShare}
+                className={`btn-action ${shareStatus === 'copied' ? 'success' : ''}`}
+              >
+                {shareStatus === 'copied' ? '✅ Copiado' : '🔗 Compartir'}
+              </button>
+            </div>
           </div>
           
-          <DeckFilters 
-            groupBy={groupBy}
-            setGroupBy={setGroupBy}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-          />
-        </div>
-            <button 
-              onClick={() => setShowPlaytest(true)}
-              className="btn" 
-              style={{ background: '#333', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-            >
-              🚀 Playtest
-            </button>
-            <button 
-              onClick={handleShare}
-              className="btn" 
-              style={{ 
-                background: shareStatus === 'copied' ? 'var(--color-success, #4caf50)' : '#333', 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '0.5rem',
-                transition: 'all 0.3s ease'
-              }}
-            >
-              {shareStatus === 'copied' ? '✅ Copiado' : '🔗 Compartir'}
-            </button>
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <input 
-            type="text" 
-            placeholder="Filtrar..." 
-            value={filter}
-
-            onChange={e => setFilter(e.target.value)}
-            style={{ 
-                padding: '0.6rem 1.2rem', 
-                borderRadius: '30px 0 0 30px', 
-                border: '1px solid #333', 
-                background: '#151515', 
-                color: 'white',
-                fontSize: '0.9rem',
-                width: '150px'
-            }}
+          <div className="filters-bar">
+            <DeckFilters 
+              groupBy={groupBy}
+              setGroupBy={setGroupBy}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
             />
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              style={{
-                padding: '0.6rem 1rem',
-                borderRadius: '0 30px 30px 0',
-                border: '1px solid #333',
-                borderLeft: 'none',
-                background: showFilters ? 'var(--color-gold)' : '#222',
-                color: showFilters ? '#000' : '#fff',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-              title="Filtros Avanzados"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="21" x2="4" y2="14"></line>
-                <line x1="4" y1="10" x2="4" y2="3"></line>
-                <line x1="12" y1="21" x2="12" y2="12"></line>
-                <line x1="12" y1="8" x2="12" y2="3"></line>
-                <line x1="20" y1="21" x2="20" y2="16"></line>
-                <line x1="20" y1="12" x2="20" y2="3"></line>
-                <line x1="1" y1="14" x2="7" y2="14"></line>
-                <line x1="9" y1="8" x2="15" y2="8"></line>
-                <line x1="17" y1="16" x2="23" y2="16"></line>
-              </svg>
-            </button>
+
+            <div className="search-group">
+              <input 
+                type="text" 
+                placeholder="Buscar carta..." 
+                value={filter}
+                onChange={e => setFilter(e.target.value)}
+                className="search-input"
+              />
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`filter-toggle ${showFilters ? 'active' : ''}`}
+                title="Filtros Avanzados"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="21" x2="4" y2="14"></line>
+                  <line x1="4" y1="10" x2="4" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12" y2="3"></line>
+                  <line x1="20" y1="21" x2="20" y2="16"></line>
+                  <line x1="20" y1="12" x2="20" y2="3"></line>
+                  <line x1="1" y1="14" x2="7" y2="14"></line>
+                  <line x1="9" y1="8" x2="15" y2="8"></line>
+                  <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
             {showFilters && (
               <DeckFilterPanel 
                 cards={cards} // Pass all cards to calculate available sets
@@ -740,8 +702,6 @@ export default function DeckVisualizer({
                 }}
               />
             )}
-        </div>
-      </div>
 
       {syncCount !== null && (
           <SyncCompleteModal 
@@ -775,23 +735,13 @@ export default function DeckVisualizer({
                     const totalInCat = list.reduce((acc, c) => acc + c.quantity, 0);
 
                     return (
-                        <div key={catName} className="stack-column" style={{ breakInside: 'auto', marginBottom: 0, width: '100%', maxWidth: '260px' }}>
-                          <h4 style={{ 
-                            color: '#aaa', 
-                            fontSize: '0.75rem', 
-                            textTransform: 'uppercase', 
-                            letterSpacing: '1px',
-                            marginBottom: '0.8rem',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            padding: '0 0.5rem',
-                            borderLeft: '2px solid var(--color-gold)'
-                          }}>
-                            <span>{catName}</span>
-                            <span style={{ color: '#444' }}>{totalInCat}</span>
+                        <div key={catName} className="stack-column-premium">
+                          <h4 className="stack-header">
+                            <span className="stack-title">{catName}</span>
+                            <span className="stack-count">{totalInCat}</span>
                           </h4>
 
-                          <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', paddingBottom: '1rem' }}>
+                          <div className="stack-content">
                             {sortedList.map((card, idx) => {
                                       const isLast = idx === sortedList.length - 1;
                                       const isGC = BRACKETS.some(b => b.name === card.card_name && b.reason === 'Game Changer');
@@ -817,20 +767,19 @@ export default function DeckVisualizer({
                                             marginBottom: isLast 
                                               ? '0' 
                                               : isHovered 
-                                                ? '0px'
-                                                : 'calc(-88 / 63 * 100% + 40px)', 
+                                                ? '8px'
+                                                : 'calc(-88 / 63 * 100% + 42px)', 
                                             background: 'transparent',
                                             borderRadius: '12px',
                                             position: 'relative',
                                             zIndex: idx, 
                                             cursor: 'pointer',
-                                            transition: 'margin-bottom 0.8s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                                            transitionDelay: isHovered ? '0.1s' : '0s',
+                                            transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)',
                                             overflow: 'visible',
-                                            transform: 'none', 
-                                            boxShadow: isHovered ? '0 10px 30px rgba(0,0,0,0.5)' : 'none'
+                                            transform: isHovered ? 'translateY(-5px) scale(1.02)' : 'none', 
+                                            boxShadow: isHovered ? '0 20px 40px rgba(0,0,0,0.6)' : 'none'
                                           }}
-                                          className="card-slice"
+                                          className={`card-slice ${isGC ? 'is-game-changer' : ''}`}
                                         >
                                          {/* Game Changer Badge */}
                                         {isGC && (
@@ -1076,8 +1025,7 @@ export default function DeckVisualizer({
                   </div>
       ) : viewMode === 'grid' ? (
 
-          /* Grid View (Full cards, no overlap) */
-          <div className="masonry-layout">
+                    <div className="masonry-layout-premium">
             {[...categories[groupBy]]
               .filter(catName => (grouped[catName] || []).length > 0)
               .sort((a, b) => {
@@ -1091,37 +1039,45 @@ export default function DeckVisualizer({
                 const totalInCat = list.reduce((acc, c) => acc + c.quantity, 0);
 
                 return (
-                  <div key={catName} className="stack-column">
-                    <h4 style={{ color: '#aaa', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '0.8rem', display: 'flex', justifyContent: 'space-between', padding: '0 0.5rem', borderLeft: '2px solid var(--color-gold)' }}>
-                      <span>{catName}</span>
-                      <span style={{ color: '#444' }}>{totalInCat}</span>
+                  <div key={catName} className="grid-category-block">
+                    <h4 className="stack-header" style={{ marginBottom: '1.2rem' }}>
+                      <span className="stack-title">{catName}</span>
+                      <span className="stack-count">{totalInCat}</span>
                     </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div className="grid-cards-container">
                       {sortedList.map((card, idx) => {
                         const isGC = isGameChangerValue(card.card_name);
                         return (
                           <div 
                             key={`${card.card_name}-${idx}`}
                             onClick={() => setActiveInfoCard(card)}
-                            onMouseEnter={(e) => startHoverTimer(card.card_name, card.image_url || '', e)}
-                            onMouseLeave={stopHoverTimer}
-                            style={{ width: '100%', aspectRatio: '63 / 88', position: 'relative', cursor: 'pointer', borderRadius: '8px', overflow: 'visible' }}
+                            onMouseEnter={(e) => {
+                              setHoveredCard(card);
+                              startHoverTimer(card.card_name, card.image_url || '', e);
+                            }}
+                            onMouseLeave={() => {
+                              setHoveredCard(null);
+                              stopHoverTimer();
+                            }}
+                            className={`grid-card-item ${isGC ? 'is-game-changer' : ''}`}
                           >
                              {isGC && (
                                <div className="game-changer-badge" title="Game Changer">
                                  <span>⚡</span>
-                               </div>
+                                </div>
                              )}
-                             <img 
-                               src={card.image_url || ''} 
-                               alt={card.card_name}
-                               style={{ width: '100%', height: '100%', objectFit: 'fill', borderRadius: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}
-                             />
-                             <div style={{ position: 'absolute', top: 0, left: 0, padding: '2px 6px', background: 'rgba(0,0,0,0.8)', color: '#fff', fontSize: '0.7rem', fontWeight: 'bold', borderBottomRightRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                               <span>x{card.quantity}</span>
-                               {userCollection.has(card.card_name.toLowerCase()) && (
-                                 <span title="En tu colección" style={{ color: '#60a5fa' }}>📦</span>
-                               )}
+                             <div className="card-wrapper-premium">
+                               <img 
+                                 src={card.image_url || ''} 
+                                 alt={card.card_name}
+                                 className="premium-card-img"
+                               />
+                               <div className="card-qty-badge">
+                                 <span>x{card.quantity}</span>
+                                 {userCollection.has(card.card_name.toLowerCase()) && (
+                                   <span title="En tu colección" style={{ color: '#60a5fa', fontSize: '10px' }}>📦</span>
+                                 )}
+                               </div>
                              </div>
                           </div>
                         );
@@ -1355,32 +1311,338 @@ export default function DeckVisualizer({
       )}
 
       <style jsx>{`
+        .deck-builder-container {
+          transition: all 0.5s cubic-bezier(0.15, 0.85, 0.45, 1);
+        }
+
+        .premium-title {
+          color: var(--color-gold);
+          margin: 0;
+          font-size: 1.6rem;
+          font-weight: 800;
+          letter-spacing: -0.5px;
+          text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .btn-action {
+          padding: 0.6rem 1.2rem;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 12px;
+          color: #eee;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 0.9rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-action:hover {
+          background: rgba(255, 255, 255, 0.1);
+          border-color: rgba(255, 255, 255, 0.3);
+          transform: translateY(-2px);
+          box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn-action.success {
+          background: rgba(76, 175, 80, 0.2);
+          border-color: rgba(76, 175, 80, 0.4);
+          color: #81c784;
+        }
+
+        .filters-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 1rem;
+          background: rgba(0, 0, 0, 0.2);
+          padding: 0.5rem 1rem;
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-group {
+          display: flex;
+          align-items: center;
+          background: rgba(0, 0, 0, 0.3);
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: 2px;
+          transition: all 0.3s;
+        }
+
+        .search-group:focus-within {
+          border-color: var(--color-gold);
+          box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .search-input {
+          background: transparent;
+          border: none;
+          color: white;
+          padding: 0.5rem 1rem;
+          font-size: 0.9rem;
+          outline: none;
+          width: 180px;
+        }
+
+        .filter-toggle {
+          background: transparent;
+          border: none;
+          color: #666;
+          padding: 0.5rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 8px;
+          transition: all 0.2s;
+        }
+
+        .filter-toggle:hover {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .filter-toggle.active {
+          color: var(--color-gold);
+          background: rgba(212, 175, 55, 0.15);
+        }
+
+        .game-changer-badge {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          width: 28px;
+          height: 28px;
+          background: var(--color-gold);
+          color: #000;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1rem;
+          z-index: 10;
+          box-shadow: 0 4px 10px rgba(212, 175, 55, 0.5);
+          border: 2px solid #000;
+        }
+
+        .card-3d-container {
+          width: 100%;
+          height: 100%;
+          perspective: 1200px;
+        }
+
+        .card-3d-inner {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          transform-style: preserve-3d;
+        }
+
+        .card-3d-inner.is-flipped {
+          transform: rotateY(180deg);
+        }
+
+        .card-3d-front, .card-3d-back {
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          backface-visibility: hidden;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .card-3d-back {
+          transform: rotateY(180deg);
+        }
+
         .deck-list-row {
-          transition: background-color 0.2s ease;
+          transition: all 0.2s ease;
         }
         .deck-list-row:hover {
-          background-color: rgba(255, 255, 255, 0.05) !important;
+          background-color: rgba(212, 175, 55, 0.05) !important;
+          transform: translateX(5px);
         }
         .card-slice:hover .remove-btn {
           visibility: visible !important;
         }
         .list-remove-btn:hover {
-          color: red !important;
-        }
-        .suggestion-item:hover {
-          background: #333;
-          color: var(--color-gold);
+          color: #ff5252 !important;
         }
         @keyframes slideIn {
-          from { opacity: 0; transform: translateX(20px); }
-          to { opacity: 1; transform: translateX(0); }
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        .stack-column-premium {
+          break-inside: auto;
+          margin-bottom: 0;
+          width: 100%;
+          max-width: 260px;
+          display: flex;
+          flex-direction: column;
+        }
+
+        .stack-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.6rem 1rem;
+          margin-bottom: 1rem;
+          background: rgba(255, 255, 255, 0.03);
+          border-radius: 12px;
+          border-left: 3px solid var(--color-gold);
+          transition: all 0.3s;
+        }
+
+        .stack-header:hover {
+          background: rgba(255, 255, 255, 0.06);
+          transform: translateX(3px);
+        }
+
+        .stack-title {
+          color: #aaa;
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 1.5px;
+        }
+
+        .stack-count {
+          color: #555;
+          font-size: 0.8rem;
+          font-weight: 900;
+          font-family: monospace;
+        }
+
+        .stack-content {
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          padding-bottom: 1rem;
+        }
+
+        .card-slice {
+          position: relative;
+        }
+
+        .card-slice::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 12px;
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -1px 1px rgba(0,0,0,0.4);
+          pointer-events: none;
+          z-index: 2;
+        }
+
+        .card-slice.is-game-changer::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          background: linear-gradient(45deg, var(--color-gold), transparent, var(--color-gold));
+          border-radius: 14px;
+          z-index: -1;
+          opacity: 0.5;
+          filter: blur(8px);
+          animation: goldGlow 3s infinite alternate;
+        }
+
+        @keyframes goldGlow {
+          from { opacity: 0.3; filter: blur(4px); }
+          to { opacity: 0.7; filter: blur(12px); }
+        }
+
+        .masonry-layout-premium {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 2.5rem;
+          padding: 1rem 0;
+        }
+
+        .grid-category-block {
+          background: rgba(255, 255, 255, 0.02);
+          padding: 1.5rem;
+          border-radius: 20px;
+          border: 1px solid rgba(255, 255, 255, 0.04);
+          transition: all 0.3s;
+        }
+
+        .grid-category-block:hover {
+          background: rgba(255, 255, 255, 0.04);
+          border-color: rgba(212, 175, 55, 0.2);
+        }
+
+        .grid-cards-container {
+          display: flex;
+          flex-direction: column;
+          gap: 1.2rem;
+        }
+
+        .grid-card-item {
+          width: 100%;
+          aspect-ratio: 63 / 88;
+          position: relative;
+          cursor: pointer;
+          transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .grid-card-item:hover {
+          transform: translateY(-8px) scale(1.03) rotate(2deg);
+          z-index: 10;
+        }
+
+        .card-wrapper-premium {
+          width: 100%;
+          height: 100%;
+          border-radius: 12px;
+          overflow: hidden;
+          box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+          border: 1px solid rgba(255,255,255,0.1);
+          position: relative;
+        }
+
+        .premium-card-img {
+          width: 100%;
+          height: 100%;
+          object-fit: fill;
+          transition: transform 0.6s;
+        }
+
+        .grid-card-item:hover .premium-card-img {
+          transform: scale(1.1);
+        }
+
+        .card-qty-badge {
+          position: absolute;
+          top: 0;
+          left: 0;
+          padding: 4px 10px;
+          background: rgba(0,0,0,0.85);
+          backdrop-filter: blur(4px);
+          color: #fff;
+          font-size: 0.8rem;
+          font-weight: 800;
+          border-bottom-right-radius: 10px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-top: none;
+          border-left: none;
+        }
+
+        .flip-btn-premium:hover {
+          transform: translateY(-50%) scale(1.15) rotate(180deg) !important;
+          background: var(--color-gold) !important;
+          color: #000 !important;
+          box-shadow: 0 0 20px rgba(212, 175, 55, 0.6) !important;
         }
       `}</style>
-      
       <PlaytestModal 
         isOpen={showPlaytest} 
         onClose={() => setShowPlaytest(false)} 

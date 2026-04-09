@@ -17,10 +17,10 @@ export default function PreconComparison({ preconUrl, currentCards }: PreconComp
     setLoading(true);
     setError('');
     try {
-      let endpoint = '';
-      if (preconUrl.includes('archidekt.com')) endpoint = '/api/import/archidekt';
-      else if (preconUrl.includes('moxfield.com')) endpoint = '/api/import/moxfield';
-      else throw new Error('URL de precon no soportada.');
+      if (!preconUrl.includes('archidekt.com')) {
+        throw new Error('URL de precon no soportada. Solo Archidekt es compatible actualmente.');
+      }
+      const endpoint = '/api/import/archidekt';
 
       const res = await fetch(endpoint, {
         method: 'POST',

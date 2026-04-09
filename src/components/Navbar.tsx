@@ -13,8 +13,17 @@ export default function Navbar() {
   const [playerList, setPlayerList] = useState<any[]>([]);
   const [showPlayers, setShowPlayers] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,22 +52,23 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
       <div className="container">
         <div className="navbar-content-wrapper">
           <div className="navbar-left">
             <Link href="/" className="logo" onClick={() => setIsMenuOpen(false)}>
               Commander Party
             </Link>
-            <div className="stats-badge" style={{ 
-              fontSize: 'var(--stats-font, 0.85rem)', 
-              background: 'rgba(255,184,0,0.1)', 
-              border: '1px solid var(--color-gold)', 
-              padding: 'var(--stats-padding, 4px 12px)', 
-              borderRadius: '12px',
+            <div className="stats-badge hide-mobile" style={{ 
+              fontSize: '0.7rem', 
+              background: 'rgba(212,175,55,0.05)', 
+              border: '1px solid var(--border-color)', 
+              padding: '4px 12px', 
+              borderRadius: '20px',
               color: 'var(--color-gold)',
-              fontWeight: 'bold',
-              whiteSpace: 'nowrap'
+              fontWeight: '700',
+              letterSpacing: '1px',
+              textTransform: 'uppercase'
             }}>
               {stats.players} JUGADORES | {stats.decks} MAZOS
             </div>
@@ -106,17 +116,14 @@ export default function Navbar() {
               Participantes ▼
             </Link>
             {showPlayers && playerList.length > 0 && (
-              <div className="dropdown-menu" style={{
+              <div className="dropdown-menu glass-panel" style={{
                 position: 'absolute',
-                top: '100%',
+                top: 'calc(100% + 10px)',
                 right: 0,
-                background: '#1a1a1a',
-                border: '1px solid #333',
-                borderRadius: '8px',
-                padding: '0.5rem',
-                minWidth: '200px',
+                padding: '0.75rem',
+                minWidth: '220px',
                 zIndex: Z_INDEX_NAVBAR,
-                boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                borderRadius: '16px'
               }}>
                 {playerList.map(p => (
                   <Link 

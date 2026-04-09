@@ -1,23 +1,15 @@
 import fs from 'fs/promises';
 import path from 'path';
 
-/**
- * Smart Commander Precon Generator
- * 
- * Flow:
- * 1. Reads src/data/precons.json (The Source of Truth).
- * 2. Extracts IDs from URLs (Archidekt/Moxfield).
- * 3. Fetches missing decklists for precon-decklists.json.
- */
-
+// Types for the database
 interface Card {
   name: string;
   quantity: number;
   is_commander: boolean;
-  type_line?: string;
-  mana_cost?: string;
-  image_url?: string;
-  oracle_text?: string;
+  type_line: string;
+  mana_cost: string;
+  image_url: string;
+  oracle_text: string;
 }
 
 interface PreconMetadata {
@@ -30,104 +22,91 @@ interface PreconMetadata {
   year: number;
 }
 
-const BROWSER_HEADERS = { 
-  'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+const BROWSER_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
   'Accept': 'application/json'
 };
 
-async function fetchMoxfieldCards(moxfieldId: string): Promise<Card[]> {
-  try {
-    const response = await fetch(`https://api.moxfield.com/v2/decks/all/${moxfieldId}`, { headers: BROWSER_HEADERS });
-    if (!response.ok) return [];
-    
-    const data = await response.json() as any;
-    const cards: Card[] = [];
-
-    if (data.commanders) {
-      Object.values(data.commanders).forEach((item: any) => {
-        cards.push({
-          name: item.card.name,
-          quantity: item.quantity || 1,
-          is_commander: true,
-          type_line: item.card.type_line,
-          mana_cost: item.card.mana_cost,
-          image_url: item.card.images?.normal,
-          oracle_text: item.card.oracle_text
-        });
-      });
-    }
-
-    if (data.mainboard) {
-      Object.values(data.mainboard).forEach((item: any) => {
-        cards.push({
-          name: item.card.name,
-          quantity: item.quantity,
-          is_commander: false,
-          type_line: item.card.type_line,
-          mana_cost: item.card.mana_cost,
-          image_url: item.card.images?.normal,
-          oracle_text: item.card.oracle_text
-        });
-      });
-    }
-    return cards;
-  } catch {
-    return [];
+/**
+ * Reconstructs a Scryfall-style type_line from Archidekt's split fields
+ */
+function reconstructTypeLine(oc: any): string {
+  const parts = [];
+  if (oc.superTypes && oc.superTypes.length > 0) parts.push(...oc.superTypes);
+  if (oc.types && oc.types.length > 0) parts.push(...oc.types);
+  if (oc.subTypes && oc.subTypes.length > 0) {
+    parts.push('\u2014'); // em-dash
+    parts.push(...oc.subTypes);
   }
+  return parts.join(' ');
 }
 
+/**
+ * Fetches cards from a public Archidekt deck via its API
+ */
 async function fetchArchidektCards(archidektId: string, retries = 3): Promise<Card[]> {
   try {
-    const response = await fetch(`https://archidekt.com/api/decks/${archidektId}/`);
+    const response = await fetch(`https://archidekt.com/api/decks/${archidektId}/`, {
+      headers: BROWSER_HEADERS
+    });
+
     if (!response.ok) {
       if (response.status === 429 && retries > 0) {
+        console.log(`    ⏳ Rate limited. Waiting 5s... (${retries} retries left)`);
         await new Promise(resolve => setTimeout(resolve, 5000));
         return fetchArchidektCards(archidektId, retries - 1);
       }
       return [];
     }
+
     const data = await response.json() as any;
     if (!data.cards) return [];
     
     return data.cards.map((item: any) => {
+      // Skip boards we don't need
       if (item.categories?.includes('Sideboard') || item.categories?.includes('Maybeboard')) return null;
+      
       const oc = item.card.oracleCard;
+      if (!oc) return null;
+
       return {
         name: oc.name,
         quantity: item.quantity,
         is_commander: item.categories?.includes('Commander') || false,
-        type_line: oc.typeLine,
-        mana_cost: oc.manaCost,
+        type_line: reconstructTypeLine(oc),
+        mana_cost: oc.manaCost || '',
         image_url: oc.imageUri || `https://api.scryfall.com/cards/${item.card.uid}?format=image`,
-        oracle_text: oc.oracleText
+        oracle_text: oc.text || ''
       };
-    }).filter((c: any) => c !== null);
-  } catch {
+    }).filter((c: any) => c !== null) as Card[];
+  } catch (error) {
+    console.error(`    ❌ Error fetching Archidekt ID ${archidektId}:`, error);
     return [];
   }
 }
 
-function extractId(url: string): { id: string, type: 'archidekt' | 'moxfield' | 'unknown' } {
-  if (url.includes('archidekt.com/decks/')) {
-    const match = url.match(/decks\/(\d+)/);
-    return { id: match ? match[1] : '', type: 'archidekt' };
-  }
-  if (url.includes('moxfield.com/decks/')) {
-    const match = url.match(/decks\/([^/]+)/);
-    return { id: match ? match[1] : '', type: 'moxfield' };
-  }
-  return { id: '', type: 'unknown' };
+/**
+ * Extracts the numerical ID from an Archidekt URL
+ */
+function extractArchidektId(url: string): string | null {
+  const match = url.match(/archidekt\.com\/decks\/(\d+)/);
+  return match ? match[1] : null;
 }
 
+/**
+ * Main process: Reads precons.json, fetches decklists, and saves to precon-decklists.json
+ */
 async function generatePrecons() {
-  console.log('🚀 Smart Precon Decklist Generator\n');
+  console.log('🚀 Archidekt Precon Database Synchronizer\n');
   
   const preconsPath = path.join(process.cwd(), 'src', 'data', 'precons.json');
   const decklistsPath = path.join(process.cwd(), 'src', 'data', 'precon-decklists.json');
 
+  // Load Source URLs
   const preconsRaw = await fs.readFile(preconsPath, 'utf8');
   const precons = JSON.parse(preconsRaw) as PreconMetadata[];
   
+  // Load Existing Cache
   let decklists: Record<string, Card[]> = {};
   try {
     const existingDecklistsRaw = await fs.readFile(decklistsPath, 'utf8');
@@ -138,33 +117,44 @@ async function generatePrecons() {
   }
 
   for (const precon of precons) {
-    if (decklists[precon.name]) {
-      console.log(`  - ${precon.name} already cached. Skiping.`);
+    const existing = decklists[precon.name];
+    
+    // Check if cache is valid (has cards AND all cards have types)
+    const isValid = existing && existing.length > 0 && !existing.some(c => !c.type_line);
+    
+    if (isValid) {
+      console.log(`  - ${precon.name}: OK (Cached)`);
       continue;
     }
 
-    const { id, type } = extractId(precon.url);
-    if (!id || type === 'unknown') {
-      console.warn(`  ⚠️ Could not extract ID for: ${precon.name} (${precon.url})`);
+    const id = extractArchidektId(precon.url);
+    if (!id) {
+      console.warn(`  ⚠️ Skip: URL doesn't look like an Archidekt deck: ${precon.name}`);
       continue;
     }
 
-    console.log(`  - Fetching ${precon.name} (${type} ID: ${id})...`);
-    const cards = type === 'archidekt' ? await fetchArchidektCards(id) : await fetchMoxfieldCards(id);
+    console.log(`  - Fetching ${precon.name} (ID: ${id})...`);
+    const cards = await fetchArchidektCards(id);
 
     if (cards.length > 0) {
       decklists[precon.name] = cards;
-      console.log(`    ✅ Cached ${cards.length} cards.`);
+      console.log(`    ✅ Success: ${cards.length} cards imported.`);
     } else {
-      console.warn(`    ❌ Failed to fetch decklist for ${precon.name}`);
+      console.warn(`    ❌ Error: Could not retrieve decklist for ${precon.name}`);
     }
 
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Rate limit safety
+    // Gentle rate limiting for Archidekt API
+    await new Promise(resolve => setTimeout(resolve, 800));
   }
 
+  // Final Save
   await fs.writeFile(decklistsPath, JSON.stringify(decklists, null, 2));
-  console.log('\n💾 Saved precon-decklists.json');
-  console.log('✨ Done!\n');
+  console.log('\n💾 Database updated successfully: src/data/precon-decklists.json');
+  console.log('✨ All systems ready!\n');
 }
 
-generatePrecons().catch(console.error);
+// Run the script
+generatePrecons().catch(err => {
+  console.error('💥 Critical script failure:', err);
+  process.exit(1);
+});

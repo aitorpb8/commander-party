@@ -7,7 +7,7 @@ export async function getCardByName(
   name: string
 ): Promise<ScryfallCard | null> {
   try {
-    const encodedName = encodeURIComponent(`!"${name}"`);
+    const encodedName = encodeURIComponent(`!"${name}" -is:extra -is:artseries -layout:token`);
     const res = await fetch(`${PROXY_GET}?path=cards/search&q=${encodedName}&order=eur&dir=asc`);
 
     if (!res.ok) {
@@ -46,7 +46,9 @@ export async function searchCards(query: string): Promise<ScryfallCard[]> {
   if (query.length < 2) return [];
   
   const performSearch = async (q: string) => {
-    const encodedQuery = encodeURIComponent(q);
+    // Forcefully exclude tokens, art series, and extras from all searches
+    const finalQuery = `${q} -is:extra -is:artseries -layout:token`;
+    const encodedQuery = encodeURIComponent(finalQuery);
     const res = await fetch(`${PROXY_GET}?path=cards/search&q=${encodedQuery}&order=eur&dir=asc`);
     if (!res.ok) return [];
     const data = await res.json();
@@ -70,7 +72,7 @@ export async function searchCards(query: string): Promise<ScryfallCard[]> {
 
 export async function getCardPrints(name: string): Promise<ScryfallCard[]> {
   try {
-    const encodedName = encodeURIComponent(`!"${name}"`);
+    const encodedName = encodeURIComponent(`!"${name}" -is:extra -is:artseries -layout:token`);
     let allPrints: ScryfallCard[] = [];
     let nextUrl: string | null = `${PROXY_GET}?path=cards/search&q=${encodedName}&unique=prints&order=released&dir=desc`;
     
