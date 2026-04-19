@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import Image from "next/image";
 import DeckCard from "@/components/DeckCard";
 import { calculateDeckBudget } from '@/lib/budgetUtils';
 import { MONTHLY_ALLOWANCE } from '@/lib/constants';
+
+import styles from "./page.module.css";
 
 // Force revalidation on every request to show fresh budget data
 export const revalidate = 0;
@@ -79,8 +82,8 @@ export default async function Home() {
     <div className="container">
       {/* HERO SECTION */}
       <section className="hero-section">
-        <div className="hide-mobile" style={{ position: 'absolute', top: '20px', right: '30px', transform: 'rotate(15deg)', color: 'rgba(212,175,55,0.15)', fontSize: '2.5rem', fontWeight: '900', userSelect: 'none' }}>PARTY!</div>
-        <div className="hide-mobile" style={{ position: 'absolute', bottom: '20px', left: '30px', transform: 'rotate(-10deg)', color: 'rgba(212,175,55,0.1)', fontSize: '1.5rem', fontWeight: '900', userSelect: 'none' }}>{MONTHLY_ALLOWANCE}€ BUDGET</div>
+        <div className={`hide-mobile ${styles.heroContentBox}`}>PARTY!</div>
+        <div className={`hide-mobile ${styles.heroContentBadge}`}>{MONTHLY_ALLOWANCE}€ BUDGET</div>
 
         <h1 className="hero-title">
           Commander Party
@@ -109,41 +112,15 @@ export default async function Home() {
 
       {/* NEW PARTICIPANT CTA - Only show if user has NO decks */}
       {userDeckCount === 0 && (
-        <div 
-          className="new-deck-cta glass-panel premium-border"
-          style={{ 
-            marginBottom: '4rem', 
-            padding: '3rem 2rem', 
-            borderRadius: '24px', 
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: '1.5rem',
-            textAlign: 'center',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-        >
-          <div style={{ maxWidth: '600px' }}>
-            <h4 style={{ color: 'var(--color-gold)', marginBottom: '0.5rem', fontSize: '1.2rem', fontFamily: 'var(--font-title)' }}>¿ERES NUEVO EN LA PARTY?</h4>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>
+        <div className={`new-deck-cta glass-panel premium-border ${styles.newDeckCta}`}>
+          <div className={styles.ctaTextContainer}>
+            <h4 className={styles.ctaTitle}>¿ERES NUEVO EN LA PARTY?</h4>
+            <p className={styles.ctaSubtitle}>
               Todo jugador necesita un plan. Empieza tu proyecto de {MONTHLY_ALLOWANCE}€ y demuestra quién manda en la mesa.
             </p>
           </div>
-          <Link 
-            href="/decks/new" 
-            className="btn btn-gold" 
-            style={{ 
-              padding: '1rem 2.5rem', 
-              fontSize: '1rem', 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.75rem',
-              boxShadow: '0 4px 20px rgba(212, 175, 55, 0.15)',
-              textDecoration: 'none'
-            }}
-          >
-            <span style={{ fontSize: '1.2rem' }}>✨</span> CREAR MI MAZO
+          <Link href="/decks/new" className={`btn btn-gold ${styles.ctaButton}`}>
+            <span className={styles.ctaButtonIcon}>✨</span> CREAR MI MAZO
           </Link>
         </div>
       )}
@@ -154,32 +131,39 @@ export default async function Home() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '2rem' }}>
             {/* RECENT ACTIVITY */}
-            <div className="card" style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: "800" }}>¿QUIÉN HA GANADO?</h3>
-                <Link href="/matches" style={{ fontSize: "0.7rem", color: "var(--color-gold)", fontWeight: "bold" }}>VER TODO</Link>
+            <div className={`card ${styles.recentActivityCard}`}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>¿QUIÉN HA GANADO?</h3>
+                <Link href="/matches" className={styles.viewAllLink}>VER TODO</Link>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {activityFeed.length > 0 ? (
                   activityFeed.map((match: any) => (
-                    <div key={match.id} style={{ padding: "0.75rem", background: "rgba(255,255,255,0.03)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                    <div key={match.id} className={styles.activityItem}>
+                      <div className={styles.activityContent}>
                         {match.profiles?.avatar_url ? (
-                          <img src={match.profiles.avatar_url} style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1px solid var(--color-gold)' }} alt={match.profiles.username} />
+                          <Image 
+                            src={match.profiles.avatar_url} 
+                            width={32} 
+                            height={32} 
+                            className={styles.avatarImage}
+                            alt={match.profiles.username} 
+                            unoptimized
+                          />
                         ) : (
-                          <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "var(--color-gold)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "900", fontSize: "0.8rem" }}>
+                          <div className={styles.avatarFallback}>
                             {match.profiles?.username?.[0]?.toUpperCase() || "W"}
                           </div>
                         )}
                         <div>
-                          <div style={{ fontSize: "1.05rem", fontWeight: "bold" }}>{match.profiles?.username} ganó</div>
-                          <div style={{ fontSize: "0.85rem", color: "#666" }}>{match.description || "Partida de liga"}</div>
+                          <div className={styles.activityText}>{match.profiles?.username} ganó</div>
+                          <div className={styles.activitySubtext}>{match.description || "Partida de liga"}</div>
                         </div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div style={{ textAlign: "center", padding: "2rem", color: "#444", fontSize: "0.9rem", border: '1px dashed #333', borderRadius: '12px' }}>
+                  <div className={styles.emptyState}>
                     No hay partidas recientes... aún.
                   </div>
                 )}
@@ -187,10 +171,10 @@ export default async function Home() {
             </div>
 
             {/* RANKING MINI */}
-            <div className="card" style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ marginBottom: "1.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <h3 style={{ fontSize: "1.1rem", fontWeight: "800" }}>TOP PARTY</h3>
-                <Link href="/ranking" style={{ fontSize: "0.7rem", color: "var(--color-gold)", fontWeight: "bold" }}>RANKING</Link>
+            <div className={`card ${styles.recentActivityCard}`}>
+              <div className={styles.cardHeader}>
+                <h3 className={styles.cardTitle}>TOP PARTY</h3>
+                <Link href="/ranking" className={styles.viewAllLink}>RANKING</Link>
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                  {activityFeed.length > 0 ? (
@@ -204,16 +188,16 @@ export default async function Home() {
                    .sort((a: any, b: any) => b[1] - a[1])
                    .slice(0, 3)
                    .map(([name, wins]: any, idx) => (
-                     <div key={name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.75rem", borderBottom: idx < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-                       <span style={{ fontSize: "1.05rem" }}>
-                         <span style={{ color: idx === 0 ? "var(--color-gold)" : "#888", fontWeight: "bold", marginRight: "8px" }}>{idx + 1}.</span>
+                     <div key={name} className={styles.rankingItem} style={{ borderBottom: idx < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                       <span className={styles.rankingName}>
+                         <span className={styles.rankingPos} style={{ color: idx === 0 ? "var(--color-gold)" : "#888" }}>{idx + 1}.</span>
                          {name}
                        </span>
-                       <span style={{ fontWeight: "bold", fontSize: "0.9rem", color: idx === 0 ? "var(--color-gold)" : "inherit" }}>{wins} {wins === 1 ? 'Win' : 'Wins'}</span>
+                       <span className={styles.rankingWins} style={{ color: idx === 0 ? "var(--color-gold)" : "inherit" }}>{wins} {wins === 1 ? 'Win' : 'Wins'}</span>
                      </div>
                    ))
                  ) : (
-                   <div style={{ textAlign: "center", padding: "2rem", color: "#444", fontSize: "0.9rem" }}>Calculando...</div>
+                   <div className={styles.emptyState}>Calculando...</div>
                  )}
               </div>
             </div>
@@ -221,10 +205,10 @@ export default async function Home() {
 
           {/* FEATURED DECKS */}
           <section style={{ marginBottom: "5rem" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "2.5rem" }}>
+            <div className={styles.collectionHeader}>
               <div>
-                <h2 style={{ fontSize: "2.5rem", fontWeight: "900", marginBottom: "0.25rem", letterSpacing: '-1px' }}>LA COLECCIÓN</h2>
-                <p style={{ color: "#666", fontSize: "1rem" }}>Las abominaciones que pueblan nuestra mesa.</p>
+                <h2 className={styles.collectionTitle}>LA COLECCIÓN</h2>
+                <p className={styles.collectionSubtitle}>Las abominaciones que pueblan nuestra mesa.</p>
               </div>
               <Link href="/decks" style={{ color: "var(--color-gold)", fontWeight: "bold", fontSize: "0.9rem", borderBottom: '2px solid' }}>VER TODO →</Link>
             </div>
@@ -236,7 +220,7 @@ export default async function Home() {
                 <Link href="/profile" className="btn btn-gold" style={{ padding: '1rem 3rem' }}>CREAR MI PRIMER DECK</Link>
               </div>
             ) : (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))", gap: "2rem" }}>
+              <div className={styles.collectionGrid}>
                 {decks.map((deck: any) => {
                    const currentMonthSpent = monthlySpendMap.get(deck.id) || 0;
                    const budgetInfo = calculateDeckBudget(deck.created_at, deck.budget_spent || 0);
@@ -263,19 +247,19 @@ export default async function Home() {
 
         {/* COLUMNA DERECHA: QUICK ACTIONS */}
         <aside style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-          <div className="card" style={{ display: "flex", flexDirection: "column", background: "linear-gradient(180deg, var(--bg-card) 0%, #1a1a1a 100%)", border: '1px solid var(--color-gold)' }}>
-            <h3 style={{ fontSize: "1.1rem", fontWeight: "800", marginBottom: "1.5rem" }}>ZONA ACCIÓN</h3>
+          <div className={`card ${styles.actionCard}`}>
+            <h3 className={styles.cardTitle} style={{ marginBottom: '1.5rem' }}>ZONA ACCIÓN</h3>
             <div style={{ display: "grid", gap: "1rem" }}>
-              <Link href="/ranking?add=true" className="btn btn-gold" style={{ width: "100%", gap: "0.5rem", fontSize: "1rem", padding: '1.25rem' }}>
+              <Link href="/ranking?add=true" className={`btn btn-gold ${styles.actionButton}`}>
                 <span>🎉</span> Registrar Victoria
               </Link>
-              <Link href="/decks" className="btn" style={{ width: "100%", background: "#222", gap: "0.5rem", fontSize: "0.9rem", border: '1px solid #333' }}>
+              <Link href="/decks" className={`btn ${styles.secondaryButton}`}>
                 <span>📂</span> Mis Mazos
               </Link>
-              <Link href="/meta" className="btn" style={{ width: "100%", background: "#222", gap: "0.5rem", fontSize: "0.9rem", border: '1px solid #333' }}>
+              <Link href="/meta" className={`btn ${styles.secondaryButton}`}>
                 <span>📊</span> Meta Game
               </Link>
-              <Link href="/rules" className="btn" style={{ width: "100%", background: "#222", gap: "0.5rem", fontSize: "0.9rem", border: '1px solid #333' }}>
+              <Link href="/rules" className={`btn ${styles.secondaryButton}`}>
                 <span>📖</span> Reglamento
               </Link>
             </div>
@@ -284,13 +268,13 @@ export default async function Home() {
       </div>
 
       {/* FINAL CTA */}
-      <div style={{ padding: "5rem 2rem", background: "linear-gradient(135deg, #1e1e1e 0%, #080808 100%)", borderRadius: "32px", textAlign: "center", border: "1px solid rgba(212,175,55,0.1)", position: "relative", overflow: "hidden", marginTop: '3rem' }}>
-        <div style={{ position: "absolute", top: "-50%", left: "-20%", width: "60%", height: "200%", background: "radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
-        <h2 style={{ fontSize: "3rem", fontWeight: "900", marginBottom: "1rem", letterSpacing: '-2px' }}>¿Te unes a la Party?</h2>
-        <p style={{ color: "#888", marginBottom: "3rem", maxWidth: "600px", margin: "0 auto 3rem", fontSize: '1.1rem' }}>
+      <div className={styles.finalCta}>
+        <div className={styles.finalCtaGlow} />
+        <h2 className={styles.finalCtaTitle}>¿Te unes a la Party?</h2>
+        <p className={styles.finalCtaDesc}>
           Demuestra que el dinero no gana partidas, la astucia lo hace. {MONTHLY_ALLOWANCE}€, 100 cartas, gloria infinita.
         </p>
-        <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        <div className={styles.finalCtaActions}>
           <Link 
             href={!user ? "/login" : (userDeckCount === 0 ? "/decks/new" : "/decks")} 
             className="btn btn-gold" 

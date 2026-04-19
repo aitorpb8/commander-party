@@ -1,5 +1,4 @@
-
-import React from 'react';
+import Image from 'next/image';
 
 interface DeckCardProps {
   playerName: string;
@@ -42,17 +41,18 @@ export default function DeckCard({ playerName, playerAvatar, deckName, commander
     >
       {/* 1. Header Banner Image (Art Crop) */}
       <div style={{ position: 'relative', overflow: 'hidden', height: '170px', flexShrink: 0, width: '100%' }}>
-        <img 
+        <Image 
           src={imageUrl} 
           alt={commanderName} 
+          fill
+          sizes="(max-width: 380px) 100vw, 380px"
           style={{ 
-            width: '100%', 
-            height: '100%', 
             objectFit: 'cover',
             objectPosition: 'center 20%',
             transition: 'transform 0.8s ease',
           }}
           className="deck-card-image"
+          priority={false}
         />
         <div style={{ 
           position: 'absolute', 
@@ -88,7 +88,14 @@ export default function DeckCard({ playerName, playerAvatar, deckName, commander
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ position: 'relative' }}>
             {playerAvatar ? (
-              <img src={playerAvatar} alt={playerName} style={{ width: '42px', height: '42px', borderRadius: '50%', border: `2px solid ${statusColor}` }} />
+              <Image 
+                src={playerAvatar} 
+                alt={playerName} 
+                width={42} 
+                height={42} 
+                style={{ borderRadius: '50%', border: `2px solid ${statusColor}`, objectFit: 'cover' }} 
+                unoptimized
+              />
             ) : (
               <div style={{ 
                 width: '42px', height: '42px', borderRadius: '50%', 

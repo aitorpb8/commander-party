@@ -1,141 +1,251 @@
-.page {
-  --background: #fafafa;
-  --foreground: #fff;
+.heroContentBox {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  transform: rotate(15deg);
+  color: rgba(212, 175, 55, 0.15);
+  font-size: 2.5rem;
+  font-weight: 900;
+  user-select: none;
+}
 
-  --text-primary: #000;
-  --text-secondary: #666;
+.heroContentBadge {
+  position: absolute;
+  bottom: 20px;
+  left: 30px;
+  transform: rotate(-10deg);
+  color: rgba(212, 175, 55, 0.1);
+  font-size: 1.5rem;
+  font-weight: 900;
+  user-select: none;
+}
 
-  --button-primary-hover: #383838;
-  --button-secondary-hover: #f2f2f2;
-  --button-secondary-border: #ebebeb;
-
+.newDeckCta {
+  margin-bottom: 4rem;
+  padding: 3rem 2rem;
+  border-radius: 24px;
   display: flex;
-  min-height: 100vh;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-family: var(--font-geist-sans);
-  background-color: var(--background);
+  gap: 1.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
 }
 
-.main {
-  display: flex;
-  min-height: 100vh;
-  width: 100%;
-  max-width: 800px;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  background-color: var(--foreground);
-  padding: 120px 60px;
+.ctaTextContainer {
+  max-width: 600px;
 }
 
-.intro {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 24px;
+.ctaTitle {
+  color: var(--color-gold);
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+  font-family: var(--font-title);
 }
 
-.intro h1 {
-  max-width: 320px;
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 48px;
-  letter-spacing: -2.4px;
-  text-wrap: balance;
-  color: var(--text-primary);
-}
-
-.intro p {
-  max-width: 440px;
-  font-size: 18px;
-  line-height: 32px;
-  text-wrap: balance;
+.ctaSubtitle {
   color: var(--text-secondary);
+  font-size: 1.1rem;
 }
 
-.intro a {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.ctas {
+.ctaButton {
+  padding: 1rem 2.5rem;
+  font-size: 1rem;
   display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 440px;
-  gap: 16px;
-  font-size: 14px;
-}
-
-.ctas a {
-  display: flex;
-  justify-content: center;
   align-items: center;
-  height: 40px;
-  padding: 0 16px;
-  border-radius: 128px;
-  border: 1px solid transparent;
-  transition: 0.2s;
-  cursor: pointer;
-  width: fit-content;
-  font-weight: 500;
+  gap: 0.75rem;
+  box-shadow: 0 4px 20px rgba(212, 175, 55, 0.15);
+  text-decoration: none;
 }
 
-a.primary {
-  background: var(--text-primary);
-  color: var(--background);
-  gap: 8px;
+.ctaButtonIcon {
+  font-size: 1.2rem;
 }
 
-a.secondary {
-  border-color: var(--button-secondary-border);
+.recentActivityCard {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Enable hover only on non-touch devices */
-@media (hover: hover) and (pointer: fine) {
-  a.primary:hover {
-    background: var(--button-primary-hover);
-    border-color: transparent;
-  }
-
-  a.secondary:hover {
-    background: var(--button-secondary-hover);
-    border-color: transparent;
-  }
+.cardHeader {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-@media (max-width: 600px) {
-  .main {
-    padding: 48px 24px;
-  }
-
-  .intro {
-    gap: 16px;
-  }
-
-  .intro h1 {
-    font-size: 32px;
-    line-height: 40px;
-    letter-spacing: -1.92px;
-  }
+.cardTitle {
+  font-size: 1.1rem;
+  font-weight: 800;
 }
 
-@media (prefers-color-scheme: dark) {
-  .logo {
-    filter: invert();
-  }
+.viewAllLink {
+  font-size: 0.7rem;
+  color: var(--color-gold);
+  font-weight: bold;
+}
 
-  .page {
-    --background: #000;
-    --foreground: #000;
+.activityItem {
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
 
-    --text-primary: #ededed;
-    --text-secondary: #999;
+.activityContent {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
 
-    --button-primary-hover: #ccc;
-    --button-secondary-hover: #1a1a1a;
-    --button-secondary-border: #1a1a1a;
-  }
+.avatarImage {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--color-gold);
+}
+
+.avatarFallback {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-gold);
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  fontSize: 0.8rem;
+}
+
+.activityText {
+  font-size: 1.05rem;
+  font-weight: bold;
+}
+
+.activitySubtext {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 2rem;
+  color: #444;
+  font-size: 0.9rem;
+  border: 1px dashed #333;
+  borderRadius: 12px;
+}
+
+.rankingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+}
+
+.rankingName {
+  font-size: 1.05rem;
+}
+
+.rankingPos {
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.rankingWins {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.collectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 2.5rem;
+}
+
+.collectionTitle {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 0.25rem;
+  letter-spacing: -1px;
+}
+
+.collectionSubtitle {
+  color: #666;
+  font-size: 1rem;
+}
+
+.collectionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 2rem;
+}
+
+.actionCard {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, var(--bg-card) 0%, #1a1a1a 100%);
+  border: 1px solid var(--color-gold);
+}
+
+.actionButton {
+  width: 100%;
+  gap: 0.5rem;
+  font-size: 1rem;
+  padding: 1.25rem;
+}
+
+.secondaryButton {
+  width: 100%;
+  background: #222;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  border: 1px solid #333;
+}
+
+.finalCta {
+  padding: 5rem 2rem;
+  background: linear-gradient(135deg, #1e1e1e 0%, #080808 100%);
+  border-radius: 32px;
+  textAlign: center;
+  border: 1px solid rgba(212, 175, 55, 0.1);
+  position: relative;
+  overflow: hidden;
+  margin-top: 3rem;
+}
+
+.finalCtaGlow {
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 60%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.finalCtaTitle {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 1rem;
+  letter-spacing: -2px;
+}
+
+.finalCtaDesc {
+  color: #888;
+  margin-bottom: 3rem;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  font-size: 1.1rem;
+}
+
+.finalCtaActions {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
 }
