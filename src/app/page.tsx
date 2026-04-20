@@ -6,6 +6,7 @@ import DeckCard from "@/components/DeckCard";
 import { calculateDeckBudget } from '@/lib/budgetUtils';
 import { MONTHLY_ALLOWANCE } from '@/lib/constants';
 
+import RealtimeActivityFeed from "@/components/RealtimeActivityFeed";
 import styles from "./page.module.css";
 
 // Force revalidation on every request to show fresh budget data
@@ -78,6 +79,9 @@ export default async function Home() {
     monthlySpendMap.set(u.deck_id, (monthlySpendMap.get(u.deck_id) || 0) + (u.cost || 0));
   });
 
+  // Since this is a Server Component, real-time must be handled by a client-side wrapper.
+  // I will create a Client component for the activity feed to enable real-time.
+
   return (
     <div className="container">
       {/* HERO SECTION */}
@@ -136,38 +140,7 @@ export default async function Home() {
                 <h3 className={styles.cardTitle}>¿QUIÉN HA GANADO?</h3>
                 <Link href="/matches" className={styles.viewAllLink}>VER TODO</Link>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                {activityFeed.length > 0 ? (
-                  activityFeed.map((match: any) => (
-                    <div key={match.id} className={styles.activityItem}>
-                      <div className={styles.activityContent}>
-                        {match.profiles?.avatar_url ? (
-                          <Image 
-                            src={match.profiles.avatar_url} 
-                            width={32} 
-                            height={32} 
-                            className={styles.avatarImage}
-                            alt={match.profiles.username} 
-                            unoptimized
-                          />
-                        ) : (
-                          <div className={styles.avatarFallback}>
-                            {match.profiles?.username?.[0]?.toUpperCase() || "W"}
-                          </div>
-                        )}
-                        <div>
-                          <div className={styles.activityText}>{match.profiles?.username} ganó</div>
-                          <div className={styles.activitySubtext}>{match.description || "Partida de liga"}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className={styles.emptyState}>
-                    No hay partidas recientes... aún.
-                  </div>
-                )}
-              </div>
+              <RealtimeActivityFeed initialMatches={activityFeed} />
             </div>
 
             {/* RANKING MINI */}

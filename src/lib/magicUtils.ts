@@ -25,24 +25,86 @@ export const calculateCMC = (mana_cost: string | null): number => {
 /**
  * Heuristically determines the function of a card based on its text and type.
  */
-export const getCardFunction = (card: DeckCard): 'Ramp' | 'Draw' | 'Removal' | 'Board Wipe' | 'Other' => {
+export const getCardFunction = (card: DeckCard): 'Ramp' | 'Draw' | 'Removal' | 'Board Wipe' | 'Tutor' | 'Counterspell' | 'Protection' | 'Other' => {
   const text = (card.oracle_text || '').toLowerCase();
   const type = (card.type_line || '').toLowerCase();
 
+  // 1. RAMP
   if (text.includes('search your library for a land') || text.includes('add {') || text.includes('put a land card from your hand onto the battlefield')) {
     if (!type.includes('land')) return 'Ramp';
   }
+  
+  // 2. BOARD WIPES (Detect before targeted removal)
+  if (text.includes('destroy all') || text.includes('exile all') || text.includes('each player sacrifices') || (text.includes('each creature') && (text.includes('destroy') || text.includes('exile') || text.includes('damage')))) {
+     return 'Board Wipe';
+  }
+
+  // 3. REMOVAL
+  if (text.includes('destroy target') || text.includes('exile target') || text.includes('deals damage to target creature') || text.includes('-1/-1 until end of turn') || text.includes('return target creature to its owner\'s hand')) {
+    return 'Removal';
+  }
+
+  // 4. DRAW / FILTER
   if (text.includes('draw a card') || text.includes('draw two cards') || text.includes('draw three cards') || (text.includes('reveal the top') && text.includes('put it into your hand'))) {
     return 'Draw';
   }
-  if (text.includes('destroy target') || text.includes('exile target') || text.includes('deals damage to target creature') || text.includes('-1/-1 until end of turn')) {
-    return 'Removal';
+
+  // 5. TUTOR
+  if (text.includes('search your library for a card') || text.includes('search your library for a ') || text.includes('look at the top') && text.includes('reveal a card from among them')) {
+    if (!text.includes('basic land')) return 'Tutor';
   }
-  if (text.includes('destroy all') || text.includes('exile all') || text.includes('each player sacrifices') || text.includes('each creature')) {
-     return 'Board Wipe';
+
+  // 6. COUNTERSPELLS
+  if (text.includes('counter target spell') || text.includes('counter target activated ability')) {
+    return 'Counterspell';
   }
+
+  // 7. PROTECTION
+  if (text.includes('hexproof') || text.includes('indestructible') || text.includes('protection from') || text.includes('phased out')) {
+    return 'Protection';
+  }
+
   return 'Other';
 };
+
+/**
+ * Detects the overall archetype of a deck based on keyword density.
+ */
+export function getDeckArchetype(cards: DeckCard[]): string {
+  const text = cards.map(c => (c.oracle_text || '').toLowerCase()).join(' ');
+  const types = cards.map(c => (c.type_line || '').toLowerCase()).join(' ');
+  
+  const scores = {
+    'Tokens': (text.match(/create .* token/g) || []).length,
+    'Artifacts': (types.match(/artifact/g) || []).length,
+    'Enchantments': (types.match(/enchantment/g) || []).length,
+    'Lands': (text.match(/land/g) || []).length + (types.match(/land/g) || []).length,
+    'Aristocrats': (text.match(/sacrifice/g) || []).length + (text.match(/whenever a .* dies/g) || []).length,
+    'Spellslinger': (text.match(/instant/g) || []).length + (text.match(/sorcery/g) || []).length,
+    'Tribal': 0
+  };
+
+  // Basic tribal detection
+  const commonTypes = ['elf', 'goblin', 'zombie', 'dragon', 'vampire', 'human', 'wizard', 'merfolk'];
+  let maxTribalCount = 0;
+  let detectedTribe = '';
+  commonTypes.forEach(tribe => {
+    const count = (types.match(new RegExp(tribe, 'g')) || []).length;
+    if (count > 15) { // Threshold for tribal
+      if (count > maxTribalCount) {
+        maxTribalCount = count;
+        detectedTribe = tribe.charAt(0).toUpperCase() + tribe.slice(1);
+      }
+    }
+  });
+
+  if (detectedTribe) return `Tribal (${detectedTribe})`;
+
+  const top = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
+  if (top[1] > 10) return top[0];
+  
+  return 'Midrange / Goodstuff';
+}
 
 /**
  * High Power / cEDH specific cards and combinations.

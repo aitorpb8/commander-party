@@ -1,0 +1,60 @@
+.pageContainer {
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  padding-bottom: 4rem;
+}
+
+.topGrid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .topGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.visualEditorSection {
+  width: 100%;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+  gap: 2rem;
+}
+
+.fullWidthRow {
+  width: 100%;
+}
+
+.emptyDeckContainer {
+  max-width: 800px;
+  margin: 4rem auto;
+  text-align: center;
+}
+
+.emptyDeckTitle {
+  color: var(--color-gold);
+  margin-bottom: 1rem;
+}
+
+.emptyDeckCard {
+  padding: 3rem;
+  border: 1px solid #333;
+}
+
+.emptyDeckIcon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.syncHelperBox {
+  background: #111;
+  padding: 2rem;
+  border-radius: 12px;
+}
