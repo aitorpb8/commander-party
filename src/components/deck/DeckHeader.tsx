@@ -1,3 +1,5 @@
+import React, { useMemo } from 'react';
+import Image from 'next/image';
 import { getDeckArchetype } from '@/lib/magicUtils';
 import { DeckCard } from '@/types';
 import styles from './DeckHeader.module.css';
@@ -28,7 +30,7 @@ export default function DeckHeader({
   effectiveMonthlyLimit,
   cards,
 }: DeckHeaderProps) {
-  const archetype = React.useMemo(() => getDeckArchetype(cards), [cards]);
+  const archetype = useMemo(() => getDeckArchetype(cards), [cards]);
   const remaining = effectiveMonthlyLimit - currentMonthSpent;
   let statusColor = 'var(--color-green)';
   if (currentMonthSpent > effectiveMonthlyLimit + 1) statusColor = 'var(--color-red)';

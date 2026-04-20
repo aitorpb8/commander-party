@@ -10,8 +10,8 @@
     "sync-precons": "npx ts-node scripts/sync-precon-decklists.ts"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/ssr": "0.10.2",
+    "@supabase/supabase-js": "2.103.3",
     "chart.js": "^4.5.1",
     "next": "16.1.1",
     "react": "19.2.3",
