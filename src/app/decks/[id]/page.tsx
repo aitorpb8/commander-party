@@ -8,13 +8,13 @@ import styles from './DeckDetail.module.css';
 import DeckHeader from '@/components/deck/DeckHeader';
 import DeckActionButtons from '@/components/deck/DeckActionButtons';
 
-import { Deck, DeckCard, DeckUpgrade } from '@/types';
+import { Deck, DeckCard, DeckUpgrade, ScryfallCard } from '@/types';
 import UpgradeLog from '@/components/UpgradeLog';
 import BudgetChart from '@/components/BudgetChart';
 import ManaAnalysis from '@/components/ManaAnalysis';
 import Wishlist from '@/components/Wishlist';
 import MonthlyBreakdown from '@/components/MonthlyBreakdown';
-import { searchCards, getCollection } from '@/lib/scryfall';
+import { searchCards, getCollection, getCardByName } from '@/lib/scryfall';
 import CommanderPicker from '@/components/CommanderPicker';
 import DeckVisualizer from '@/components/DeckVisualizer';
 import TagStats from '@/components/TagStats';
@@ -25,249 +25,180 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 export default function DeckDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [deck, setDeck] = useState<Deck | null>(null);
-  const [upgrades, setUpgrades] = useState<DeckUpgrade[]>([]);
-  const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
-  const [userCollection, setUserCollection] = useState<Set<string>>(new Set());
+  
+  const [deck, setDeck] = useState<Deck | null>(null);
+  const [deckCards, setDeckCards] = useState<DeckCard[]>([]);
+  const [upgrades, setUpgrades] = useState<DeckUpgrade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [messageDialog, setMessageDialog] = useState<{ title: string, message: string, isError: boolean } | null>(null);
   const [showPicker, setShowPicker] = useState(false);
-
-  const [preconCardNames, setPreconCardNames] = useState<Set<string>>(new Set());
-
-  const [cardTags, setCardTags] = useState<Record<string, string[]>>({});
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
-
   const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
   const [loadingTrending, setLoadingTrending] = useState(false);
-
-  const [messageDialog, setMessageDialog] = useState<{ title: string, message: string, isError?: boolean } | null>(null);
+  const [cardTags, setCardTags] = useState<Record<string, string[]>>({});
+  const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [activeCmcFilter, setActiveCmcFilter] = useState<number | null>(null);
-
-  const activeIdRef = React.useRef(id);
-
-  useEffect(() => {
-    activeIdRef.current = id;
-    
-    setDeck(null);
-    setUpgrades([]);
-    setDeckCards([]);
-    setLoading(true);
-    setError(null);
-    setPreconCardNames(new Set());
-    setTrendingPrices({});
-  }, [id]);
+  const [userCollection, setUserCollection] = useState<any[]>([]);
 
   const supabase = createClient();
 
-  const fetchData = async (retries = 5, silent = false) => {
-    if (activeIdRef.current !== id) return;
-    
+  const fetchData = async (retries = 3, silent = false) => {
     if (!silent) setLoading(true);
+    try {
+      const { data: deckData, error: deckError } = await supabase.from('decks').select('*, profiles(username)').eq('id', id).single();
+      if (deckError) throw deckError;
 
-    const { data: deckData, error: dbError } = await supabase
-      .from('decks')
-      .select('*, profiles:user_id(username)')
-      .eq('id', id)
-      .maybeSingle(); 
-    
-    if (activeIdRef.current !== id) return;
+      const { data: upgrades, error: upError } = await supabase.from('deck_upgrades').select('*').eq('deck_id', id).order('month', { ascending: false }).order('created_at', { ascending: false });
+      if (upError) throw upError;
 
-    if (dbError) {
-      console.error("Supabase fetch error:", dbError);
-      setError(dbError.message);
-      setLoading(false);
-      return;
-    }
-    
-    if (!deckData && retries > 0) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      if (activeIdRef.current !== id) return;
-      return fetchData(retries - 1, silent);
-    }
+      const { data: cards, error: cardsError } = await supabase.from('deck_cards').select('*').eq('deck_id', id).order('card_name', { ascending: true });
+      if (cardsError) throw cardsError;
 
-    if (!deckData) {
-      setLoading(false);
-      return;
-    }
+      const preconCards = new Set((deckData.precon_cards || []).map((n: string) => n.toLowerCase().trim()));
 
-    const { data: upgradeData } = await supabase
-      .from('deck_upgrades')
-      .select('*')
-      .eq('deck_id', id)
-      .order('created_at', { ascending: false });
+      const totalSpentDB = (upgrades || []).reduce((sum, u) => {
+        const nameIn = (u.card_in || '').toLowerCase().trim();
+        if (nameIn && preconCards.has(nameIn)) return sum;
+        return sum + Number(u.cost || 0);
+      }, 0);
 
-    if (activeIdRef.current !== id) return;
-
-    const { data: cardsData } = await supabase
-      .from('deck_cards')
-      .select('*')
-      .eq('deck_id', id);
-
-    if (activeIdRef.current !== id) return;
-
-    setDeckCards(cardsData || []);
-    setDeck(deckData as Deck);
-    setUpgrades((upgradeData || []) as DeckUpgrade[]);
-
-    if (user) {
-      const { data: colData } = await supabase
-        .from('user_collection')
-        .select('card_name')
-        .eq('user_id', user.id);
-      
-      if (activeIdRef.current !== id) return;
-
-      if (colData) {
-        setUserCollection(new Set(colData.map(c => c.card_name.toLowerCase())));
+      if (Math.abs(totalSpentDB - (deckData.budget_spent || 0)) > 0.01) {
+        await supabase.from('decks').update({ budget_spent: totalSpentDB }).eq('id', id);
+        deckData.budget_spent = totalSpentDB;
       }
+
+      setDeck(deckData);
+      setUpgrades(upgrades || []);
+      setDeckCards(cards || []);
+      fetchTags();
+      fetchCollection();
+    } catch (err: any) {
+      if (retries > 0) setTimeout(() => fetchData(retries - 1, silent), 1000);
+      else setMessageDialog({ title: 'Error', message: `No se pudieron cargar los datos: ${err.message}`, isError: true });
+    } finally {
+      if (!silent) setLoading(false);
     }
-
-    if (deckData?.precon_cards && deckData.precon_cards.length > 0) {
-      setPreconCardNames(new Set(deckData.precon_cards.map((n: string) => n.toLowerCase())));
-    } 
-
-    if (!silent) setLoading(false);
-    setError(null);
   };
 
   const fetchTags = async () => {
-    if (activeIdRef.current !== id) return;
-
-    const { data, error } = await supabase
-      .from('deck_card_tags')
-      .select('card_name, tags')
-      .eq('deck_id', id);
-    
-    if (activeIdRef.current !== id) return;
-    
-    if (error) return;
-
+    const { data } = await supabase.from('card_tags').select('*').eq('deck_id', id);
     const tagsMap: Record<string, string[]> = {};
-    data?.forEach(row => {
-      tagsMap[row.card_name] = row.tags || [];
+    data?.forEach(t => {
+      if (!tagsMap[t.card_name]) tagsMap[t.card_name] = [];
+      tagsMap[t.card_name].push(t.tag);
     });
     setCardTags(tagsMap);
   };
 
+  const fetchCollection = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('user_collection').select('*').eq('user_id', user.id);
+    setUserCollection(data || []);
+  };
+
   useEffect(() => {
-    fetchData();
-    fetchTags();
-  }, [id]);
+    if (id) fetchData();
+  }, [id, user]);
 
   const handleUpdateDeck = async (change: any) => {
     try {
       const month = new Date().toISOString().slice(0, 7);
-      const { error: upgradeError } = await supabase
-        .from('deck_upgrades')
-        .insert({
+      const cardNameIn = typeof change.card_in === 'string' ? change.card_in : (change.card_in?.name || '');
+      const cardNameOut = typeof change.card_out === 'string' ? change.card_out : (change.card_out?.name || '');
+      
+      const preconCards = new Set((deck?.precon_cards || []).map(n => n.toLowerCase().trim()));
+      const isPrecon = cardNameIn && preconCards.has(cardNameIn.toLowerCase().trim());
+      const upgradeCost = isPrecon ? 0 : (change.cost || 0);
+
+      // 1. Insert into history
+      const { error: upgradeError } = await supabase.from('deck_upgrades').insert({
           deck_id: id,
-          card_in: typeof change.card_in === 'string' ? change.card_in : (change.card_in?.card_name || change.card_in?.name || null),
-          card_out: change.card_out || null,
-          cost: change.cost || 0,
-          description: change.description || '',
+          card_in: cardNameIn || null,
+          card_out: cardNameOut || null,
+          cost: upgradeCost,
           month,
-          scryfall_id: typeof change.card_in === 'object' ? (change.card_in?.scryfall_id || change.card_in?.id) : null
-        });
-      
+          description: change.description || null,
+          scryfall_id: typeof change.card_in === 'string' ? null : (change.card_in?.id || null)
+      });
       if (upgradeError) throw upgradeError;
-      
-      if (change.cost !== 0) {
-         await supabase.from('decks').update({ budget_spent: (deck?.budget_spent || 0) + (change.cost || 0) }).eq('id', id);
+
+      // 2. Update deck_cards table (The visual state)
+      if (cardNameOut) {
+        await supabase.from('deck_cards').delete().eq('deck_id', id).eq('card_name', cardNameOut);
       }
 
-      await fetchData(5, false);
+      if (change.card_in && typeof change.card_in !== 'string') {
+        const sc: ScryfallCard = change.card_in;
+        const imageUrl = sc.image_uris?.normal || sc.card_faces?.[0]?.image_uris?.normal || '';
+        const backImageUrl = sc.card_faces?.[1]?.image_uris?.normal || null;
+        const oracleText = sc.oracle_text || sc.card_faces?.map(f => `${f.name}: ${f.oracle_text}`).join('\n\n') || null;
+
+        await supabase.from('deck_cards').insert({
+          deck_id: id,
+          card_name: sc.name,
+          quantity: 1,
+          is_commander: false,
+          type_line: sc.type_line,
+          mana_cost: sc.mana_cost || sc.card_faces?.[0]?.mana_cost || null,
+          image_url: imageUrl,
+          back_image_url: backImageUrl,
+          oracle_text: oracleText,
+          scryfall_id: sc.id
+        });
+      }
+
+      await fetchData(5, true);
     } catch (err: any) {
-      setMessageDialog({ title: 'Error al actualizar', message: `No se pudo actualizar el mazo: ${err.message}`, isError: true });
-    } finally {
-      setLoading(false);
+      setMessageDialog({ title: 'Error', message: err.message, isError: true });
     }
   };
 
-  const handleAddUpgrade = (newUpgrade: any) => handleUpdateDeck(newUpgrade);
-
   const handleDeleteUpgrade = async (upgradeId: string) => {
     try {
-      const { data: upgrade, error: fetchError } = await supabase
-        .from('deck_upgrades')
-        .select('*')
-        .eq('id', upgradeId)
-        .single();
-      
-      if (fetchError) throw fetchError;
+      const { data: upgrade } = await supabase.from('deck_upgrades').select('*').eq('id', upgradeId).single();
+      if (!upgrade) return;
 
-      if (upgrade.cost && upgrade.cost !== 0) {
-        await supabase.from('decks').update({ budget_spent: (deck?.budget_spent || 0) - upgrade.cost }).eq('id', id);
+      // Reverse in deck_cards
+      if (upgrade.card_in) {
+        await supabase.from('deck_cards').delete().eq('deck_id', id).eq('card_name', upgrade.card_in);
+      }
+      
+      if (upgrade.card_out) {
+        // We need to restore the card. We fetch its data from Scryfall to be accurate.
+        const sc = await getCardByName(upgrade.card_out);
+        if (sc) {
+          const imageUrl = sc.image_uris?.normal || sc.card_faces?.[0]?.image_uris?.normal || '';
+          const backImageUrl = sc.card_faces?.[1]?.image_uris?.normal || null;
+          
+          await supabase.from('deck_cards').insert({
+            deck_id: id,
+            card_name: sc.name,
+            quantity: 1,
+            is_commander: false,
+            type_line: sc.type_line,
+            mana_cost: sc.mana_cost || sc.card_faces?.[0]?.mana_cost || null,
+            image_url: imageUrl,
+            back_image_url: backImageUrl,
+            oracle_text: sc.oracle_text || null,
+            scryfall_id: sc.id
+          });
+        }
       }
 
       await supabase.from('deck_upgrades').delete().eq('id', upgradeId);
       await fetchData(5, true);
     } catch (err: any) {
-      setMessageDialog({ title: 'Error al deshacer', message: `No se pudo deshacer la mejora: ${err.message}`, isError: true });
-    } finally {
-      setLoading(false);
+      setMessageDialog({ title: 'Error', message: err.message, isError: true });
     }
   };
 
   const handleUpdateUpgrade = async (upgradeId: string, updates: any) => {
     try {
-      const { data: current } = await supabase.from('deck_upgrades').select('*').eq('id', upgradeId).single();
       await supabase.from('deck_upgrades').update(updates).eq('id', upgradeId);
-
-      if (updates.cost !== undefined && updates.cost !== current.cost) {
-        const diff = updates.cost - current.cost;
-        await supabase.from('decks').update({ budget_spent: (deck?.budget_spent || 0) + diff }).eq('id', id);
-      }
-
       await fetchData(5, true);
     } catch (err: any) {
-      setMessageDialog({ title: 'Error al actualizar', message: `No se pudo actualizar la mejora: ${err.message}`, isError: true });
-    }
-  };
-
-  const handleUpdateImage = async (imageUrl: string) => {
-    const { error } = await supabase.from('decks').update({ image_url: imageUrl }).eq('id', id);
-    if (!error) {
-      setDeck({ ...deck, image_url: imageUrl } as Deck);
-      setShowPicker(false);
-    }
-  };
-
-  const handleSyncCards = async () => {
-    if (!deck || !deck.archidekt_id) return;
-    setLoading(true);
-    try {
-      const res = await fetch('/api/import/archidekt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: `https://www.archidekt.com/decks/${deck.archidekt_id}` })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      await supabase.from('deck_cards').delete().eq('deck_id', id);
-      await supabase.from('deck_cards').insert(data.cards.map((c: any) => ({ ...c, deck_id: id })));
-      
-      setMessageDialog({ title: '¡Éxito!', message: 'Mazo sincronizado.', isError: false });
-      await fetchData(5, false);
-    } catch (err: any) {
       setMessageDialog({ title: 'Error', message: err.message, isError: true });
-    } finally {
-      setLoading(false);
     }
-  };
-
-  const exportToText = () => {
-    const list = deckCards.map(c => `${c.quantity} ${c.card_name}`).join('\n');
-    navigator.clipboard.writeText(list);
-    setMessageDialog({ title: '¡Exportado!', message: 'Mazo copiado al portapapeles.', isError: false });
-  };
-
-  const copyToClipboard = () => {
-    const list = upgrades.map(u => `1 ${u.card_in}`).join('\n');
-    navigator.clipboard.writeText(list);
-    setMessageDialog({ title: '¡Copiado!', message: 'Lista de mejoras copiada.', isError: false });
   };
 
   useEffect(() => {
@@ -292,115 +223,78 @@ export default function DeckDetailPage() {
     if (upgrades.length > 0) fetchTrending();
   }, [upgrades]);
 
-  const budgetInfo = React.useMemo(() => {
-    return calculateDeckBudget(deck?.created_at || new Date(), deck?.budget_spent || 0);
-  }, [deck]);
-
-  if (loading) return (
-    <div className={styles.pageContainer} style={{ opacity: 0.6 }}>
-      <div className={styles.topGrid}>
-        <div className="skeleton-pulse" style={{ height: '450px', borderRadius: '12px' }} />
-        <div className="skeleton-pulse" style={{ height: '450px', borderRadius: '12px' }} />
-      </div>
-      <div className="skeleton-pulse" style={{ height: '600px', borderRadius: '12px' }} />
-    </div>
-  );
-  
-  if (!deck) return (
-    <div style={{ textAlign: 'center', marginTop: '5rem' }}>
-      <h2 style={{ color: 'var(--color-red)' }}>Mazo no encontrado</h2>
-      <button onClick={() => fetchData(5)} className="btn btn-gold">Reintentar</button>
-    </div>
-  );
-
-  const isOwner = user?.id === deck.user_id;
-  const currentDeckListNames = deckCards.map(c => c.card_name);
-
-  if (deckCards.length === 0 && !loading) {
-    return (
-      <div className={styles.emptyDeckContainer}>
-        <h1 className={styles.emptyDeckTitle}>{deck.name}</h1>
-        <div className={`card ${styles.emptyDeckCard}`}>
-          <div className={styles.emptyDeckIcon}>📭</div>
-          <h2>Mazo sin cartas</h2>
-          {isOwner && deck.archidekt_id ? (
-            <div className={styles.syncHelperBox}>
-              <button onClick={handleSyncCards} className="btn btn-gold">🔄 Sincronizar</button>
-            </div>
-          ) : (
-             <p>Carga cartas para empezar.</p>
-          )}
-        </div>
-      </div>
-    );
-  }
-
   const currentMonth = new Date().toISOString().slice(0, 7);
-  const currentMonthSpent = upgrades.reduce((sum, u) => {
-       if (u.month !== currentMonth) return sum;
-       if (u.card_in && preconCardNames.has(u.card_in.toLowerCase())) return sum;
-       return sum + (u.cost || 0);
+  const preconNames = new Set((deck?.precon_cards || []).map(n => n.toLowerCase().trim()));
+  
+  const totalSpentCalc = upgrades.reduce((sum, u) => {
+    const nameIn = (u.card_in || '').toLowerCase().trim();
+    if (nameIn && preconNames.has(nameIn)) return sum;
+    const isCurrentMonth = u.month === currentMonth;
+    const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : (nameIn ? trendingPrices[nameIn] : null);
+    const actualCost = (isCurrentMonth && typeof trending === 'number') ? trending : Number(u.cost || 0);
+    return sum + actualCost;
   }, 0);
-  const spentPrevious = budgetInfo.totalSpent - currentMonthSpent;
+
+  const currentMonthSpent = upgrades
+    .filter(u => u.month === currentMonth)
+    .reduce((sum, u) => {
+      const nameIn = (u.card_in || '').toLowerCase().trim();
+      if (nameIn && preconNames.has(nameIn)) return sum;
+      const trending = u.scryfall_id ? trendingPrices[u.scryfall_id] : (nameIn ? trendingPrices[nameIn] : null);
+      return sum + (typeof trending === 'number' ? trending : Number(u.cost || 0));
+    }, 0);
+
+  const budgetInfo = calculateDeckBudget(deck?.created_at || new Date(), totalSpentCalc);
+  const spentPrevious = totalSpentCalc - currentMonthSpent;
   const effectiveMonthlyLimit = Math.max(0, budgetInfo.dynamicLimit - spentPrevious);
+
+  if (loading) return <div className="spinner-gold" style={{ margin: '10rem auto' }} />;
 
   return (
     <div className={styles.pageContainer}>
-      
-      <div className={styles.topGrid}>
-        <aside>
-          <DeckHeader 
-            name={deck.name}
-            commander={deck.commander}
-            imageUrl={deck.image_url || ''}
-            isOwner={isOwner}
-            onShowPicker={() => setShowPicker(true)}
-            budgetInfo={budgetInfo}
-            currentMonthSpent={currentMonthSpent}
-            effectiveMonthlyLimit={effectiveMonthlyLimit}
-            cards={deckCards}
-          />
-          <DeckActionButtons 
-            isOwner={isOwner}
-            hasArchidektId={!!deck.archidekt_id}
-            onCopyMejoras={copyToClipboard}
-            onExportMazo={exportToText}
-            onSyncArchidekt={handleSyncCards}
-          />
-        </aside>
+      <DeckHeader 
+        name={deck?.name || ''} 
+        commander={deck?.commander || ''} 
+        imageUrl={deck?.image_url || ''} 
+        isOwner={user?.id === deck?.user_id}
+        onShowPicker={() => setShowPicker(true)}
+        currentMonthSpent={currentMonthSpent}
+        effectiveMonthlyLimit={effectiveMonthlyLimit}
+        budgetInfo={{ ...budgetInfo, totalSpent: totalSpentCalc }}
+        cards={deckCards}
+      />
 
+      <div className={styles.topGrid}>
         <div style={{ height: '100%' }}>
           <UpgradeLog 
             upgrades={upgrades} 
-            onAddUpgrade={handleAddUpgrade}
+            onAddUpgrade={(u) => handleUpdateDeck(u)}
             onDeleteUpgrade={handleDeleteUpgrade}
             onUpdateUpgrade={handleUpdateUpgrade}
-            isOwner={isOwner}
-            preconCardNames={preconCardNames}
+            isOwner={user?.id === deck?.user_id}
+            preconCardNames={preconNames}
             trendingPrices={trendingPrices}
-            currentDeckList={currentDeckListNames}
+            currentDeckList={deckCards.map(c => c.card_name)}
           />
         </div>
-      </div>
-
-      <div className={styles.visualEditorSection}>
-        <DeckVisualizer 
-          cards={deckCards} 
-          isOwner={isOwner} 
-          onUpdateDeck={handleUpdateDeck} 
-          preconCardNames={preconCardNames}
-          deckId={id as string}
-          cardTags={cardTags}
-          onTagsUpdate={fetchTags}
-          userCollection={userCollection}
-          externalCmcFilter={activeCmcFilter}
-        />
+        <div className={styles.visualEditorSection}>
+          <DeckVisualizer 
+            cards={deckCards} 
+            isOwner={user?.id === deck?.user_id} 
+            onUpdateDeck={handleUpdateDeck} 
+            preconCardNames={preconNames}
+            deckId={id as string}
+            cardTags={cardTags}
+            onTagsUpdate={fetchTags}
+            userCollection={new Set(userCollection.map(c => c.card_name.toLowerCase()))}
+          />
+        </div>
       </div>
 
       <DeckAlerts 
           cards={deckCards}
           cardTags={cardTags}
-          totalSpent={budgetInfo.totalSpent}
+          totalSpent={totalSpentCalc}
           budgetLimit={budgetInfo.dynamicLimit}
       />
 
@@ -412,47 +306,42 @@ export default function DeckDetailPage() {
             cardTags={Object.entries(cardTags).map(([card_name, tags]) => ({ card_name, tags }))}
             onFilterByTag={setTagFilter}
             activeFilter={tagFilter}
-         />
+          />
          <div className="card" style={{ display: 'flex', flexDirection: 'column', minHeight: '400px' }}>
             <h3 style={{ marginBottom: '1.5rem', color: 'var(--color-gold)' }}>Evolución del Presupuesto</h3>
             <div style={{ flex: 1, minHeight: '300px', position: 'relative' }}>
-               <BudgetChart upgrades={upgrades} creationDate={deck.created_at} />
+               <BudgetChart upgrades={upgrades} creationDate={deck?.created_at || ''} />
             </div>
          </div>
       </div>
 
-      <div className={styles.fullWidthRow}>
-         <MonthlyBreakdown upgrades={upgrades} trendingPrices={trendingPrices} preconCardNames={preconCardNames} />
-      </div>
-
-      <div className={styles.fullWidthRow}>
-            <Wishlist 
-              deckId={id as string} 
-              isOwner={isOwner} 
-              onUpdateDeck={handleUpdateDeck}
-              trendingPrices={trendingPrices}
-              deckCards={deckCards}
-            />
+      <div className={styles.statsGrid}>
+         <Wishlist deckId={id as string} isOwner={user?.id === deck?.user_id} />
+         <MonthlyBreakdown upgrades={upgrades} preconCardNames={preconNames} />
       </div>
 
       {showPicker && (
         <CommanderPicker 
-          commanderName={deck.commander} 
-          onSelect={handleUpdateImage} 
-          onClose={() => setShowPicker(false)} 
+          onSelect={async (url) => {
+            await supabase.from('decks').update({ image_url: url }).eq('id', id);
+            setShowPicker(false);
+            fetchData(1, true);
+          }}
+          onClose={() => setShowPicker(false)}
+          commanderName={deck?.commander || ''}
         />
       )}
 
-      <ConfirmationDialog
-        isOpen={messageDialog !== null}
-        title={messageDialog?.title || ''}
-        message={messageDialog?.message || ''}
-        confirmText="Entendido"
-        cancelText=""
-        isDestructive={false}
-        onConfirm={() => setMessageDialog(null)}
-        onCancel={() => setMessageDialog(null)}
-      />
+      {messageDialog && (
+        <ConfirmationDialog 
+          isOpen={true}
+          title={messageDialog.title}
+          message={messageDialog.message}
+          onConfirm={() => setMessageDialog(null)}
+          onCancel={() => setMessageDialog(null)}
+          confirmText="Entendido"
+        />
+      )}
     </div>
   );
 }

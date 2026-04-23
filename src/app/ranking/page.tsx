@@ -114,7 +114,8 @@ function RankingContent() {
               display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               padding: '2rem', zIndex: 2, background: 'rgba(212,175,55,0.05)',
               animation: 'slideIn 0.5s ease-out both',
-              boxShadow: '0 0 40px rgba(212,175,55,0.15)'
+              boxShadow: '0 0 50px rgba(212,175,55,0.2), inset 0 0 20px rgba(212,175,55,0.05)',
+              borderBottom: 'none'
             }}>
               <div style={{ position: 'relative', marginBottom: '1.5rem' }}>
                 {leaderboard[0].avatar_url ? (
@@ -328,19 +329,20 @@ function RankingContent() {
                 </td>
                 <td style={{ padding: '1.25rem 1.5rem', fontWeight: 'bold', color: '#aaa' }}>{player.wins}</td>
                 <td style={{ padding: '1.25rem 1.5rem', color: '#666' }}>{player.matchesPlayed}</td>
-                <td style={{ padding: '1.25rem 2.5rem', textAlign: 'right' }}>
-                   <span style={{ 
-                     background: index === 0 ? 'var(--color-gold)' : 'rgba(255,255,255,0.05)', 
-                     color: index === 0 ? '#000' : 'var(--color-gold)', 
-                     padding: '6px 16px', 
-                     borderRadius: '10px', 
-                     fontWeight: '900',
-                     fontSize: '1rem',
-                     boxShadow: index === 0 ? '0 0 15px rgba(212,175,55,0.3)' : 'none'
-                   }}>
-                    {player.points} <small style={{ fontSize: '0.65rem' }}>PTS</small>
-                   </span>
-                </td>
+                 <td style={{ padding: '1.25rem 2.5rem', textAlign: 'right' }}>
+                    <span style={{ 
+                      background: index === 0 ? 'linear-gradient(135deg, var(--color-gold), #b8860b)' : 'rgba(255,255,255,0.03)', 
+                      color: index === 0 ? '#000' : 'var(--color-gold)', 
+                      padding: '8px 20px', 
+                      borderRadius: '12px', 
+                      fontWeight: '900',
+                      fontSize: '1rem',
+                      boxShadow: index === 0 ? '0 5px 15px rgba(212,175,55,0.4)' : 'none',
+                      border: index === 0 ? 'none' : '1px solid rgba(212,175,55,0.2)'
+                    }}>
+                     {player.points} <small style={{ fontSize: '0.65rem', fontWeight: 'bold' }}>PTS</small>
+                    </span>
+                 </td>
               </tr>
             ))}
           </tbody>

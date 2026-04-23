@@ -99,7 +99,7 @@ export function calculateAchievements(data: {
   }
 
   // 4. High Roller
-  if (userUpgrades.some(u => parseFloat(u.cost) >= HIGH_ROLLER_THRESHOLD)) {
+  if (userUpgrades.some(u => Number(u.cost || 0) >= HIGH_ROLLER_THRESHOLD)) {
     earned.push(BADGES.high_roller);
   }
 
@@ -112,7 +112,10 @@ export function calculateAchievements(data: {
   // Group upgrades by month for all decks
   const monthlyTotals: { [key: string]: number } = {};
   userUpgrades.forEach(u => {
-    monthlyTotals[u.month] = (monthlyTotals[u.month] || 0) + parseFloat(u.cost);
+    const cost = Number(u.cost || 0);
+    if (!isNaN(cost)) {
+      monthlyTotals[u.month] = (monthlyTotals[u.month] || 0) + cost;
+    }
   });
   if (Object.values(monthlyTotals).some(total => total === MONTHLY_ALLOWANCE)) {
     earned.push(BADGES.budget_master);

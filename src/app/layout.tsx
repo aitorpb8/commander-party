@@ -1,10 +1,15 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel, EB_Garamond } from "next/font/google";
+import { Cinzel, EB_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
 import OnboardingModal from "@/components/OnboardingModal";
 import { Toaster } from 'react-hot-toast';
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: '--font-inter',
+});
 
 const cinzel = Cinzel({ 
   subsets: ["latin"],
@@ -67,10 +72,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${cinzel.variable} ${ebGaramond.variable}`} suppressHydrationWarning>
+    <html lang="es" className={`${cinzel.variable} ${ebGaramond.variable} ${inter.variable}`} suppressHydrationWarning>
       <body>
         <AuthProvider>
           <Navbar />
+          <OnboardingModal />
           <main className="container">
             {children}
           </main>

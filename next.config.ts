@@ -9,8 +9,15 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'api.scryfall.com',
+        port: '',
+        pathname: '/**',
+      }
     ],
   },
+  outputFileTracingRoot: process.cwd(),
 };
 
 export default nextConfig;
