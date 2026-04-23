@@ -45,7 +45,7 @@ export default function DeckDetailPage() {
   const fetchData = async (retries = 3, silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const { data: deckData, error: deckError } = await supabase.from('decks').select('*, profiles(username)').eq('id', id).single();
+      const { data: deckData, error: deckError } = await supabase.from('decks').select('*, profiles!user_id(username, avatar_url)').eq('id', id).single();
       if (deckError) throw deckError;
 
       const { data: upgrades, error: upError } = await supabase.from('deck_upgrades').select('*').eq('deck_id', id).order('month', { ascending: false }).order('created_at', { ascending: false });

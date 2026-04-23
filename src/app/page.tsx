@@ -42,7 +42,7 @@ export default async function Home() {
   // We try to get all decks first. If the join fails, at least we see empty profiles.
   const { data: decks, error: decksError } = await supabase
     .from("decks")
-    .select(`*, profiles:user_id (username, avatar_url)`);
+    .select(`*, profiles!user_id (username, avatar_url)`);
 
   const { count: playerCount } = await supabase
     .from("profiles")
