@@ -265,38 +265,39 @@ export default function DeckDetailPage() {
       />
 
       <div className={styles.topGrid}>
-        <div style={{ height: '100%' }}>
-          <UpgradeLog 
-            upgrades={upgrades} 
-            onAddUpgrade={(u) => handleUpdateDeck(u)}
-            onDeleteUpgrade={handleDeleteUpgrade}
-            onUpdateUpgrade={handleUpdateUpgrade}
-            isOwner={user?.id === deck?.user_id}
-            preconCardNames={preconNames}
-            trendingPrices={trendingPrices}
-            currentDeckList={deckCards.map(c => c.card_name)}
-          />
-        </div>
-        <div className={styles.visualEditorSection}>
-          <DeckVisualizer 
-            cards={deckCards} 
-            isOwner={user?.id === deck?.user_id} 
-            onUpdateDeck={handleUpdateDeck} 
-            preconCardNames={preconNames}
-            deckId={id as string}
-            cardTags={cardTags}
-            onTagsUpdate={fetchTags}
-            userCollection={new Set(userCollection.map(c => c.card_name.toLowerCase()))}
+        <UpgradeLog 
+          upgrades={upgrades} 
+          onAddUpgrade={(u) => handleUpdateDeck(u)}
+          onDeleteUpgrade={handleDeleteUpgrade}
+          onUpdateUpgrade={handleUpdateUpgrade}
+          isOwner={user?.id === deck?.user_id}
+          preconCardNames={preconNames}
+          trendingPrices={trendingPrices}
+          currentDeckList={deckCards.map(c => c.card_name)}
+        />
+        <div className="card glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ color: 'var(--color-gold)', marginBottom: '0.5rem' }}>Estado del Mazo</h3>
+          <DeckAlerts 
+              cards={deckCards}
+              cardTags={cardTags}
+              totalSpent={totalSpentCalc}
+              budgetLimit={budgetInfo.dynamicLimit}
           />
         </div>
       </div>
 
-      <DeckAlerts 
-          cards={deckCards}
+      <div className={styles.fullWidthRow} style={{ marginTop: '2rem' }}>
+        <DeckVisualizer 
+          cards={deckCards} 
+          isOwner={user?.id === deck?.user_id} 
+          onUpdateDeck={handleUpdateDeck} 
+          preconCardNames={preconNames}
+          deckId={id as string}
           cardTags={cardTags}
-          totalSpent={totalSpentCalc}
-          budgetLimit={budgetInfo.dynamicLimit}
-      />
+          onTagsUpdate={fetchTags}
+          userCollection={new Set(userCollection.map(c => c.card_name.toLowerCase()))}
+        />
+      </div>
 
       <div className={styles.statsGrid}>
          <div className="card glass-panel" style={{ padding: '1.5rem' }}>
