@@ -5,14 +5,19 @@ interface DeckCardProps {
   playerAvatar?: string;
   deckName: string;
   commanderName: string;
-  spent: number;
-  budget: number; // monthly limit (usually from MONTHLY_ALLOWANCE)
-
+  spent: number; // Monthly spent
+  budget: number; // Monthly limit
+  totalSpent?: number;
+  leagueBudget?: number;
+  remainingBalance?: number;
   imageUrl: string;
-  colors: string[]; // e.g. ['R', 'U']
+  colors: string[]; 
 }
 
-export default function DeckCard({ playerName, playerAvatar, deckName, commanderName, spent, budget, imageUrl }: DeckCardProps) {
+export default function DeckCard({ 
+  playerName, playerAvatar, deckName, commanderName, spent, budget, 
+  totalSpent = 0, leagueBudget = 0, remainingBalance = 0, imageUrl 
+}: DeckCardProps) {
   const percentage = budget > 0 ? (spent / budget) * 100 : (spent > 0 ? 100 : 0);
   
   const getStatusColor = () => {
@@ -31,8 +36,8 @@ export default function DeckCard({ playerName, playerAvatar, deckName, commander
         display: 'flex', 
         flexDirection: 'column', 
         height: '100%',
-        minHeight: '350px', // Less height
-        maxWidth: '380px', // Slightly wider
+        minHeight: '400px', 
+        maxWidth: '380px', 
         margin: '0 auto', 
         overflow: 'hidden',
         position: 'relative',
@@ -81,10 +86,10 @@ export default function DeckCard({ playerName, playerAvatar, deckName, commander
         </div>
       </div>
       
-      {/* 2. Unified Info Area (Less padding for tighter fit) */}
+      {/* 2. Unified Info Area */}
       <div style={{ padding: '1rem 1.25rem 1.25rem', flex: 1, display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', zIndex: 1 }}>
         
-        {/* Player Line (Tighter gap with header) */}
+        {/* Player Line */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{ position: 'relative' }}>
             {playerAvatar ? (
@@ -119,22 +124,37 @@ export default function DeckCard({ playerName, playerAvatar, deckName, commander
           </div>
         </div>
 
-        {/* Budget HUD (Reduced gaps) */}
-        <div style={{ marginTop: 'auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.75rem' }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.6rem 0.75rem', borderRadius: '8px', borderLeft: `3px solid ${spent > budget ? '#ef4444' : '#22c55e'}` }}>
-              <span style={{ display: 'block', fontSize: '0.55rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>GASTO REAL</span>
-              <span style={{ fontSize: '1.15rem', color: spent > budget ? '#ff4444' : '#fff', fontWeight: '900' }}>{spent.toFixed(2)}€</span>
+        {/* Budget HUD (Detailed) */}
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {/* Monthly Row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem 0.75rem', borderRadius: '8px', borderLeft: `3px solid ${spent > budget ? 'var(--color-red)' : 'var(--color-green)'}` }}>
+              <span style={{ display: 'block', fontSize: '0.55rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>MES ACTUAL</span>
+              <span style={{ fontSize: '1rem', color: spent > budget ? 'var(--color-red)' : '#fff', fontWeight: '900' }}>{spent.toFixed(2)}€</span>
+              <span style={{ fontSize: '0.65rem', color: '#444', marginLeft: '4px' }}>/ {budget.toFixed(2)}€</span>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', padding: '0.6rem 0.75rem', borderRadius: '8px', borderRight: '3px solid var(--color-gold)', textAlign: 'right' }}>
-              <span style={{ display: 'block', fontSize: '0.55rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>CUPO MENSUAL</span>
-              <span style={{ fontSize: '1.15rem', color: 'var(--color-gold)', fontWeight: '900' }}>{budget.toFixed(2)}€</span>
+            <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem 0.75rem', borderRadius: '8px', borderRight: '3px solid var(--color-gold)', textAlign: 'right' }}>
+              <span style={{ display: 'block', fontSize: '0.55rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '2px' }}>SALDO</span>
+              <span style={{ fontSize: '1rem', color: remainingBalance < 0 ? 'var(--color-red)' : 'var(--color-gold)', fontWeight: '900' }}>{remainingBalance.toFixed(2)}€</span>
+            </div>
+          </div>
+
+          {/* Global Row */}
+          <div style={{ background: 'rgba(212, 175, 55, 0.03)', padding: '0.6rem 0.75rem', borderRadius: '8px', border: '1px solid rgba(212, 175, 55, 0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <span style={{ display: 'block', fontSize: '0.55rem', color: 'var(--color-gold)', textTransform: 'uppercase', opacity: 0.6, letterSpacing: '1px' }}>INVERSIÓN TOTAL</span>
+              <span style={{ fontSize: '0.9rem', color: '#fff', fontWeight: '800' }}>{totalSpent.toFixed(2)}€</span>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <span style={{ display: 'block', fontSize: '0.55rem', color: 'var(--color-gold)', textTransform: 'uppercase', opacity: 0.6, letterSpacing: '1px' }}>CUPO LIGA</span>
+              <span style={{ fontSize: '0.9rem', color: 'var(--color-gold)', fontWeight: '800' }}>{leagueBudget.toFixed(2)}€</span>
             </div>
           </div>
           
+          {/* Progress Bar */}
           <div style={{ 
             background: 'rgba(255,255,255,0.04)', 
-            height: '10px', 
+            height: '6px', 
             borderRadius: '20px', 
             overflow: 'hidden', 
             border: '1px solid rgba(255,255,255,0.05)',

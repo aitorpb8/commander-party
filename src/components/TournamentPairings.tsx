@@ -271,28 +271,32 @@ export default function TournamentPairings({
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '0.5rem', marginBottom: '1rem' }}>
-               {tm.matches.players.map(pid => (
-                 <button 
-                   key={pid} 
-                   onClick={() => reportWinner(tm.matches.id, pid, tm.matches.players)}
-                   disabled={false} // Always enabled to allow changing winner
-                   style={{ 
-                   background: pid === tm.matches.winner_id ? 'rgba(76, 175, 80, 0.2)' : '#222',
-                   border: pid === tm.matches.winner_id ? '1px solid #4CAF50' : '1px solid #333',
-                   padding: '0.5rem',
-                   borderRadius: '8px',
-                   textAlign: 'center',
-                   fontSize: '0.9rem',
-                   color: '#fff',
-                   cursor: 'pointer',
-                   width: '100%',
-                   transition: 'all 0.2s',
-                   // Hover effect logic usually needs CSS or a wrapper, using simple button behavior here
-                 }}>
-                   {getPlayerName(pid)}
-                   {pid === tm.matches.winner_id && ' 🏆'}
-                 </button>
-               ))}
+                {tm.matches.players.map(pid => (
+                  <button 
+                    key={pid} 
+                    onClick={() => reportWinner(tm.matches.id, pid, tm.matches.players)}
+                    className="stat-orb-premium"
+                    style={{ 
+                      background: pid === tm.matches.winner_id ? 'rgba(34, 197, 94, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+                      border: pid === tm.matches.winner_id ? '1px solid #22c55e' : '1px solid rgba(255, 255, 255, 0.1)',
+                      padding: '0.75rem',
+                      borderRadius: '12px',
+                      textAlign: 'center',
+                      fontSize: '0.9rem',
+                      color: pid === tm.matches.winner_id ? '#22c55e' : '#fff',
+                      fontWeight: pid === tm.matches.winner_id ? '800' : '500',
+                      cursor: 'pointer',
+                      width: '100%',
+                      transition: 'all 0.3s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem'
+                    }}>
+                    {getPlayerName(pid)}
+                    {pid === tm.matches.winner_id && <span style={{ filter: 'drop-shadow(0 0 5px #22c55e)' }}>🏆</span>}
+                  </button>
+                ))}
             </div>
           </div>
         ))}

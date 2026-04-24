@@ -53,32 +53,17 @@ export default function PreconSelector({ onSelect }: PreconSelectorProps) {
         <input 
           type="text" 
           placeholder="Buscar..." 
+          className="input-premium"
           value={filter}
           onChange={e => setFilter(e.target.value)}
-          style={{ 
-            flex: '1 1 200px',
-            padding: '0.75rem 1.25rem', 
-            borderRadius: '30px', 
-            border: '1px solid #333', 
-            background: '#0a0a0a', 
-            color: 'white',
-            fontSize: '0.9rem'
-          }}
+          style={{ flex: '1 1 200px' }}
         />
         
         <select
           value={seriesFilter}
           onChange={e => setSeriesFilter(e.target.value)}
-          style={{
-            padding: '0.75rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #333',
-            background: '#0a0a0a',
-            color: 'white',
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            minWidth: '180px'
-          }}
+          className="select-premium"
+          style={{ minWidth: '220px' }}
         >
           <option value="all">Todas las ediciones</option>
           {series.map(s => (
@@ -89,16 +74,8 @@ export default function PreconSelector({ onSelect }: PreconSelectorProps) {
         <select
           value={yearFilter}
           onChange={e => setYearFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
-          style={{
-            padding: '0.75rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #333',
-            background: '#0a0a0a',
-            color: 'white',
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            minWidth: '120px'
-          }}
+          className="select-premium"
+          style={{ minWidth: '120px' }}
         >
           <option value="all">Todos</option>
           {years.map(year => (

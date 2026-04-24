@@ -39,7 +39,6 @@ export default async function Home() {
   );
 
   // Fetch Decks with Profile info - Using more robust query
-  // We try to get all decks first. If the join fails, at least we see empty profiles.
   const { data: decks, error: decksError } = await supabase
     .from("decks")
     .select(`*, profiles!user_id (username, avatar_url)`);
@@ -79,37 +78,136 @@ export default async function Home() {
     monthlySpendMap.set(u.deck_id, (monthlySpendMap.get(u.deck_id) || 0) + (u.cost || 0));
   });
 
-  // Since this is a Server Component, real-time must be handled by a client-side wrapper.
-  // I will create a Client component for the activity feed to enable real-time.
-
   return (
     <div className="container">
       {/* HERO SECTION */}
-      <section className="hero-section">
-        <div className={`hide-mobile ${styles.heroContentBox}`}>PARTY!</div>
-        <div className={`hide-mobile ${styles.heroContentBadge}`}>{MONTHLY_ALLOWANCE}€ BUDGET</div>
+      <section className="hero-section" style={{ 
+        position: 'relative', 
+        padding: '8rem 2rem', 
+        textAlign: 'center', 
+        borderRadius: '40px', 
+        overflow: 'hidden',
+        marginBottom: '4rem',
+        minHeight: '600px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+        border: '1px solid rgba(255,255,255,0.05)',
+        background: '#000'
+      }}>
+        {/* Keyframe Animations */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          @keyframes kenBurns {
+            0% { transform: scale(1) translate(0, 0); }
+            50% { transform: scale(1.1) translate(-1%, -1%); }
+            100% { transform: scale(1) translate(0, 0); }
+          }
+          @keyframes shine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+          }
+          @keyframes glowPulse {
+            0%, 100% { filter: drop-shadow(0 0 20px rgba(212, 175, 55, 0.2)); }
+            50% { filter: drop-shadow(0 0 40px rgba(212, 175, 55, 0.5)); }
+          }
+          .stat-orb-premium {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+          }
+          .stat-orb-premium:hover {
+            transform: translateY(-10px) rotateX(5deg) scale(1.02) !important;
+            border-color: var(--color-gold) !important;
+            box-shadow: 0 15px 40px rgba(212, 175, 55, 0.3) !important;
+            background: rgba(255,255,255,0.06) !important;
+          }
+        `}} />
+        
+        {/* 1. Background Image Layer */}
+        <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
+          <Image 
+            src="/hero.jpg"
+            alt="Hero Background"
+            fill
+            priority
+            style={{ 
+              objectFit: 'cover', 
+              objectPosition: 'center 20%',
+              filter: 'brightness(0.9) contrast(1.1)',
+              animation: 'kenBurns 40s ease-in-out infinite alternate'
+            }}
+          />
+        </div>
 
-        <h1 className="hero-title">
-          Commander Party
-        </h1>
-        <p className="hero-subtitle">
-          Evoluciona tu mazo con inteligencia. La liga más gamberra donde el dinero no compra la victoria.
-        </p>
+        {/* 2. Gradient Overlay Layer */}
+        <div style={{ 
+          position: 'absolute', 
+          inset: 0, 
+          zIndex: 2,
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.85) 100%)'
+        }} />
 
-        <div className="hero-stats-container">
-          <div className="hero-stat-item">
-            <span className="hero-stat-value">{playerCount || 0}</span>
-            <span className="hero-stat-label">Jugadores</span>
-          </div>
-          <div className="hero-divider" />
-          <div className="hero-stat-item">
-            <span className="hero-stat-value">{decks?.length || 0}</span>
-            <span className="hero-stat-label">Decks</span>
-          </div>
-          <div className="hero-divider" />
-          <div className="hero-stat-item">
-            <span className="hero-stat-value">{MONTHLY_ALLOWANCE}€</span>
-            <span className="hero-stat-label">Presupuesto</span>
+        {/* 3. Content Layer */}
+        <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '1200px' }}>
+          <h1 className="hero-title" style={{ 
+            fontSize: 'clamp(3.5rem, 12vw, 7.5rem)', 
+            margin: '0 0 1.5rem 0',
+            lineHeight: '0.85',
+            letterSpacing: '-4px',
+            fontWeight: '900',
+            color: '#fff',
+            textTransform: 'uppercase',
+            backgroundImage: 'linear-gradient(90deg, #fff 0%, var(--color-gold) 25%, #fff 50%, var(--color-gold) 75%, #fff 100%)',
+            backgroundSize: '200% auto',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            animation: 'shine 6s linear infinite, glowPulse 4s ease-in-out infinite',
+          }}>
+            COMMANDER<br/><span style={{ fontWeight: '200', letterSpacing: '10px', marginLeft: '15px', fontSize: '0.6em' }}>PARTY</span>
+          </h1>
+          
+          <p className="hero-subtitle" style={{ 
+            maxWidth: '800px', 
+            fontSize: '1.25rem', 
+            fontWeight: '300',
+            color: 'rgba(255,255,255,0.7)',
+            margin: '0 auto 4rem',
+            lineHeight: '1.4',
+            textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+          }}>
+            Bienvenido al <span style={{ color: 'var(--color-gold)', fontWeight: '600' }}>templo de la estrategia</span>. 
+            Aquí, cada euro cuenta y cada jugada te acerca a la inmortalidad.
+          </p>
+
+          <div className="hero-stats-container" style={{ 
+            display: 'flex', 
+            gap: '2rem', 
+            flexWrap: 'wrap', 
+            justifyContent: 'center',
+            perspective: '1000px'
+          }}>
+            {[
+              { label: 'Jugadores', value: playerCount || 0, color: '#fff' },
+              { label: 'Mazos', value: decks?.length || 0, color: '#fff' },
+              { label: 'Presupuesto', value: `${MONTHLY_ALLOWANCE}€`, color: 'var(--color-gold)' }
+            ].map((stat, i) => (
+              <div key={i} className="glass-panel stat-orb-premium" style={{ 
+                padding: '1.5rem 2.5rem', 
+                borderRadius: '24px', 
+                background: 'rgba(255,255,255,0.03)',
+                backdropFilter: 'blur(15px)',
+                border: '1px solid rgba(212, 175, 55, 0.2)',
+                boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '6px', 
+                minWidth: '200px',
+                cursor: 'default'
+              }}>
+                 <span style={{ fontSize: '0.7rem', color: 'var(--color-gold)', textTransform: 'uppercase', letterSpacing: '3px', fontWeight: '800', opacity: 0.8 }}>{stat.label}</span>
+                 <span style={{ fontSize: '2.4rem', fontWeight: '900', color: stat.color, textShadow: '0 0 20px rgba(255,255,255,0.1)' }}>{stat.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -208,6 +306,9 @@ export default async function Home() {
                       commanderName={deck.commander}
                       spent={currentMonthSpent}
                       budget={monthlyCupo}
+                      totalSpent={budgetInfo.totalSpent}
+                      leagueBudget={budgetInfo.dynamicLimit}
+                      remainingBalance={budgetInfo.remaining}
                       imageUrl={deck.image_url || "https://via.placeholder.com/150"}
                       colors={[]}
                     />

@@ -26,6 +26,7 @@ export default function DeckHeader({
   imageUrl,
   isOwner,
   onShowPicker,
+  budgetInfo,
   currentMonthSpent,
   effectiveMonthlyLimit,
   cards,
@@ -67,9 +68,10 @@ export default function DeckHeader({
         <span>🏷️ {archetype}</span>
       </div>
       <div className={styles.budgetStatus}>
+        {/* Nivel Mensual */}
         <div className={styles.budgetRow}>
-          <span>Presupuesto Mensual (+Acumulado):</span>
-          <span style={{ color: statusColor }}>
+          <span className={styles.budgetLabel}>Gasto este mes:</span>
+          <span style={{ color: statusColor, fontWeight: '700' }}>
             {currentMonthSpent.toFixed(2)}€ / {effectiveMonthlyLimit.toFixed(2)}€
           </span>
         </div>
@@ -84,11 +86,23 @@ export default function DeckHeader({
             }} 
           />
         </div>
-        <div className={styles.budgetFooter}>
-          {currentMonthSpent > effectiveMonthlyLimit 
-            ? `Te has pasado ${Math.abs(remaining).toFixed(2)}€.` 
-            : `Tienes ${remaining.toFixed(2)}€ disponibles.`
-          }
+
+        {/* Nivel Global / Liga */}
+        <div className={styles.globalBudgetInfo}>
+          <div className={styles.budgetMiniRow}>
+            <span>Presupuesto Total Liga:</span>
+            <span>{budgetInfo.dynamicLimit.toFixed(2)}€</span>
+          </div>
+          <div className={styles.budgetMiniRow}>
+            <span>Inversión Total Mazo:</span>
+            <span>{budgetInfo.totalSpent.toFixed(2)}€</span>
+          </div>
+          <div className={styles.budgetTotalBalance}>
+            <span>SALDO DISPONIBLE:</span>
+            <span style={{ color: remaining >= 0 ? 'var(--color-green)' : 'var(--color-red)' }}>
+              {remaining.toFixed(2)}€
+            </span>
+          </div>
         </div>
       </div>
     </div>

@@ -56,13 +56,13 @@ export default function Navbar() {
       <div className="container">
         <div className="navbar-content-wrapper">
           <div className="navbar-left">
-            <Link href="/" className="logo" onClick={() => setIsMenuOpen(false)}>
+            <Link href="/" className="logo" style={{ fontFamily: 'var(--font-title)', letterSpacing: '2px', textTransform: 'uppercase', fontWeight: '700' }} onClick={() => setIsMenuOpen(false)}>
               Commander Party
             </Link>
             <div className="stats-badge hide-mobile" style={{ 
               fontSize: '0.7rem', 
-              background: 'rgba(212,175,55,0.05)', 
-              border: '1px solid var(--border-color)', 
+              background: 'var(--color-gold-glow)', 
+              border: '1px solid var(--border-gold)', 
               padding: '4px 12px', 
               borderRadius: '20px',
               color: 'var(--color-gold)',

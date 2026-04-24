@@ -1,36 +1,47 @@
 :root {
+  /* Fondo y Superficies */
   --bg-main: #0a0a0b;
   --bg-card: rgba(20, 20, 22, 0.7);
   --bg-card-hover: rgba(30, 30, 35, 0.8);
   --bg-glass: rgba(15, 15, 18, 0.4);
   
+  /* Colores de Texto */
   --text-primary: #f8f8f2;
   --text-secondary: #94949e;
 
+  /* Sistema Dorado Premium */
   --color-gold: #D4AF37;
   --color-gold-bright: #FFD700;
   --color-gold-glow: rgba(212, 175, 55, 0.15);
   
+  /* Rarezas Magic */
   --color-mythic: #FF8400;
   --color-rare: #FFD700;
   --color-uncommon: #C0C0C0;
   --color-common: #CD7F32;
   
+  /* Otros Colores */
   --color-blue: #3b82f6;
   --color-green: #22c55e;
   --color-red: #ef4444;
   --bg-dark: #050505;
 
+  /* Bordes y Sombras */
   --border-color: rgba(255, 255, 255, 0.08);
   --border-gold: rgba(212, 175, 55, 0.2);
-  --border-radius: 20px;
+  --border-radius: 16px;
 
+  /* Tipografías */
   --font-title: var(--font-cinzel), serif;
   --font-main: var(--font-inter), sans-serif;
   --font-serif: var(--font-eb-garamond), serif;
 }
 
 /* Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body {
   background-color: var(--bg-main);
   color: var(--text-primary);
@@ -38,6 +49,7 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 body {
@@ -51,9 +63,10 @@ a {
 }
 
 .container {
-  max-width: 1400px;
+  width: 100%;
+  max-width: 1920px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0 2rem;
 }
 
 /* Navbar Styles */
@@ -129,28 +142,119 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.75rem;
   padding: 0.75rem 1.5rem;
-  border-radius: 12px;
+  border-radius: 14px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   font-family: var(--font-main);
   text-decoration: none;
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  backdrop-filter: blur(10px);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn-gold {
-  background: var(--color-gold);
+  background: linear-gradient(135deg, var(--color-gold) 0%, #b8860b 100%);
   color: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .btn-gold:hover {
-  background: var(--color-gold-bright);
+  background: linear-gradient(135deg, var(--color-gold-bright) 0%, var(--color-gold) 100%);
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.4);
+}
+
+.btn-icon {
+  padding: 0.6rem;
+  border-radius: 10px;
+  aspect-ratio: 1 / 1;
+}
+
+/* Premium Buttons System */
+.btn-premium {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+}
+
+.btn-premium:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+}
+
+.btn-premium:active {
+  transform: translateY(1px);
+}
+
+.btn-premium-gold {
+  background: linear-gradient(135deg, var(--color-gold) 0%, #b8860b 100%);
+  color: #000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-premium-gold:hover {
+  background: linear-gradient(135deg, var(--color-gold-bright) 0%, var(--color-gold) 100%);
+  box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3);
+}
+
+.btn-premium-dark {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-premium-dark:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--color-gold);
+}
+
+.btn-premium-red {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.btn-premium-red:hover {
+  background: var(--color-red);
+  color: #fff;
+  box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+}
+
+.btn-premium-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  border-radius: 10px;
 }
 
 /* Premium Components */
@@ -232,6 +336,23 @@ td {
   transform: translateX(5px);
 }
 
+/* Premium Orbs and Interactive Panels */
+.stat-orb-premium {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  cursor: pointer;
+}
+
+.stat-orb-premium:hover {
+  transform: translateY(-10px) rotateX(5deg) scale(1.02) !important;
+  border-color: var(--color-gold) !important;
+  box-shadow: 0 15px 40px rgba(212, 175, 55, 0.3) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.stat-orb-premium:active {
+  transform: translateY(-2px) scale(0.98) !important;
+}
+
 /* Spinners */
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -244,6 +365,56 @@ td {
   border-top-color: var(--color-gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
+}
+
+/* Global Form Styles (Premium) */
+input[type="text"], 
+input[type="email"], 
+input[type="password"],
+input[type="number"],
+input[type="search"],
+select,
+textarea {
+  appearance: none;
+  background-color: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+select {
+  padding-right: 2.5rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1.1rem;
+}
+
+input:hover, select:hover, textarea:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--color-gold);
+  background-color: rgba(255, 255, 255, 0.08);
+  outline: none;
+  box-shadow: 0 0 15px var(--color-gold-glow);
+}
+
+.select-premium, .input-premium {
+  /* Ya cubierto por los estilos globales, pero mantenemos las clases por si acaso */
+}
+
+.select-premium option {
+  background-color: #1a1a1a;
+  color: #fff;
+  padding: 10px;
 }
 
 /* Scrollbar */

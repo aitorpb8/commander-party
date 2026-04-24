@@ -12,17 +12,21 @@ interface DeckGridItemProps {
   currentUserId?: string;
   customSpent?: number;
   customBudget?: number;
+  totalSpent?: number;
+  leagueBudget?: number;
+  remainingBalance?: number;
 }
 
-export default function DeckGridItem({ deck, currentUserId, customSpent, customBudget }: DeckGridItemProps) {
+export default function DeckGridItem({ 
+  deck, currentUserId, customSpent, customBudget,
+  totalSpent, leagueBudget, remainingBalance
+}: DeckGridItemProps) {
   const router = useRouter();
   const supabase = createClient();
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const { dynamicLimit, totalSpent } = calculateDeckBudget(deck.created_at, deck.budget_spent);
-  
-  const finalSpent = customSpent !== undefined ? customSpent : totalSpent;
-  const finalBudget = customBudget !== undefined ? customBudget : dynamicLimit;
+  const finalMonthlySpent = customSpent !== undefined ? customSpent : 0;
+  const finalMonthlyBudget = customBudget !== undefined ? customBudget : 0;
   
   const isOwner = currentUserId === deck.user_id;
 
@@ -55,8 +59,11 @@ export default function DeckGridItem({ deck, currentUserId, customSpent, customB
                 playerName={deck.profiles?.username || 'Invitado'}
                 deckName={deck.name}
                 commanderName={deck.commander}
-                spent={finalSpent}
-                budget={finalBudget}
+                spent={finalMonthlySpent}
+                budget={finalMonthlyBudget}
+                totalSpent={totalSpent}
+                leagueBudget={leagueBudget}
+                remainingBalance={remainingBalance}
                 imageUrl={deck.image_url || 'https://via.placeholder.com/150'}
                 colors={[]}
             />

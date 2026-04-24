@@ -97,8 +97,11 @@ export default function DeckDetailPage() {
   };
 
   useEffect(() => {
-    if (id) fetchData();
-  }, [id, user]);
+    if (id) {
+      // Si ya tenemos el mazo, cargamos en segundo plano para evitar parpadeos
+      fetchData(3, !!deck);
+    }
+  }, [id, user?.id]);
 
   const handleUpdateDeck = async (change: any) => {
     try {
@@ -151,6 +154,42 @@ export default function DeckDetailPage() {
     } catch (err: any) {
       setMessageDialog({ title: 'Error', message: err.message, isError: true });
     }
+  };
+
+  const handleSyncCards = async () => {
+    if (!deck?.archidekt_id) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/import/archidekt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: `https://www.archidekt.com/decks/${deck.archidekt_id}` })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      await supabase.from('deck_cards').delete().eq('deck_id', id);
+      await supabase.from('deck_cards').insert(data.cards.map((c: any) => ({ ...c, deck_id: id })));
+      
+      setMessageDialog({ title: '¡Éxito!', message: 'Mazo sincronizado.', isError: false });
+      await fetchData(5, false);
+    } catch (err: any) {
+      setMessageDialog({ title: 'Error', message: err.message, isError: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const exportToText = () => {
+    const list = deckCards.map(c => `${c.quantity} ${c.card_name}`).join('\n');
+    navigator.clipboard.writeText(list);
+    setMessageDialog({ title: '¡Exportado!', message: 'Mazo copiado al portapapeles.', isError: false });
+  };
+
+  const copyToClipboard = () => {
+    const list = upgrades.map(u => `1 ${u.card_in}`).join('\n');
+    navigator.clipboard.writeText(list);
+    setMessageDialog({ title: '¡Copiado!', message: 'Lista de mejoras copiada.', isError: false });
   };
 
   const handleDeleteUpgrade = async (upgradeId: string) => {
@@ -252,41 +291,44 @@ export default function DeckDetailPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <DeckHeader 
-        name={deck?.name || ''} 
-        commander={deck?.commander || ''} 
-        imageUrl={deck?.image_url || ''} 
-        isOwner={user?.id === deck?.user_id}
-        onShowPicker={() => setShowPicker(true)}
-        currentMonthSpent={currentMonthSpent}
-        effectiveMonthlyLimit={effectiveMonthlyLimit}
-        budgetInfo={{ ...budgetInfo, totalSpent: totalSpentCalc }}
-        cards={deckCards}
-      />
-
       <div className={styles.topGrid}>
-        <UpgradeLog 
-          upgrades={upgrades} 
-          onAddUpgrade={(u) => handleUpdateDeck(u)}
-          onDeleteUpgrade={handleDeleteUpgrade}
-          onUpdateUpgrade={handleUpdateUpgrade}
-          isOwner={user?.id === deck?.user_id}
-          preconCardNames={preconNames}
-          trendingPrices={trendingPrices}
-          currentDeckList={deckCards.map(c => c.card_name)}
-        />
-        <div className="card glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h3 style={{ color: 'var(--color-gold)', marginBottom: '0.5rem' }}>Estado del Mazo</h3>
-          <DeckAlerts 
-              cards={deckCards}
-              cardTags={cardTags}
-              totalSpent={totalSpentCalc}
-              budgetLimit={budgetInfo.dynamicLimit}
+        <aside>
+          <DeckHeader 
+            name={deck?.name || ''} 
+            commander={deck?.commander || ''} 
+            imageUrl={deck?.image_url || ''} 
+            isOwner={user?.id === deck?.user_id}
+            onShowPicker={() => setShowPicker(true)}
+            currentMonthSpent={currentMonthSpent}
+            effectiveMonthlyLimit={effectiveMonthlyLimit}
+            budgetInfo={{ ...budgetInfo, totalSpent: totalSpentCalc }}
+            cards={deckCards}
+          />
+          <DeckActionButtons 
+            isOwner={user?.id === deck?.user_id}
+            hasArchidektId={!!deck?.archidekt_id}
+            onCopyMejoras={copyToClipboard}
+            onExportMazo={exportToText}
+            onSyncArchidekt={handleSyncCards}
+          />
+        </aside>
+
+        <div style={{ height: '100%' }}>
+          <UpgradeLog 
+            upgrades={upgrades} 
+            onAddUpgrade={(u) => handleUpdateDeck(u)}
+            onDeleteUpgrade={handleDeleteUpgrade}
+            onUpdateUpgrade={handleUpdateUpgrade}
+            isOwner={user?.id === deck?.user_id}
+            preconCardNames={preconNames}
+            trendingPrices={trendingPrices}
+            currentDeckList={deckCards.map(c => c.card_name)}
           />
         </div>
       </div>
 
-      <div className={styles.fullWidthRow} style={{ marginTop: '2rem' }}>
+      <div className={styles.visualEditorSection} style={{ marginTop: '2rem' }}>
+        <h2 style={{ marginBottom: '1.5rem' }}>Editor Visual</h2>
         <DeckVisualizer 
           cards={deckCards} 
           isOwner={user?.id === deck?.user_id} 
@@ -296,6 +338,16 @@ export default function DeckDetailPage() {
           cardTags={cardTags}
           onTagsUpdate={fetchTags}
           userCollection={new Set(userCollection.map(c => c.card_name.toLowerCase()))}
+        />
+      </div>
+
+      <div className="card glass-panel" style={{ marginTop: '3rem' }}>
+        <h3>Estado del Mazo</h3>
+        <DeckAlerts 
+            cards={deckCards}
+            cardTags={cardTags}
+            totalSpent={totalSpentCalc}
+            budgetLimit={budgetInfo.dynamicLimit}
         />
       </div>
 
@@ -316,9 +368,14 @@ export default function DeckDetailPage() {
          </div>
       </div>
 
-      <div className={styles.statsGrid}>
+      <div className={styles.fullWidthRow} style={{ marginTop: '3rem' }}>
+         <h2 style={{ marginBottom: '1.5rem' }}>Desglose Mensual</h2>
+         <MonthlyBreakdown upgrades={upgrades} preconCardNames={preconNames} trendingPrices={trendingPrices} />
+      </div>
+
+      <div className={styles.fullWidthRow} style={{ marginTop: '3rem' }}>
+         <h2 style={{ marginBottom: '1.5rem' }}>Planificador de Mejoras</h2>
          <Wishlist deckId={id as string} isOwner={user?.id === deck?.user_id} />
-         <MonthlyBreakdown upgrades={upgrades} preconCardNames={preconNames} />
       </div>
 
       {showPicker && (

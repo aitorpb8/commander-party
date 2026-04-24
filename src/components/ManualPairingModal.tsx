@@ -99,10 +99,10 @@ export default function ManualPairingModal({
             </div>
             
             <div style={{ display: 'flex', gap: '1rem' }}>
-                <button onClick={onClose} className="btn" style={{ flex: 1, background: '#333' }}>Cancelar</button>
+                <button onClick={onClose} className="btn-premium btn-premium-dark" style={{ flex: 1 }}>Cancelar</button>
                 <button 
                   onClick={handleCreate} 
-                  className="btn btn-gold" 
+                  className="btn-premium btn-premium-gold" 
                   style={{ flex: 1 }} 
                   disabled={selectedPlayers.size < 2}
                 >

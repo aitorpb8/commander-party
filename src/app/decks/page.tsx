@@ -87,6 +87,9 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
                 currentUserId={user?.id}
                 customSpent={currentMonthSpent}
                 customBudget={monthlyCupo}
+                totalSpent={budgetInfo.totalSpent}
+                leagueBudget={budgetInfo.dynamicLimit}
+                remainingBalance={budgetInfo.remaining}
               />
             );
           })}

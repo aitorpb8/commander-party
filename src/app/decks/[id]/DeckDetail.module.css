@@ -8,14 +8,15 @@
 
 .topGrid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
+  grid-template-columns: 600px 1fr;
   gap: 2rem;
-  align-items: start;
+  padding-top: 2rem;
 }
 
 @media (max-width: 1024px) {
   .topGrid {
     grid-template-columns: 1fr;
+    padding-top: 1rem;
   }
 }
 
