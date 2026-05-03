@@ -43,27 +43,41 @@ const CardItem: React.FC<CardItemProps> = ({
 }) => {
   const isStack = viewMode === 'stack';
 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    e.currentTarget.style.setProperty('--mouse-x', `${x}%`);
+    e.currentTarget.style.setProperty('--mouse-y', `${y}%`);
+  };
+
   return (
     <div 
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      onMouseMove={handleMouseMove}
       style={{ 
-        maxWidth: isStack ? '260px' : 'none', 
-        margin: isStack ? '0 auto' : 'none', 
         marginBottom: !isStack 
           ? '0' 
           : isLast 
             ? '0' 
             : isHovered 
-              ? '8px'
-              : 'calc(-88 / 63 * 100% + 42px)', 
+              ? '15px'
+              : 'calc(-1 * (88 / 63) * 100% + 38px)', 
         zIndex: idx, 
-        transform: isHovered ? (isStack ? 'translateY(-5px) scale(1.02)' : 'translateY(-8px) scale(1.03) rotate(2deg)') : 'none', 
-        boxShadow: isHovered ? '0 20px 40px rgba(0,0,0,0.6)' : 'none'
+        transform: isHovered 
+          ? (isStack ? 'translateY(-5px) scale(1.02)' : 'translateY(-15px) scale(1.05) rotate(1deg)') 
+          : 'none', 
+        boxShadow: isHovered ? '0 25px 50px rgba(0,0,0,0.8)' : 'none'
       }}
       className={`${styles.cardItem} ${isStack ? styles.cardSlice : styles.gridCardItem} ${isGC ? styles.isGameChanger : ''}`}
     >
+      {/* Premium Sheen Overlay */}
+      <div className={styles.sheenWrapper}>
+        <div className={styles.sheen} />
+        <div className={styles.glareLine} />
+      </div>
       {/* Game Changer Badge */}
       {isGC && (
         <div className={styles.gameChangerBadge} title="Game Changer">
@@ -161,28 +175,28 @@ const CardItem: React.FC<CardItemProps> = ({
               className={`${styles.controlBtn} ${styles.addBtn}`}
               title="Añadir una"
             >
-              +
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onRemove?.(); }}
               className={`${styles.controlBtn} ${styles.removeBtn}`}
               title="Quitar"
             >
-              -
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onEditTags?.(); }}
               className={`${styles.controlBtn} ${styles.tagsBtn}`}
               title="Editar Tags"
             >
-              🏷️
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onShowInfo?.(); }}
               className={`${styles.controlBtn} ${styles.infoBtn}`}
               title="Ver Detalles"
             >
-              ℹ️
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
             </button>
         </div>
       )}

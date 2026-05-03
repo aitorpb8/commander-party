@@ -197,8 +197,7 @@ export default function UpgradeLog({
       </div>
 
       <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
-        {/* Fixed height 1010px ensures it matches the neighbor card (~1014px) and forces the container size while preventing infinite grow */}
-        <div className="custom-scrollbar" style={{ overflowX: 'auto', width: '100%', height: '1010px', overflowY: 'auto', paddingRight: '4px' }}>
+        <div className="custom-scrollbar" style={{ overflowX: 'auto', width: '100%', height: '1160px', overflowY: 'auto', paddingRight: '4px' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '550px' }}>
             <thead style={{ position: 'sticky', top: 0, background: '#151515', zIndex: 1 }}>
               <tr style={{ borderBottom: '2px solid #444', color: '#888', fontSize: '0.85rem', textTransform: 'uppercase' }}>
@@ -272,7 +271,7 @@ export default function UpgradeLog({
                 })
               )}
               {/* Fill remaining space with empty rows to maintain grid height */}
-              {Array.from({ length: Math.max(0, 18 - upgrades.length) }).map((_, i) => (
+              {Array.from({ length: Math.max(0, 22 - upgrades.length) }).map((_, i) => (
                 <tr key={`empty-${i}`} style={{ borderBottom: '1px solid #222', height: '58px' }}>
                   <td colSpan={isOwner ? 5 : 4}>&nbsp;</td>
                 </tr>

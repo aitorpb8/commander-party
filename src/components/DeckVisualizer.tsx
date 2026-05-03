@@ -22,6 +22,7 @@ import { calculateCardCost, transformScryfallToDeckCard } from '@/lib/deckUtils'
 import VisualizerHeader from './deck/visualizer/VisualizerHeader';
 import CardItem from './deck/visualizer/CardItem';
 import { useDeckVisualizer } from '@/hooks/useDeckVisualizer';
+import styles from './deck/visualizer/DeckVisualizer.module.css';
 
 interface DeckVisualizerProps {
   cards: DeckCard[];
@@ -298,18 +299,7 @@ export default function DeckVisualizer({
   const isOwnerAndDeck = isOwner && deckId;
 
   return (
-    <div className="card deck-builder-container" style={{ 
-      background: 'radial-gradient(circle at top left, #1a1a1a, #0a0a0a)',
-      border: '1px solid rgba(161, 139, 74, 0.2)', // Subtle gold border
-      minHeight: '600px', 
-      position: 'relative',
-      padding: '2rem',
-      overflow: 'visible',
-      boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-      borderRadius: '24px'
-    }}>
-      
-      {/* Header Section */}
+    <div className={styles.visualizerContainer}>
       <VisualizerHeader 
         cards={cards}
         onShowPlaytest={() => setShowPlaytest(true)}
@@ -467,27 +457,24 @@ export default function DeckVisualizer({
        )}
 
       {/* Content Area */}
-      {viewMode === 'stack' ? (
-          <div style={{ display: 'flex', gap: '0.5rem', width: '100%', alignItems: 'flex-start' }}>
-            {distributedColumns.map((colInclusions, colIdx) => (
-               <div key={`col-${colIdx}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2.5rem', minWidth: 0, alignItems: 'center' }}>
+      <div className={styles.contentArea}>
+        {viewMode === 'stack' ? (
+            <div className={styles.stackLayout}>
+              {distributedColumns.map((colInclusions, colIdx) => (
+                 <div key={`col-${colIdx}`} className={styles.stackColumn}>
                  {colInclusions.map(catName => {
                     const list = grouped[catName] || [];
                     const sortedList = sortCards(list);
                     const totalInCat = list.reduce((acc, c) => acc + c.quantity, 0);
 
                     return (
-                        <div key={catName} className="stack-column-premium" style={{ 
-                          flex: '0 0 280px', 
-                          contentVisibility: 'auto', 
-                          containIntrinsicSize: '280px 800px' 
-                        }}>
-                          <h4 className="stack-header">
-                            <span className="stack-title">{catName}</span>
-                            <span className="stack-count">{totalInCat}</span>
+                        <div key={catName} className={styles.stackCategoryBlock}>
+                          <h4 className={styles.stackHeader}>
+                            <span className={styles.stackTitle}>{catName}</span>
+                            <span className={styles.stackCount}>{totalInCat}</span>
                           </h4>
 
-                          <div className="stack-content">
+                          <div className={styles.stackCardsContainer}>
                             {sortedList.map((card, idx) => {
                                       const isLast = idx === sortedList.length - 1;
                                       const isGC = BRACKETS.some(b => b.name === card.card_name && b.reason === 'Game Changer');
@@ -537,9 +524,8 @@ export default function DeckVisualizer({
                        </div>
                     ))}
                   </div>
-      ) : viewMode === 'grid' ? (
-
-                    <div className="masonry-layout-premium">
+        ) : viewMode === 'grid' ? (
+              <div className={styles.masonryLayout}>
             {[...categories[groupBy]]
               .filter(catName => (grouped[catName] || []).length > 0)
               .sort((a, b) => {
@@ -553,12 +539,12 @@ export default function DeckVisualizer({
                 const totalInCat = list.reduce((acc, c) => acc + c.quantity, 0);
 
                 return (
-                  <div key={catName} className="grid-category-block">
+                  <div key={catName} className={styles.gridCategoryBlock}>
                     <h4 className="stack-header" style={{ marginBottom: '1.2rem' }}>
                       <span className="stack-title">{catName}</span>
                       <span className="stack-count">{totalInCat}</span>
                     </h4>
-                    <div className="grid-cards-container">
+                    <div className={styles.gridCardsContainer}>
                       {sortedList.map((card, idx) => {
                         const isGC = isGameChangerValue(card.card_name);
                         const isHovered = hoveredCard === card;
@@ -604,8 +590,11 @@ export default function DeckVisualizer({
                   </div>
                 );
               })}
-          </div>
-      ) : viewMode === 'text' ? (
+              </div>
+        ) : (
+          /* Text View or Fallback */
+          <div style={{ width: '100%' }}>
+            {viewMode === 'text' ? (
           /* Text View (Classic decklist style) */
           <div style={{ padding: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.5rem' }}>
@@ -759,10 +748,13 @@ export default function DeckVisualizer({
                               </tbody>
                           </table>
                       </div>
-                  );
-              })}
-          </div>
-      )}
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+      </div>
 
       {activeInfoCard && (
         <CardDetailsModal 

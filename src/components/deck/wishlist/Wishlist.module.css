@@ -1,0 +1,121 @@
+.plannerContainer {
+  background: rgba(24, 24, 27, 0.4);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 4px solid var(--color-gold);
+  padding: 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.searchContainer {
+  position: relative;
+  margin-bottom: 2.5rem;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 1.2rem 1.5rem 1.2rem 3.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  color: #fff;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.searchInput:focus {
+  border-color: var(--color-gold);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+}
+
+.board {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5rem;
+  overflow-x: auto;
+  padding-bottom: 1.5rem;
+  scroll-snap-type: x mandatory;
+  margin: 0 -2rem;
+  padding: 0 2rem 1.5rem;
+}
+
+/* Custom Scrollbar for the board */
+.board::-webkit-scrollbar {
+  height: 6px;
+}
+
+.board::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+
+.board::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.board::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold);
+}
+
+.emptyState {
+  width: 100%;
+  text-align: center;
+  padding: 5rem 2rem;
+  border: 2px dashed rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  color: #666;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  backdrop-filter: blur(10px);
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 800px;
+  max-height: 85vh;
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .plannerContainer {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .board {
+    margin: 0 -1rem;
+    padding: 0 1rem 1rem;
+  }
+  
+  .modalContent {
+    padding: 1.5rem;
+  }
+}

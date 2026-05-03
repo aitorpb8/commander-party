@@ -13,8 +13,12 @@ import { Deck, DeckCard, DeckUpgrade, ScryfallCard } from '@/types';
 import UpgradeLog from '@/components/UpgradeLog';
 import BudgetChart from '@/components/BudgetChart';
 import ManaAnalysis from '@/components/ManaAnalysis';
+import { calculateAchievements } from '@/lib/achievements';
+import DeckAchievements from '@/components/deck/DeckAchievements';
+import DeckComparator from '@/components/deck/DeckComparator';
+import DeckExportModal from '@/components/deck/DeckExportModal';
+import MonthlyBreakdown from '@/components/deck/MonthlyBreakdown';
 import Wishlist from '@/components/Wishlist';
-import MonthlyBreakdown from '@/components/MonthlyBreakdown';
 import { searchCards, getCollection, getCardByName } from '@/lib/scryfall';
 import CommanderPicker from '@/components/CommanderPicker';
 import DeckVisualizer from '@/components/DeckVisualizer';
@@ -35,12 +39,16 @@ export default function DeckDetailPage() {
   const [loading, setLoading] = useState(true);
   const [messageDialog, setMessageDialog] = useState<{ title: string, message: string, isError: boolean } | null>(null);
   const [showPicker, setShowPicker] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
   const [loadingTrending, setLoadingTrending] = useState(false);
   const [cardTags, setCardTags] = useState<Record<string, string[]>>({});
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [activeCmcFilter, setActiveCmcFilter] = useState<number | null>(null);
   const [userCollection, setUserCollection] = useState<any[]>([]);
+  const [userDecks, setUserDecks] = useState<any[]>([]);
+  const [userUpgrades, setUserUpgrades] = useState<any[]>([]);
+  const [allMatches, setAllMatches] = useState<any[]>([]);
 
   const supabase = createClient();
 
@@ -50,8 +58,24 @@ export default function DeckDetailPage() {
       const { data: deckData, error: deckError } = await supabase.from('decks').select('*, profiles!user_id(username, avatar_url)').eq('id', id).single();
       if (deckError) throw deckError;
 
+      // Fetch ALL user decks for achievements
+      const { data: allDecks } = await supabase.from('decks').select('*').eq('user_id', deckData.user_id);
+      setUserDecks(allDecks || []);
+
       const { data: upgrades, error: upError } = await supabase.from('deck_upgrades').select('*').eq('deck_id', id).order('month', { ascending: false }).order('created_at', { ascending: false });
       if (upError) throw upError;
+
+      // Fetch ALL user upgrades for achievements (Budget Master check)
+      const deckIds = (allDecks || []).map(d => d.id);
+      if (deckIds.length > 0) {
+        const { data: allUserUpgrades } = await supabase.from('deck_upgrades').select('*').in('deck_id', deckIds);
+        setUserUpgrades(allUserUpgrades || []);
+      } else {
+        setUserUpgrades([]);
+      }
+
+      const { data: matchesData } = await supabase.from('matches').select('*');
+      setAllMatches(matchesData || []);
 
       const { data: cards, error: cardsError } = await supabase.from('deck_cards').select('*').eq('deck_id', id).order('card_name', { ascending: true });
       if (cardsError) throw cardsError;
@@ -110,26 +134,34 @@ export default function DeckDetailPage() {
       const month = new Date().toISOString().slice(0, 7);
       let cardDataIn = change.card_in;
       
-      // If card_in is just a name (string), try to fetch full data
+      // 1. Si solo tenemos el nombre (string), intentamos completar los datos
       if (typeof cardDataIn === 'string' && cardDataIn.length > 0) {
         const sc = await getCardByName(cardDataIn);
         if (sc) {
           cardDataIn = sc;
         } else {
-          // If we can't find the card, we shouldn't proceed with a substitution that would leave the deck incomplete
-          toast.error(`No se encontró la carta "${cardDataIn}" en Scryfall. Revisa el nombre.`);
+          toast.error(`No se encontró la carta "${cardDataIn}" en Scryfall.`);
           return;
         }
       }
 
-      const cardNameIn = typeof cardDataIn === 'string' ? cardDataIn : (cardDataIn?.name || '');
-      const cardNameOut = typeof change.card_out === 'string' ? change.card_out : (change.card_out?.name || '');
-      
+      // 2. Detectar nombres de forma robusta (soporta ScryfallCard y DeckCard)
+      const cardNameIn = typeof cardDataIn === 'string' 
+        ? cardDataIn 
+        : (cardDataIn?.name || cardDataIn?.card_name || '');
+        
+      const cardNameOut = typeof change.card_out === 'string' 
+        ? change.card_out 
+        : (change.card_out?.name || change.card_out?.card_name || '');
+
+      // 3. Seguridad: Si no hay carta de entrada ni de salida válida, abortamos
+      if (!cardNameIn && !cardNameOut) return;
+
       const preconCards = new Set((deck?.precon_cards || []).map(n => n.toLowerCase().trim()));
       const isPrecon = cardNameIn && preconCards.has(cardNameIn.toLowerCase().trim());
       const upgradeCost = isPrecon ? 0 : (change.cost || 0);
 
-      // 1. Insert into history
+      // 4. Registrar en el historial
       const { error: upgradeError } = await supabase.from('deck_upgrades').insert({
           deck_id: id,
           card_in: cardNameIn || null,
@@ -137,26 +169,35 @@ export default function DeckDetailPage() {
           cost: upgradeCost,
           month,
           description: change.description || null,
-          scryfall_id: (cardDataIn && typeof cardDataIn !== 'string') ? cardDataIn.id : null
+          scryfall_id: (cardDataIn && typeof cardDataIn !== 'string') ? (cardDataIn.id || cardDataIn.scryfall_id) : null
       });
       if (upgradeError) throw upgradeError;
 
-      // 2. Update deck_cards table (The visual state)
-      // Only delete if we are sure we have the new card or if it's just a removal
+      // 5. Actualizar tabla deck_cards (Sustitución atómica)
       if (cardNameOut) {
         await supabase.from('deck_cards').delete().eq('deck_id', id).eq('card_name', cardNameOut);
       }
 
-      if (cardDataIn && typeof cardDataIn !== 'string') {
-        const deckCard = transformScryfallToDeckCard(cardDataIn, id as string);
+      if (cardDataIn && typeof cardDataIn === 'object') {
+        // Si es un objeto de Scryfall (tiene .name), lo transformamos
+        // Si ya es un objeto DeckCard (tiene .card_name), lo usamos casi tal cual
+        const deckCard = (cardDataIn as any).name 
+          ? transformScryfallToDeckCard(cardDataIn, id as string)
+          : { ...cardDataIn, deck_id: id }; // Ya es un DeckCard
+          
+        // Remove DB-specific ID if it exists to avoid primary key conflicts on new insert
+        if ((deckCard as any).id && (cardDataIn as any).name) {
+           delete (deckCard as any).id;
+        }
+
         await supabase.from('deck_cards').insert(deckCard);
       }
 
       await fetchData(5, true);
-      toast.success('Cambio realizado correctamente');
+      toast.success('Mazo actualizado correctamente');
     } catch (err: any) {
+      console.error("Error en handleUpdateDeck:", err);
       toast.error('Error al actualizar el mazo');
-      setMessageDialog({ title: 'Error', message: err.message, isError: true });
     }
   };
 
@@ -307,17 +348,19 @@ export default function DeckDetailPage() {
             effectiveMonthlyLimit={effectiveMonthlyLimit}
             budgetInfo={{ ...budgetInfo, totalSpent: totalSpentCalc }}
             cards={deckCards}
-          />
-          <DeckActionButtons 
-            isOwner={user?.id === deck?.user_id}
-            hasArchidektId={!!deck?.archidekt_id}
-            onCopyMejoras={copyToClipboard}
-            onExportMazo={exportToText}
-            onSyncArchidekt={handleSyncCards}
-          />
+          >
+            <DeckActionButtons 
+              isOwner={user?.id === deck?.user_id}
+              hasArchidektId={!!deck?.archidekt_id}
+              onCopyMejoras={copyToClipboard}
+              onExportMazo={exportToText}
+              onSyncArchidekt={handleSyncCards}
+              onExportPro={() => setShowExportModal(true)}
+            />
+          </DeckHeader>
         </aside>
 
-        <div style={{ height: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
           <UpgradeLog 
             upgrades={upgrades} 
             onAddUpgrade={(u) => handleUpdateDeck(u)}
@@ -331,8 +374,16 @@ export default function DeckDetailPage() {
         </div>
       </div>
 
+      {showExportModal && (
+        <DeckExportModal 
+          deck={deck!} 
+          cards={deckCards} 
+          upgrades={upgrades} 
+          onClose={() => setShowExportModal(false)} 
+        />
+      )}
+
       <div className={styles.visualEditorSection} style={{ marginTop: '2rem' }}>
-        <h2 style={{ marginBottom: '1.5rem' }}>Editor Visual</h2>
         <DeckVisualizer 
           cards={deckCards} 
           isOwner={user?.id === deck?.user_id} 
@@ -344,6 +395,15 @@ export default function DeckDetailPage() {
           userCollection={new Set(userCollection.map(c => c.card_name.toLowerCase()))}
         />
       </div>
+
+      <DeckAchievements 
+        earnedBadges={calculateAchievements({
+          decks: userDecks,
+          upgrades: userUpgrades,
+          matches: allMatches,
+          userId: deck?.user_id || ''
+        })} 
+      />
 
       <div className="card glass-panel" style={{ marginTop: '3rem' }}>
         <h3>Estado del Mazo</h3>
@@ -377,12 +437,20 @@ export default function DeckDetailPage() {
          <MonthlyBreakdown upgrades={upgrades} preconCardNames={preconNames} trendingPrices={trendingPrices} />
       </div>
 
+      <DeckComparator 
+        currentDeck={deck!}
+        currentCards={deckCards}
+        currentUpgrades={upgrades}
+        userDecks={userDecks}
+      />
+
       <div className={styles.fullWidthRow} style={{ marginTop: '3rem' }}>
          <h2 style={{ marginBottom: '1.5rem' }}>Planificador de Mejoras</h2>
          <Wishlist 
             deckId={id as string} 
             isOwner={user?.id === deck?.user_id} 
             onUpdateDeck={handleUpdateDeck}
+            trendingPrices={trendingPrices}
             deckCards={deckCards}
           />
       </div>

@@ -9,15 +9,23 @@ import {
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler
 } from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie, Radar } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
   ArcElement,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
   Title,
   Tooltip,
   Legend
@@ -129,12 +137,77 @@ export default function ManaAnalysis({ cards, onCMCFilter, activeFilter }: ManaA
     }]
   };
 
+  const radarData = {
+    labels: ['Blanco (W)', 'Azul (U)', 'Negro (B)', 'Rojo (R)', 'Verde (G)'],
+    datasets: [
+      {
+        label: 'Requerido (Símbolos)',
+        data: [pips.W, pips.U, pips.B, pips.R, pips.G],
+        backgroundColor: 'rgba(212, 175, 55, 0.2)',
+        borderColor: 'var(--color-gold)',
+        borderWidth: 2,
+        pointBackgroundColor: 'var(--color-gold)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'var(--color-gold)',
+        fill: true
+      },
+      {
+        label: 'Disponible (Tierras)',
+        data: [prod.W, prod.U, prod.B, prod.R, prod.G],
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        borderColor: 'rgba(255, 255, 255, 0.5)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(255, 255, 255, 0.5)',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: 'rgba(255, 255, 255, 0.5)',
+        fill: true
+      }
+    ]
+  };
+
+  const radarOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+        pointLabels: { 
+          color: '#aaa',
+          font: { size: 10, weight: 'bold' as const }
+        },
+        ticks: { display: false }
+      }
+    },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'bottom' as const,
+        labels: {
+          color: '#666',
+          boxWidth: 10,
+          font: { size: 10 }
+        }
+      },
+      tooltip: {
+        backgroundColor: 'rgba(10, 10, 10, 0.9)',
+        titleFont: { family: 'Cinzel', size: 14 },
+        padding: 12,
+        borderColor: 'rgba(212, 175, 55, 0.3)',
+        borderWidth: 1
+      }
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+      {/* CMC CURVE */}
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
           <h4 style={{ fontSize: '0.8rem', color: 'var(--color-gold)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>
-            Curva de CMC
+            Curva de Maná (CMC)
           </h4>
           {activeFilter !== null && (
             <button 
@@ -145,11 +218,25 @@ export default function ManaAnalysis({ cards, onCMCFilter, activeFilter }: ManaA
             </button>
           )}
         </div>
-        <div style={{ height: '140px', position: 'relative' }}>
+        <div style={{ height: '160px', position: 'relative' }}>
           <Bar data={cmcData} options={chartOptions} />
         </div>
       </div>
 
+      {/* BALANCE ANALYSIS (RADAR) */}
+      <div style={{ background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)' }}>
+        <h4 style={{ fontSize: '0.8rem', color: 'var(--color-gold)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold', marginBottom: '1.5rem', textAlign: 'center' }}>
+          Análisis de Balance
+        </h4>
+        <div style={{ height: '280px', position: 'relative' }}>
+          <Radar data={radarData} options={radarOptions} />
+        </div>
+        <p style={{ fontSize: '0.7rem', color: '#555', marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' }}>
+          Compara los símbolos requeridos por tus hechizos vs la producción de tus tierras.
+        </p>
+      </div>
+
+      {/* PIE & PRODUCTION BAR */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '2rem', alignItems: 'center' }}>
         <div>
           <h4 style={{ fontSize: '0.75rem', color: '#888', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px', textAlign: 'center' }}>Símbolos</h4>
@@ -157,20 +244,30 @@ export default function ManaAnalysis({ cards, onCMCFilter, activeFilter }: ManaA
             <Pie data={pipsData} options={{ ...chartOptions, scales: { x: { display: false }, y: { display: false } } }} />
           </div>
         </div>
-        <div>
-          <h4 style={{ fontSize: '0.75rem', color: '#888', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Producción</h4>
-          <div style={{ height: '120px' }}>
-            <Bar 
-              data={prodData} 
-              options={{ 
-                ...chartOptions, 
-                indexAxis: 'y' as const,
-                scales: { 
-                  x: { grid: { display: false }, ticks: { display: false } },
-                  y: { grid: { display: false }, ticks: { color: '#aaa', font: { weight: 'bold' } } }
-                } 
-              }} 
-            />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h4 style={{ fontSize: '0.75rem', color: '#888', marginBottom: '1.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Producción Tierras</h4>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+            {Object.entries(prod).map(([col, val]) => {
+              const maxVal = Math.max(...Object.values(prod), 1);
+              const percentage = (val / maxVal) * 100;
+              const color = wubrgColors[col as keyof typeof wubrgColors];
+              
+              return (
+                <div key={col} style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#aaa', width: '12px' }}>{col}</span>
+                  <div style={{ flex: 1, height: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', overflow: 'hidden' }}>
+                    <div style={{ 
+                      height: '100%', 
+                      width: `${percentage}%`, 
+                      background: color,
+                      boxShadow: `0 0 10px ${color}44`,
+                      borderRadius: '10px',
+                      transition: 'width 1s ease-out'
+                    }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

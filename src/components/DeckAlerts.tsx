@@ -154,23 +154,23 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
   }
 
   // UI Helpers
-  const getIcon = (level: string) => {
+  const getIcon = (level: string, size: number = 24) => {
     switch (level) {
       case 'ok': return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-green)' }}>
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-green)' }}>
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
           <polyline points="22 4 12 14.01 9 11.01"></polyline>
         </svg>
       );
       case 'warning': return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#ffcc00' }}>
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: '#ffcc00' }}>
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
           <line x1="12" y1="9" x2="12" y2="13"></line>
           <line x1="12" y1="17" x2="12.01" y2="17"></line>
         </svg>
       );
       case 'critical': return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-red)' }}>
+        <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-red)' }}>
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="15" y1="9" x2="9" y2="15"></line>
           <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -190,52 +190,88 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
   };
 
   return (
-    <div className="card glass-panel" style={{ padding: '2rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-        <h3 style={{ margin: 0, color: 'var(--color-gold)', fontFamily: 'var(--font-title)', fontSize: '1.5rem', letterSpacing: '0.05em' }}>Alertas de Oráculo</h3>
+    <div className="card glass-panel" style={{ padding: '1.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <h3 style={{ margin: 0, color: 'var(--color-gold)', fontFamily: 'var(--font-title)', fontSize: '1.25rem', letterSpacing: '0.05em' }}>Alertas de Oráculo</h3>
         <div style={{ height: '1px', flex: 1, background: 'linear-gradient(to right, rgba(212,175,55,0.3), transparent)' }}></div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', 
+        gap: '0.75rem' 
+      }}>
         {alerts.map((alert, i) => {
           const statusColor = getStatusColor(alert.level);
           return (
             <div key={i} className="premium-border" style={{
-                padding: '1.25rem',
-                borderRadius: '16px',
-                background: `${statusColor}0a`,
+                padding: '0.85rem 1rem',
+                borderRadius: '12px',
+                background: `${statusColor}08`,
                 display: 'flex',
-                gap: '1.25rem',
-                alignItems: 'flex-start',
+                gap: '1rem',
+                alignItems: 'center',
                 transition: 'all 0.3s ease',
-                animation: `slideIn 0.4s ease-out ${i * 0.1}s both`,
+                animation: `slideIn 0.4s ease-out ${i * 0.05}s both`,
                 position: 'relative',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                border: `1px solid ${statusColor}15`
             }}>
-              <div style={{ flexShrink: 0, width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 15px ${statusColor}22` }}>
-                {getIcon(alert.level)}
+              <div style={{ 
+                flexShrink: 0, 
+                width: '32px', 
+                height: '32px', 
+                borderRadius: '8px', 
+                background: 'rgba(0,0,0,0.3)', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                boxShadow: `0 0 10px ${statusColor}11` 
+              }}>
+                {getIcon(alert.level, 18)}
               </div>
               
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: '900', marginBottom: '0.4rem', color: statusColor, fontSize: '1rem', letterSpacing: '0.05em' }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ 
+                  fontWeight: '800', 
+                  color: statusColor, 
+                  fontSize: '0.85rem', 
+                  letterSpacing: '0.02em',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}>
                   {alert.title.toUpperCase()}
                 </div>
-                <div style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: alert.action || alert.progress ? '1rem' : 0 }}>
+                <div style={{ 
+                  fontSize: '0.8rem', 
+                  color: 'var(--text-secondary)', 
+                  opacity: 0.8,
+                  lineHeight: '1.3'
+                }}>
                   {alert.message}
                 </div>
                 
                 {alert.progress && (
-                  <div style={{ margin: '1rem 0', width: '100%' }}>
-                     <div style={{ height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        <div style={{ height: '100%', width: `${Math.min(100, (alert.progress.current / alert.progress.total) * 100)}%`, background: `linear-gradient(to right, ${statusColor}, ${statusColor}dd)`, boxShadow: `0 0 12px ${statusColor}66`, transition: 'width 0.6s cubic-bezier(0.4, 0, 0.2, 1)', borderRadius: 'inherit' }} />
+                  <div style={{ marginTop: '0.5rem', width: '100%' }}>
+                     <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ height: '100%', width: `${Math.min(100, (alert.progress.current / alert.progress.total) * 100)}%`, background: statusColor, boxShadow: `0 0 8px ${statusColor}44`, transition: 'width 0.6s ease' }} />
                      </div>
                   </div>
                 )}
 
                 {alert.action && (
-                  <div style={{ fontSize: '0.8rem', color: '#666', padding: '8px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', borderLeft: `2px solid ${statusColor}aa` }}>
-                    <span style={{ opacity: 0.7 }}>💡 Pista:</span>
-                    <span style={{ fontWeight: '500' }}>{alert.action}</span>
+                  <div style={{ 
+                    marginTop: '0.4rem', 
+                    fontSize: '0.7rem', 
+                    color: '#666', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.3rem',
+                    fontStyle: 'italic'
+                  }}>
+                    <span style={{ opacity: 0.5 }}>Pista:</span>
+                    <span style={{ color: '#888' }}>{alert.action}</span>
                   </div>
                 )}
               </div>

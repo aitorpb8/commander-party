@@ -8,6 +8,7 @@ import { useWishlist, WishlistCard } from '@/hooks/useWishlist';
 import WishlistColumn from './deck/wishlist/WishlistColumn';
 import { IconInbox } from '@/components/deck/wishlist/WishlistIcons';
 import { getCardPrints, getCollection } from '@/lib/scryfall';
+import styles from './deck/wishlist/Wishlist.module.css';
 
 interface WishlistProps { 
   deckId: string; 
@@ -85,7 +86,7 @@ export default function Wishlist({
   if (loading) return <div style={{ padding: '4rem', textAlign: 'center', color: 'var(--color-gold)' }}>🔄 Cargando planificador...</div>;
 
   return (
-    <div className="card glass-panel" style={{ borderTop: '4px solid var(--color-gold)', background: 'rgba(24, 24, 27, 0.4)', borderRadius: '24px' }}>
+    <div className={styles.plannerContainer}>
       <div style={{ marginBottom: '2.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
         <div>
           <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--color-gold)', fontSize: '1.5rem', fontFamily: 'var(--font-title)' }}>📅 Planificador de Mejoras</h3>
@@ -97,25 +98,14 @@ export default function Wishlist({
 
       {/* SEARCH BAR */}
       {isOwner && (
-        <div style={{ marginBottom: '2.5rem', position: 'relative' }}>
-          <div className="search-container-premium" style={{ position: 'relative' }}>
+        <div className={styles.searchContainer}>
+          <div style={{ position: 'relative' }}>
             <input 
               type="text" 
               value={query}
               onChange={e => setQuery(e.target.value)}
               placeholder="🔍 Busca una carta para añadir al Backlog..."
-              style={{ 
-                width: '100%', 
-                padding: '1.2rem 1.5rem 1.2rem 3.5rem', 
-                background: 'rgba(0,0,0,0.3)', 
-                border: '1px solid rgba(255,255,255,0.1)',
-                borderRadius: '16px',
-                color: '#fff',
-                fontSize: '1rem',
-                outline: 'none',
-                transition: 'all 0.3s'
-              }}
-              className="wishlist-search-input"
+              className={styles.searchInput}
             />
             <span style={{ position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '1.2rem' }}>🔍</span>
           </div>
@@ -160,23 +150,10 @@ export default function Wishlist({
       )}
 
       {/* HORIZONTAL PLANNING BOARD */}
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'row', 
-        gap: '1.5rem', 
-        overflowX: 'auto', 
-        paddingBottom: '1.5rem',
-        scrollSnapType: 'x mandatory',
-        margin: '0 -2rem', 
-        padding: '0 2rem 1.5rem',
-      }} className="custom-scrollbar">
+      <div className={styles.board}>
         
         {sortedKeys.length === 0 && (
-            <div style={{ 
-              width: '100%', textAlign: 'center', padding: '5rem 2rem', 
-              border: '2px dashed rgba(255,255,255,0.05)', borderRadius: '24px', 
-              color: '#444', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem'
-            }}>
+            <div className={styles.emptyState}>
                 <div style={{ fontSize: '3rem', opacity: 0.2 }}><IconInbox /></div>
                 <div style={{ maxWidth: '300px' }}>
                   {isOwner ? 'Tu planificador está vacío. Busca cartas arriba para empezar a organizar tus mejoras.' : 'Este jugador no tiene cartas en su Wishlist todavía.'}
@@ -208,22 +185,9 @@ export default function Wishlist({
 
       {/* VERSION PICKER MODAL */}
       {editingVersion && createPortal(
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.85)', zIndex: Z_INDEX_MODAL,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '1rem',
-          backdropFilter: 'blur(5px)'
-        }} onClick={() => setEditingVersion(null)}>
+        <div className={styles.modalOverlay} onClick={() => setEditingVersion(null)}>
           <div 
-            className="card glass-panel" 
-            style={{ 
-              maxWidth: '800px', width: '100%', maxHeight: '85vh', 
-              display: 'flex', flexDirection: 'column', 
-              padding: '2.5rem', border: '1px solid rgba(255,255,255,0.1)', 
-              boxShadow: '0 30px 70px rgba(0,0,0,0.9)',
-              borderRadius: '24px'
-            }}
+            className={styles.modalContent}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -233,7 +197,8 @@ export default function Wishlist({
               </div>
               <button onClick={() => setEditingVersion(null)} className="btn-close-premium">✕</button>
             </div>
-
+            
+            {/* ... rest of the version picker ... */}
             <input 
               type="text"
               placeholder="🔍 Filtra por edición (Zendikar, Collector, SLD...)"
@@ -288,22 +253,10 @@ export default function Wishlist({
 
       {/* SWAP MODAL */}
       {swapSelectionCard && createPortal(
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.85)', zIndex: Z_INDEX_MODAL + 10,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          padding: '1rem',
-          backdropFilter: 'blur(10px)'
-        }} onClick={() => setSwapSelectionCard(null)}>
+        <div className={styles.modalOverlay} onClick={() => setSwapSelectionCard(null)}>
           <div 
-            className="card glass-panel" 
-            style={{ 
-              maxWidth: '550px', width: '100%', maxHeight: '90vh', 
-              display: 'flex', flexDirection: 'column', 
-              padding: '2.5rem', border: '1px solid rgba(255,255,255,0.1)', 
-              boxShadow: '0 30px 80px rgba(0,0,0,0.9)',
-              borderRadius: '24px'
-            }}
+            className={styles.modalContent}
+            style={{ maxWidth: '550px' }}
             onClick={e => e.stopPropagation()}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -386,15 +339,15 @@ export default function Wishlist({
                  CANCELAR
                </button>
                <button 
-                 onClick={() => {
-                   updateSwap(swapSelectionCard.id, selectedCardOut);
-                   setSwapSelectionCard(null);
-                 }}
-                 className="btn-premium btn-premium-gold"
-                 style={{ flex: 2 }}
-               >
-                 GUARDAR CAMBIOS
-               </button>
+                  onClick={() => {
+                    updateSwap(swapSelectionCard.id, selectedCardOut);
+                    setSwapSelectionCard(null);
+                  }}
+                  className="btn-premium btn-premium-gold"
+                  style={{ flex: 2 }}
+                >
+                  GUARDAR CAMBIOS
+                </button>
             </div>
           </div>
         </div>,
@@ -433,7 +386,7 @@ export default function Wishlist({
           cancelText=""
           onConfirm={() => {
             setSuccessCount(null);
-            window.location.reload(); // Hard reload to ensure all components sync
+            window.location.reload();
           }}
           onCancel={() => setSuccessCount(null)}
         />

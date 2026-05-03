@@ -109,20 +109,26 @@ const WishlistCardItem: React.FC<WishlistCardItemProps> = ({
       {isOwner && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginLeft: 'auto', justifyContent: 'center', minWidth: '150px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <span style={{ fontSize: '0.65rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: 'bold' }}>PLANIFICAR</span>
+                <span style={{ fontSize: '0.6rem', color: '#666', textTransform: 'uppercase', letterSpacing: '1px', fontWeight: '900' }}>Planificar para:</span>
                 <select 
                     className="select-premium"
                     value={card.target_month || 'backlog'}
                     onChange={(e) => onUpdateMonth(card.id, e.target.value === 'backlog' ? null : e.target.value)}
                     style={{
-                        background: 'rgba(0,0,0,0.3)',
+                        background: 'rgba(0,0,0,0.4)',
                         border: '1px solid rgba(255,255,255,0.1)',
                         color: '#fff',
-                        borderRadius: '10px',
-                        padding: '8px 12px',
+                        borderRadius: '12px',
+                        padding: '10px 14px',
                         fontSize: '0.85rem',
                         outline: 'none',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        appearance: 'none',
+                        backgroundImage: 'url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23D4AF37%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22%2F%3E%3C%2Fsvg%3E")',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'right 12px center',
+                        backgroundSize: '10px'
                     }}
                 >
                     <option value="backlog">📥 Backlog</option>
@@ -142,19 +148,20 @@ const WishlistCardItem: React.FC<WishlistCardItemProps> = ({
                     style={{ 
                         flex: 1, 
                         padding: '10px 0', 
-                        background: card.card_out ? 'rgba(255,255,255,0.05)' : 'rgba(212, 175, 55, 0.1)', 
+                        background: card.card_out ? 'rgba(255,255,255,0.08)' : 'rgba(212, 175, 55, 0.15)', 
                         color: card.card_out ? '#fff' : 'var(--color-gold)', 
                         fontSize: '0.75rem', 
-                        border: `1px solid ${card.card_out ? 'rgba(255,255,255,0.1)' : 'rgba(212, 175, 55, 0.3)'}`, 
-                        borderRadius: '10px', 
+                        border: `1px solid ${card.card_out ? 'rgba(255,255,255,0.15)' : 'rgba(212, 175, 55, 0.4)'}`, 
+                        borderRadius: '12px', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center', 
-                        fontWeight: '800',
+                        fontWeight: '900',
                         textTransform: 'uppercase',
-                        letterSpacing: '0.5px',
+                        letterSpacing: '1px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                        boxShadow: card.card_out ? 'none' : '0 4px 15px rgba(212, 175, 55, 0.1)'
                     }}
                 >
                     {card.card_out ? '✏️ EDITAR' : <><IconSwap /> SUSTITUIR</>}
@@ -165,16 +172,16 @@ const WishlistCardItem: React.FC<WishlistCardItemProps> = ({
                     title="Eliminar del backlog"
                     style={{ 
                         padding: '10px 14px', 
-                        background: 'rgba(244, 67, 54, 0.05)', 
+                        background: 'rgba(239, 68, 68, 0.08)', 
                         color: 'var(--color-red)',
                         fontSize: '0.85rem', 
-                        border: '1px solid rgba(244, 67, 54, 0.2)', 
-                        borderRadius: '10px', 
+                        border: '1px solid rgba(239, 68, 68, 0.25)', 
+                        borderRadius: '12px', 
                         display: 'flex', 
                         alignItems: 'center', 
                         justifyContent: 'center',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
                     }}
                 >
                     <IconTrash />

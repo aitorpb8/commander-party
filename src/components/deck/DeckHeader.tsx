@@ -18,6 +18,7 @@ interface DeckHeaderProps {
   currentMonthSpent: number;
   effectiveMonthlyLimit: number;
   cards: DeckCard[];
+  children?: React.ReactNode;
 }
 
 export default function DeckHeader({
@@ -30,6 +31,7 @@ export default function DeckHeader({
   currentMonthSpent,
   effectiveMonthlyLimit,
   cards,
+  children,
 }: DeckHeaderProps) {
   const archetype = useMemo(() => getDeckArchetype(cards), [cards]);
   const remaining = effectiveMonthlyLimit - currentMonthSpent;
@@ -104,6 +106,7 @@ export default function DeckHeader({
             </span>
           </div>
         </div>
+        {children}
       </div>
     </div>
   );

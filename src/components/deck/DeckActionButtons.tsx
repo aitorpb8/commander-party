@@ -6,6 +6,7 @@ interface DeckActionButtonsProps {
   onCopyMejoras: () => void;
   onExportMazo: () => void;
   onSyncArchidekt: () => void;
+  onExportPro?: () => void;
 }
 
 export default function DeckActionButtons({
@@ -14,6 +15,7 @@ export default function DeckActionButtons({
   onCopyMejoras,
   onExportMazo,
   onSyncArchidekt,
+  onExportPro,
 }: DeckActionButtonsProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1rem' }}>
@@ -47,6 +49,19 @@ export default function DeckActionButtons({
           🔄 Sincronizar con Archidekt
         </button>
       )}
+      <button 
+        onClick={onExportPro} 
+        className="btn-premium btn-premium-gold" 
+        style={{ 
+          width: '100%', 
+          fontSize: '0.75rem', 
+          padding: '0.6rem',
+          fontWeight: 'bold',
+          marginTop: '4px'
+        }}
+      >
+        📸 Exportar Pro (PNG)
+      </button>
     </div>
   );
 }
