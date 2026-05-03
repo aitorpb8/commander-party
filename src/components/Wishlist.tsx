@@ -105,8 +105,9 @@ export default function Wishlist({
               type="text" 
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="🔍 Busca una carta para añadir al Backlog..."
+              placeholder="Busca una carta para añadir al Backlog..."
               className={styles.searchInput}
+              style={{ paddingLeft: '2.5rem' }}
             />
             <span style={{ position: 'absolute', left: '1.5rem', top: '50%', transform: 'translateY(-50%)', opacity: 0.5, fontSize: '1.2rem' }}>🔍</span>
           </div>
