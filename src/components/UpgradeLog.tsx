@@ -7,7 +7,7 @@ import ConfirmationDialog from './ConfirmationDialog';
 interface UpgradeLogProps {
   upgrades: DeckUpgrade[];
   currentDeckList: string[];
-  onAddUpgrade: (upgrade: Partial<DeckUpgrade>) => void;
+  onAddUpgrade: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<boolean | void> | void;
   onDeleteUpgrade: (id: string) => void;
   onUpdateUpgrade?: (id: string, updates: Partial<DeckUpgrade>) => void;
   initialCardIn?: string;

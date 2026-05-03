@@ -13,7 +13,7 @@ import styles from './deck/wishlist/Wishlist.module.css';
 interface WishlistProps { 
   deckId: string; 
   isOwner?: boolean;
-  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<void> | void;
+  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<boolean | void> | void;
   trendingPrices?: Record<string, number>;
   deckCards?: DeckCard[];
 }

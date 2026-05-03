@@ -17,7 +17,7 @@ export interface WishlistCard {
 
 interface UseWishlistProps {
   deckId: string;
-  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<void> | void;
+  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<boolean | void> | void;
   externalTrendingPrices?: Record<string, number>;
 }
 
@@ -201,17 +201,21 @@ export function useWishlist({ deckId, onUpdateDeck, externalTrendingPrices }: Us
             : { price: card.price || 0 };
 
           // Wait for the update to complete
-          await onUpdateDeck({
+          const success = await onUpdateDeck({
             card_in: cardIn,
             card_out: card.card_out || undefined,
             cost: price,
             description: `Añadido desde Wishlist (${monthKey})${card.card_out ? ` (Sustituye a ${card.card_out})` : ''}`
           });
           
-          // ONLY remove from wishlist if we successfully called onUpdateDeck
-          const { error } = await supabase.from('deck_wishlist').delete().eq('id', card.id);
-          if (!error) {
-            successCount++;
+          // ONLY remove from wishlist if we successfully called onUpdateDeck and it returned true
+          if (success) {
+            const { error } = await supabase.from('deck_wishlist').delete().eq('id', card.id);
+            if (!error) {
+              successCount++;
+            }
+          } else {
+             console.error(`Failed to add card ${card.card_name} to deck.`);
           }
         }
       } catch (err) {

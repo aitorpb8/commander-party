@@ -142,7 +142,7 @@ export default function DeckDetailPage() {
           cardDataIn = sc;
         } else {
           toast.error(`No se encontró la carta "${cardDataIn}" en Scryfall.`);
-          return;
+          return false;
         }
       }
 
@@ -156,7 +156,7 @@ export default function DeckDetailPage() {
         : (change.card_out?.name || change.card_out?.card_name || '');
 
       // 3. Seguridad: Si no hay carta de entrada ni de salida válida, abortamos
-      if (!cardNameIn && !cardNameOut) return;
+      if (!cardNameIn && !cardNameOut) return false;
 
       const preconCards = new Set((deck?.precon_cards || []).map(n => n.toLowerCase().trim()));
       const isPrecon = cardNameIn && preconCards.has(cardNameIn.toLowerCase().trim());
@@ -191,14 +191,23 @@ export default function DeckDetailPage() {
            delete (deckCard as any).id;
         }
 
-        await supabase.from('deck_cards').insert(deckCard);
+        // Strip out potentially non-existent DB columns just in case
+        const { set_code, set_name, collector_number, ...safeDeckCard } = deckCard as any;
+
+        const { error: insertError } = await supabase.from('deck_cards').insert(safeDeckCard);
+        if (insertError) {
+          console.error("Error inserting deck_card:", insertError);
+          throw insertError;
+        }
       }
 
       await fetchData(5, true);
       toast.success('Mazo actualizado correctamente');
+      return true;
     } catch (err: any) {
       console.error("Error en handleUpdateDeck:", err);
       toast.error('Error al actualizar el mazo');
+      return false;
     }
   };
 

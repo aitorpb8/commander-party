@@ -10,7 +10,7 @@ interface CardDetailsModalProps {
   onClose: () => void;
   isLoadingInfo: boolean;
   isOwner: boolean;
-  onUpdateDeck?: (change: { card_in?: any, card_out?: string, description?: string, quantity?: number, is_commander?: boolean, cost?: number }) => Promise<void> | void;
+  onUpdateDeck?: (change: { card_in?: any, card_out?: string, description?: string, quantity?: number, is_commander?: boolean, cost?: number }) => Promise<boolean | void> | void;
   onOpenVersionPicker: () => void;
   onEditTags: () => void;
   onRemoveCard: () => void;

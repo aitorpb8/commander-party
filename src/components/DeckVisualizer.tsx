@@ -27,7 +27,7 @@ import styles from './deck/visualizer/DeckVisualizer.module.css';
 interface DeckVisualizerProps {
   cards: DeckCard[];
   isOwner?: boolean;
-  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<void> | void;
+  onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<boolean | void> | void;
   preconCardNames?: Set<string>;
   deckId?: string;
   cardTags?: Record<string, string[]>;
