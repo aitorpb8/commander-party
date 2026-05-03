@@ -107,7 +107,15 @@ export default function DeckDetailPage() {
   const handleUpdateDeck = async (change: any) => {
     try {
       const month = new Date().toISOString().slice(0, 7);
-      const cardNameIn = typeof change.card_in === 'string' ? change.card_in : (change.card_in?.name || '');
+      let cardDataIn = change.card_in;
+      
+      // If card_in is just a name (string), try to fetch full data
+      if (typeof cardDataIn === 'string' && cardDataIn.length > 0) {
+        const sc = await getCardByName(cardDataIn);
+        if (sc) cardDataIn = sc;
+      }
+
+      const cardNameIn = typeof cardDataIn === 'string' ? cardDataIn : (cardDataIn?.name || '');
       const cardNameOut = typeof change.card_out === 'string' ? change.card_out : (change.card_out?.name || '');
       
       const preconCards = new Set((deck?.precon_cards || []).map(n => n.toLowerCase().trim()));
@@ -122,7 +130,7 @@ export default function DeckDetailPage() {
           cost: upgradeCost,
           month,
           description: change.description || null,
-          scryfall_id: typeof change.card_in === 'string' ? null : (change.card_in?.id || null)
+          scryfall_id: typeof cardDataIn === 'string' ? null : (cardDataIn?.id || null)
       });
       if (upgradeError) throw upgradeError;
 
@@ -131,8 +139,8 @@ export default function DeckDetailPage() {
         await supabase.from('deck_cards').delete().eq('deck_id', id).eq('card_name', cardNameOut);
       }
 
-      if (change.card_in && typeof change.card_in !== 'string') {
-        const deckCard = transformScryfallToDeckCard(change.card_in, id as string);
+      if (cardDataIn && typeof cardDataIn !== 'string') {
+        const deckCard = transformScryfallToDeckCard(cardDataIn, id as string);
         await supabase.from('deck_cards').insert(deckCard);
       }
 

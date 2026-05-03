@@ -53,22 +53,33 @@ export function DeckFilters({
 
   return (
     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-      {/* Group By */}
-      <div style={{ display: 'flex', gap: '0.25rem', background: '#111', padding: '4px', borderRadius: '8px' }}>
+      {/* Group By Selector */}
+      <div style={{ 
+          display: 'flex', 
+          gap: '2px', 
+          background: 'rgba(255, 255, 255, 0.03)', 
+          padding: '4px', 
+          borderRadius: '12px',
+          border: '1px solid rgba(255, 255, 255, 0.05)',
+          backdropFilter: 'blur(5px)'
+      }}>
         {(['type', 'cmc', 'color', 'function'] as GroupBy[]).map(g => (
           <button 
             key={g}
             onClick={() => setGroupBy(g)}
             style={{ 
-              padding: '4px 10px', 
+              padding: '6px 14px', 
               fontSize: '0.7rem', 
-              borderRadius: '6px', 
+              borderRadius: '8px', 
               border: 'none',
               background: groupBy === g ? 'var(--color-gold)' : 'transparent',
-              color: groupBy === g ? '#000' : '#888',
+              color: groupBy === g ? '#000' : '#666',
               cursor: 'pointer',
-              fontWeight: 'bold',
-              textTransform: 'uppercase'
+              fontWeight: '900',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              boxShadow: groupBy === g ? '0 4px 10px rgba(212, 175, 55, 0.3)' : 'none'
             }}
           >
             {g === 'function' ? 'Func' : g.toUpperCase()}

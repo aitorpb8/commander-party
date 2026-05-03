@@ -37,43 +37,48 @@ const VisualizerHeader: React.FC<VisualizerHeaderProps> = ({
   setShowFilters
 }) => {
   return (
-    <div className="visualizer-header">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
+    <div className="visualizer-header" style={{ marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', width: '100%' }}>
         
+        {/* Top Row: Title, Stats & Primary Actions */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-            <h2 className="premium-title">Editor Visual</h2>
+            <h2 className="premium-title" style={{ margin: 0 }}>Editor Visual</h2>
             <DeckStats cards={cards} />
           </div>
 
           <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
             <button 
               onClick={onShowPlaytest}
-              className="btn-action"
-              title="Probar Mazo"
+              className="btn-premium btn-premium-dark"
+              style={{ fontSize: '0.8rem', padding: '0.6rem 1.2rem' }}
             >
               🚀 Playtest
             </button>
             <button 
               onClick={onShare}
-              className={`btn-action ${shareStatus === 'copied' ? 'success' : ''}`}
+              className={`btn-premium ${shareStatus === 'copied' ? 'btn-premium-gold' : 'btn-premium-dark'}`}
+              style={{ fontSize: '0.8rem', padding: '0.6rem 1.2rem' }}
             >
               {shareStatus === 'copied' ? '✅ Copiado' : '🔗 Compartir'}
             </button>
           </div>
         </div>
         
-        <div className="filters-bar">
-          <DeckFilters 
-            groupBy={groupBy}
-            setGroupBy={setGroupBy}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-          />
+        {/* Bottom Row: Filters & Search */}
+        <div className="filters-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', width: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1 }}>
+            <DeckFilters 
+              groupBy={groupBy}
+              setGroupBy={setGroupBy}
+              sortBy={sortBy}
+              setSortBy={setSortBy}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+            />
+          </div>
 
-          <div className="search-group">
+          <div className="search-group" style={{ marginLeft: 'auto' }}>
             <input 
               type="text" 
               placeholder="Buscar carta..." 
