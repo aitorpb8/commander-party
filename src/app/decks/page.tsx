@@ -1,12 +1,9 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import DeckCard from '@/components/DeckCard';
 import DeckGridItem from '@/components/DeckGridItem';
 import Link from 'next/link';
 import { calculateDeckBudget } from '@/lib/budgetUtils';
-
-// Force revalidation on every request to show fresh budget data
-export const revalidate = 0;
+import styles from './DecksPage.module.css';
 
 export default async function DecksPage(props: { searchParams: Promise<{ user?: string }> }) {
   const searchParams = await props.searchParams;
@@ -28,8 +25,6 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
             );
           } catch {
             // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
           }
         },
       },
@@ -61,20 +56,20 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
   });
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ color: 'var(--color-gold)' }}>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>
           {filterUser ? 'Mazos del Jugador' : 'Explorar los Mazos de la Party'}
         </h1>
-        <Link href="/decks/new" className="btn btn-gold">Registrar Mi Mazo</Link>
+        <Link href="/decks/new" className="btn-premium btn-premium-gold">Registrar Mi Mazo</Link>
       </div>
 
       {!decks || decks.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '5rem', border: '1px dashed #444', borderRadius: '12px' }}>
-          <p style={{ color: '#888' }}>Aún no hay mazos en esta liga.</p>
+        <div className={styles.emptyState}>
+          <p className={styles.emptyText}>Aún no hay mazos en esta liga.</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))', gap: '2rem' }}>
+        <div className={styles.grid}>
           {decks.map((deck: any) => {
              const currentMonthSpent = monthlySpendMap.get(deck.id) || 0;
              const budgetInfo = calculateDeckBudget(deck.created_at, deck.budget_spent || 0);

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { searchCards, getAveragePrice, getCardPrints } from '@/lib/scryfall';
+import { searchCards, getAveragePrice, getCardPrints, getCollection } from '@/lib/scryfall';
 import { ScryfallCard, DeckCard } from '@/types';
 import ConfirmationDialog from './ConfirmationDialog';
 import TagEditor from '@/components/TagEditor';
@@ -16,9 +16,12 @@ import PreviewCardOverlay from '@/components/deck/PreviewCardOverlay';
 import { renderSymbols } from '@/components/ManaSymbols';
 import DeckFilterPanel, { AdvancedFilters } from '@/components/deck/DeckFilterPanel';
 import SyncCompleteModal from '@/components/deck/SyncCompleteModal';
-import { getCollection } from '@/lib/scryfall';
 import { createClient } from '@/lib/supabaseClient';
 import { calculateCMC, getCardFunction } from '@/lib/magicUtils';
+import { calculateCardCost, transformScryfallToDeckCard } from '@/lib/deckUtils';
+import VisualizerHeader from './deck/visualizer/VisualizerHeader';
+import CardItem from './deck/visualizer/CardItem';
+import { useDeckVisualizer } from '@/hooks/useDeckVisualizer';
 
 interface DeckVisualizerProps {
   cards: DeckCard[];
@@ -68,35 +71,19 @@ export default function DeckVisualizer({
   
   const [hoveredCard, setHoveredCard] = useState<DeckCard | null>(null);
 
-  // Add Card State
-  const [showAdd, setShowAdd] = useState(false);
-  const [addQuery, setAddQuery] = useState('');
+  // Visual & UI States
   const [activeInfoCard, setActiveInfoCard] = useState<DeckCard | null>(null);
-  const [modalFace, setModalFace] = useState(0);
+  const [fullCardData, setFullCardData] = useState<ScryfallCard | null>(null);
   const [isLoadingInfo, setIsLoadingInfo] = useState(false);
-  const [fullCardData, setFullCardData] = useState<any>(null);
-
-  // Version Selection State
+  const [isSearchingPrice, setIsSearchingPrice] = useState(false);
   const [editingVersion, setEditingVersion] = useState<DeckCard | null>(null);
   const [prints, setPrints] = useState<ScryfallCard[]>([]);
   const [loadingPrints, setLoadingPrints] = useState(false);
   const [versionFilter, setVersionFilter] = useState('');
-  const [showPlaytest, setShowPlaytest] = useState(false);
-
-  const [isSearchingPrice, setIsSearchingPrice] = useState(false);
-
-  const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
-  const [editingTags, setEditingTags] = useState<{ cardName: string, tags: string[] } | null>(null);
-  const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
-
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setShareStatus('copied');
-    setTimeout(() => setShareStatus('idle'), 2000);
-  };
   const [tagFilter, setTagFilter] = useState<string | null>(null);
-
-
+  const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
+  const [showPlaytest, setShowPlaytest] = useState(false);
+  const [editingTags, setEditingTags] = useState<{ cardName: string, tags: string[] } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
     type: '',
@@ -106,9 +93,35 @@ export default function DeckVisualizer({
     cmc: [0, 20]
   });
 
-  const [syncCount, setSyncCount] = useState<number | null>(null); // For success modal
-
+  const [syncCount, setSyncCount] = useState<number | null>(null);
   const [cardToRemove, setCardToRemove] = useState<DeckCard | null>(null);
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
+
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url);
+    setShareStatus('copied');
+    setTimeout(() => setShareStatus('idle'), 2000);
+  };
+
+  // Use the new hook for grouping and filtering logic
+  const {
+    filteredCards,
+    grouped,
+    distributedColumns,
+    categories,
+    sortCards,
+    columnCount
+  } = useDeckVisualizer({
+    cards,
+    groupBy,
+    sortBy,
+    filter,
+    tagFilter,
+    cardTags,
+    advancedFilters,
+    externalCmcFilter
+  });
 
   // Card Preview State
   const [previewCard, setPreviewCard] = useState<{ name: string, image: string, x: number, y: number } | null>(null);
@@ -172,22 +185,11 @@ export default function DeckVisualizer({
 
   const handleSelectVersion = async (card: ScryfallCard) => {
     if (!activeInfoCard) return;
-    const newImageUrl = card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '';
-    const newBackUrl = card.card_faces?.[1]?.image_uris?.normal || null;
-    const combinedOracle = card.oracle_text || card.card_faces?.map((f: any) => `${f.name}: ${f.oracle_text}`).join('\n\n') || null;
 
-    const updatedCard: DeckCard = { 
+    const updatedCard = { 
       ...activeInfoCard, 
-      scryfall_id: card.id,
-      image_url: newImageUrl,
-      back_image_url: newBackUrl,
-      oracle_text: combinedOracle,
-      set_code: card.set,
-      set_name: card.set_name,
-      type_line: card.type_line || '',
-      mana_cost: card.mana_cost || null,
-      collector_number: card.collector_number
-    };
+      ...transformScryfallToDeckCard(card, deckId as string, activeInfoCard.is_commander)
+    } as DeckCard;
 
     setActiveInfoCard(updatedCard);
     
@@ -208,65 +210,7 @@ export default function DeckVisualizer({
 
 
 
-  const filteredCards = cards.filter(card => {
-    // 0. External CMC Filter (from Graph)
-    if (externalCmcFilter !== null) {
-      const cardCmc = calculateCMC(card.mana_cost);
-      if (externalCmcFilter === 7) {
-        if (cardCmc < 7) return false;
-      } else {
-        if (cardCmc !== externalCmcFilter) return false;
-      }
-    }
 
-    // 1. Basic Text Filter
-    const matchesSearch = card.card_name.toLowerCase().includes(filter.toLowerCase());
-    const matchesTag = !tagFilter || (cardTags[card.card_name] && cardTags[card.card_name].includes(tagFilter));
-
-    if (!matchesSearch || !matchesTag) return false;
-
-
-    // 2. Advanced Filters
-    // Type
-    if (advancedFilters.type && !((card.type_line || '').toLowerCase().includes(advancedFilters.type.toLowerCase()))) {
-      return false;
-    }
-    // Text
-    if (advancedFilters.text && !((card.oracle_text || '').toLowerCase().includes(advancedFilters.text.toLowerCase()))) {
-      return false;
-    }
-    // Edition
-    if (advancedFilters.edition && card.set_code !== advancedFilters.edition) {
-      return false;
-    }
-    // CMC (Min check mainly, strict range if UI implemented)
-    // For now we assume default [0, 20] means "all"
-    
-    // Color
-    if (advancedFilters.colors.length > 0) {
-       const mc = card.mana_cost || '';
-       const cardColors: string[] = [];
-       if (mc.includes('W')) cardColors.push('W');
-       if (mc.includes('U')) cardColors.push('U');
-       if (mc.includes('B')) cardColors.push('B');
-       if (mc.includes('R')) cardColors.push('R');
-       if (mc.includes('G')) cardColors.push('G');
-       if (cardColors.length === 0) cardColors.push('C');
-       
-       // Intersection: Does card have ANY of the selected colors?
-       // Let's go with: Card must contain at least one of the selected colors.
-       // Special case: Colorless ('C') selected -> Card must be colorless.
-       
-       if (advancedFilters.colors.includes('C')) {
-          if (cardColors.includes('C')) return true; // Keep it
-       }
-
-       const hasMatch = advancedFilters.colors.some(c => cardColors.includes(c));
-       if (!hasMatch) return false;
-    }
-
-    return true;
-  });
 
 
 
@@ -296,108 +240,26 @@ export default function DeckVisualizer({
 
 
 
-  const categories: { [key in GroupBy]: string[] } = {
-    type: ['Commander', 'Creature', 'Planeswalker', 'Sorcery', 'Instant', 'Artifact', 'Enchantment', 'Battle', 'Land', 'Other'],
-    cmc: ['0', '1', '2', '3', '4', '5', '6+'],
-    color: ['White', 'Blue', 'Black', 'Red', 'Green', 'Multicolor', 'Colorless'],
-    function: ['Commander', 'Ramp', 'Draw', 'Removal', 'Board Wipe', 'Other']
-  };
 
-  const grouped: { [key: string]: DeckCard[] } = {};
-
-  filteredCards.forEach(card => {
-    let key = 'Other';
-    
-    if (groupBy === 'type') {
-      const typeLine = (card.type_line || '').toLowerCase();
-      if (card.is_commander) key = 'Commander';
-      else if (typeLine.includes('creature')) key = 'Creature';
-      else if (typeLine.includes('planeswalker')) key = 'Planeswalker';
-      else if (typeLine.includes('sorcery')) key = 'Sorcery';
-      else if (typeLine.includes('instant')) key = 'Instant';
-      else if (typeLine.includes('artifact')) key = 'Artifact';
-      else if (typeLine.includes('enchantment')) key = 'Enchantment';
-      else if (typeLine.includes('battle')) key = 'Battle';
-      else if (typeLine.includes('land')) key = 'Land';
-      else key = 'Other';
-    } else if (groupBy === 'cmc') {
-      const cmc = calculateCMC(card.mana_cost);
-      key = cmc >= 6 ? '6+' : cmc.toString();
-    } else if (groupBy === 'color') {
-      const mc = card.mana_cost || '';
-      const colors = [];
-      if (mc.includes('W')) colors.push('White');
-      if (mc.includes('U')) colors.push('Blue');
-      if (mc.includes('B')) colors.push('Black');
-      if (mc.includes('R')) colors.push('Red');
-      if (mc.includes('G')) colors.push('Green');
-      
-      if (colors.length > 1) key = 'Multicolor';
-      else if (colors.length === 1) key = colors[0];
-      else key = 'Colorless';
-    } else if (groupBy === 'function') {
-      if (card.is_commander) key = 'Commander';
-      else key = getCardFunction(card);
-    }
-
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(card);
-  });
 
   const isGameChangerValue = (cardName: string) => {
     return BRACKETS.some(b => b.name === cardName && b.reason === 'Game Changer');
   };
 
-  const sortCards = (list: DeckCard[]) => {
-    return [...list].sort((a, b) => {
-      if (sortBy === 'cmc') {
-         const costA = calculateCMC(a.mana_cost);
-         const costB = calculateCMC(b.mana_cost);
-         if (costA !== costB) return costA - costB;
-      }
-      return a.card_name.localeCompare(b.card_name);
-    });
-  };
+
 
 
 
   const handleAddCard = async (scryfallCard: ScryfallCard) => {
     setIsSearchingPrice(true);
     try {
-      let finalPrice = 0;
-      let priceDescription = 'Añadida desde editor visual';
-
-      const scryName = scryfallCard.name.toLowerCase();
-      const isPrecon = preconCardNames.has(scryName);
-      const isOwned = userCollection.has(scryName);
-      
-      const isBasic = scryfallCard.type_line?.includes('Basic Land');
-
-      if (isPrecon) {
-        finalPrice = 0;
-        priceDescription = 'Añadida desde base original (0€)';
-      } else if (isOwned) {
-        finalPrice = 0;
-        priceDescription = 'Carta de tu colección personal (0€)';
-      } else if (isBasic) {
-        finalPrice = 0;
-        priceDescription = 'Tierra básica (0€)';
-      } else if (scryfallCard.prices?.eur) {
-        finalPrice = parseFloat(scryfallCard.prices.eur) || 0;
-        priceDescription = `Precio Cardmarket (${scryfallCard.set_name || scryfallCard.set.toUpperCase()})`;
-      } else {
-        const avgData = await getAveragePrice(scryfallCard.name);
-        finalPrice = avgData?.price || 0;
-        if (avgData) {
-          priceDescription = `Precio Estimado (Media versiones baratas: ${avgData.sets.join(', ')})`;
-        }
-      }
+      const { price, description } = await calculateCardCost(scryfallCard, preconCardNames, userCollection);
 
       if (onUpdateDeck) {
         await onUpdateDeck({ 
           card_in: scryfallCard,
-          cost: finalPrice,
-          description: priceDescription
+          cost: price,
+          description: description
         });
       }
     } catch (e) {
@@ -431,80 +293,9 @@ export default function DeckVisualizer({
 
 
 
-  // --- FIXED COLUMN MASONRY LOGIC ---
-  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
-
-  useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const getColumnCount = (width: number) => {
-    if (width < 700) return 1;
-    if (width < 1000) return 2;
-    if (width < 1300) return 3;
-    if (width < 1600) return 4;
-    if (width < 1900) return 5;
-    return 6;
-  };
-
-
-
-  const columnCount = getColumnCount(windowWidth);
-
-  // Distribute categories into fixed columns (Greedy Algorithm)
-  const distributeStacks = () => {
-    // 1. Identify "Commander" items and remove them from general pool
-    const allCats = [...categories[groupBy]].filter(catName => (grouped[catName] || []).length > 0);
-    
-    // Normalize checking for "Commander" or "Comandante"
-    const cmdIndex = allCats.findIndex(c => c.toLowerCase() === 'commander' || c.toLowerCase() === 'comandante');
-    let cmdCategory = null;
-
-    if (cmdIndex !== -1) {
-       cmdCategory = allCats[cmdIndex];
-       allCats.splice(cmdIndex, 1);
-    }
-
-    // 2. Sort remaining by size (descending)
-    const activeCategories = allCats.sort((a, b) => { 
-         const countA = (grouped[a] || []).reduce((acc, c) => acc + c.quantity, 0);
-         const countB = (grouped[b] || []).reduce((acc, c) => acc + c.quantity, 0);
-         return countB - countA;
-      });
-
-    const columns: string[][] = Array.from({ length: columnCount }, () => []);
-    const columnWeights = new Array(columnCount).fill(0);
-
-    // 3. Force Commander to Column 0 (Top Left)
-    if (cmdCategory) {
-        columns[0].push(cmdCategory);
-        const count = grouped[cmdCategory].reduce((acc, c) => acc + c.quantity, 0);
-        columnWeights[0] += (count + 5); 
-    }
-
-    // 4. Distribute the rest greedily
-    activeCategories.forEach((catName) => {
-        // Find lightest column
-        let minWeight = columnWeights[0];
-        let minIdx = 0;
-        for (let i = 1; i < columnCount; i++) {
-            if (columnWeights[i] < minWeight) {
-                minWeight = columnWeights[i];
-                minIdx = i;
-            }
-        }
-        // Add cat to this column
-        columns[minIdx].push(catName);
-        const count = grouped[catName].reduce((acc, c) => acc + c.quantity, 0);
-        columnWeights[minIdx] += (count + 5);
-    });
-    
-    return columns;
-  };
-
-  const distributedColumns = distributeStacks();
+  // Stacks distributed via hook logic
+  // columnCount also provided by hook
+  const isOwnerAndDeck = isOwner && deckId;
 
   return (
     <div className="card deck-builder-container" style={{ 
@@ -519,71 +310,22 @@ export default function DeckVisualizer({
     }}>
       
       {/* Header Section */}
-      <div className="visualizer-header">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-          
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.2rem' }}>
-              <h2 className="premium-title">Editor Visual</h2>
-              <DeckStats cards={cards} />
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
-              <button 
-                onClick={() => setShowPlaytest(true)}
-                className="btn-action"
-                title="Probar Mazo"
-              >
-                🚀 Playtest
-              </button>
-              <button 
-                onClick={handleShare}
-                className={`btn-action ${shareStatus === 'copied' ? 'success' : ''}`}
-              >
-                {shareStatus === 'copied' ? '✅ Copiado' : '🔗 Compartir'}
-              </button>
-            </div>
-          </div>
-          
-          <div className="filters-bar">
-            <DeckFilters 
-              groupBy={groupBy}
-              setGroupBy={setGroupBy}
-              sortBy={sortBy}
-              setSortBy={setSortBy}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-            />
-
-            <div className="search-group">
-              <input 
-                type="text" 
-                placeholder="Buscar carta..." 
-                value={filter}
-                onChange={e => setFilter(e.target.value)}
-                className="search-input"
-              />
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`filter-toggle ${showFilters ? 'active' : ''}`}
-                title="Filtros Avanzados"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="4" y1="21" x2="4" y2="14"></line>
-                  <line x1="4" y1="10" x2="4" y2="3"></line>
-                  <line x1="12" y1="21" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12" y2="3"></line>
-                  <line x1="20" y1="21" x2="20" y2="16"></line>
-                  <line x1="20" y1="12" x2="20" y2="3"></line>
-                  <line x1="1" y1="14" x2="7" y2="14"></line>
-                  <line x1="9" y1="8" x2="15" y2="8"></line>
-                  <line x1="17" y1="16" x2="23" y2="16"></line>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <VisualizerHeader 
+        cards={cards}
+        onShowPlaytest={() => setShowPlaytest(true)}
+        onShare={handleShare}
+        shareStatus={shareStatus}
+        groupBy={groupBy}
+        setGroupBy={setGroupBy}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        filter={filter}
+        setFilter={setFilter}
+        showFilters={showFilters}
+        setShowFilters={setShowFilters}
+      />
             {showFilters && (
               <DeckFilterPanel 
                 cards={cards} // Pass all cards to calculate available sets
@@ -735,7 +477,11 @@ export default function DeckVisualizer({
                     const totalInCat = list.reduce((acc, c) => acc + c.quantity, 0);
 
                     return (
-                        <div key={catName} className="stack-column-premium">
+                        <div key={catName} className="stack-column-premium" style={{ 
+                          flex: '0 0 280px', 
+                          contentVisibility: 'auto', 
+                          containIntrinsicSize: '280px 800px' 
+                        }}>
                           <h4 className="stack-header">
                             <span className="stack-title">{catName}</span>
                             <span className="stack-count">{totalInCat}</span>
@@ -748,8 +494,16 @@ export default function DeckVisualizer({
                                       const isHovered = hoveredCard === card;
                                       
                                       return (
-                                        <div 
+                                        <CardItem 
                                           key={`${card.card_name}-${idx}`}
+                                          card={card}
+                                          idx={idx}
+                                          isLast={isLast}
+                                          isHovered={isHovered}
+                                          isFlipped={flippedCards.has(card.card_name)}
+                                          isGC={isGC}
+                                          isOwner={isOwner}
+                                          userCollection={userCollection}
                                           onClick={() => setActiveInfoCard(card)}
                                           onMouseEnter={(e) => {
                                             setHoveredCard(card);
@@ -759,261 +513,21 @@ export default function DeckVisualizer({
                                             setHoveredCard(null);
                                             stopHoverTimer();
                                           }}
-                                          style={{ 
-                                            width: '100%',
-                                            maxWidth: '260px', 
-                                            margin: '0 auto', 
-                                            aspectRatio: '63 / 88',
-                                            marginBottom: isLast 
-                                              ? '0' 
-                                              : isHovered 
-                                                ? '8px'
-                                                : 'calc(-88 / 63 * 100% + 42px)', 
-                                            background: 'transparent',
-                                            borderRadius: '12px',
-                                            position: 'relative',
-                                            zIndex: idx, 
-                                            cursor: 'pointer',
-                                            transition: 'all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1)',
-                                            overflow: 'visible',
-                                            transform: isHovered ? 'translateY(-5px) scale(1.02)' : 'none', 
-                                            boxShadow: isHovered ? '0 20px 40px rgba(0,0,0,0.6)' : 'none'
-                                          }}
-                                          className={`card-slice ${isGC ? 'is-game-changer' : ''}`}
-                                        >
-                                         {/* Game Changer Badge */}
-                                        {isGC && (
-                                          <div className="game-changer-badge" title="Game Changer">
-                                            <span>⚡</span>
-                                          </div>
-                                        )}
-
-                                        {/* 3D Flip Card Container */}
-                                        <div className="card-3d-container">
-                                          <div className={`card-3d-inner ${flippedCards.has(card.card_name) ? 'is-flipped' : ''}`}>
-                                            {/* Front Face */}
-                                            <div className="card-3d-front">
-                                              {card.image_url ? (
-                                                <img 
-                                                  src={card.image_url} 
-                                                  alt={card.card_name}
-                                                  style={{ width: '100%', height: '100%', objectFit: 'fill' }}
-                                                />
-                                              ) : (
-                                                <div style={{ width: '100%', height: '100%', background: '#111', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontWeight: 'bold' }}>
-                                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                                    <span style={{ color: isGC ? 'var(--color-gold)' : 'white' }}>{card.card_name}</span>
-                                                    {userCollection.has(card.card_name.toLowerCase()) && (
-                                                      <span title="En tu colección personal" style={{ fontSize: '0.8rem' }}>📦</span>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              )}
-                                            </div>
-
-                                            {/* Back Face */}
-                                            <div className="card-3d-back">
-                                              {card.back_image_url ? (
-                                                <img 
-                                                  src={card.back_image_url} 
-                                                  alt={`${card.card_name} (back)`}
-                                                  style={{ width: '100%', height: '100%', objectFit: 'fill' }}
-                                                />
-                                              ) : (
-                                                <div style={{ width: '100%', height: '100%', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#333' }}>
-                                                  <div style={{ width: '80%', height: '80%', border: '4px solid #1a1a1a', borderRadius: '12px' }}></div>
-                                                </div>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-
-                                        {/* Corner Quantity Indicator */}
-                                        <div style={{
-                                            position: 'absolute', top: 0, left: 0,
-                                            padding: '4px 8px',
-                                            background: 'rgba(30, 30, 30, 0.9)',
-                                            color: '#fff',
-                                            fontSize: '0.8rem',
-                                            fontWeight: 'bold',
-                                            borderBottomRightRadius: '8px',
-                                            zIndex: 3,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '2px'
-                                        }}>
-                                            {card.quantity}
-                                        </div>
-
-                                        {/* Flip Button */}
-                                        {(card.back_image_url || (card.type_line?.includes('//') || card.card_name.includes('//'))) && (
-                                          <div style={{ 
-                                            position: 'absolute', top: '50%', left: '12px', 
-                                            transform: 'translateY(-50%)',
-                                            zIndex: 5,
-                                            opacity: (isLast || isHovered) ? 1 : 0,
-                                            transition: 'opacity 0.2s',
-                                            pointerEvents: (isLast || isHovered) ? 'auto' : 'none'
-                                          }}>
-                              <button 
-                                                onClick={(e) => { e.stopPropagation(); handleFlip(card); }}
-                                                className="flip-btn-premium"
-                                                style={{ 
-                                                    width: '42px', height: '42px', 
-                                                    background: 'rgba(20, 20, 20, 0.6)', 
-                                                    backdropFilter: 'blur(4px)',
-                                                    color: 'var(--color-gold)', 
-                                                    border: '1px solid var(--color-gold)', 
-                                                    borderRadius: '50%',
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-                                                    transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                  e.currentTarget.style.transform = 'scale(1.15) rotate(180deg)';
-                                                  e.currentTarget.style.background = 'var(--color-gold)';
-                                                  e.currentTarget.style.color = '#000';
-                                                  e.currentTarget.style.boxShadow = '0 0 20px rgba(212, 175, 55, 0.4)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                  e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-                                                  e.currentTarget.style.background = 'rgba(20, 20, 20, 0.6)';
-                                                  e.currentTarget.style.color = 'var(--color-gold)';
-                                                  e.currentTarget.style.boxShadow = '0 4px 15px rgba(0,0,0,0.5)';
-                                                }}
-                                                title="Voltear carta (DFC)"
-                                              >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                                                  <path d="M3 3v5h5"/>
-                                                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
-                                                  <path d="M16 16h5v5"/>
-                                                </svg>
-                                              </button>
-                                          </div>
-                                        )}
-
-                                        {/* Vertical Control Sidebar */}
-                                        <div style={{ 
-                                          position: 'absolute', top: '50%', right: '12px', 
-                                          transform: 'translateY(-50%)',
-                                          display: 'flex', flexDirection: 'column', gap: '0', 
-                                          zIndex: 5,
-                                          opacity: (isLast || isHovered) ? 1 : 0, 
-                                          transition: 'opacity 0.2s',
-                                          pointerEvents: (isLast || isHovered) ? 'auto' : 'none',
-                                          boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
-                                          borderRadius: '10px',
-                                          overflow: 'hidden',
-                                          border: '2px solid rgba(255,255,255,0.9)'
-                                        }}>
-                                             <button 
-                                                onClick={(e) => { 
-                                                    e.stopPropagation(); 
-                                                    handleAddCard({ 
-                                                        name: card.card_name, 
-                                                        type_line: card.type_line, 
-                                                        mana_cost: card.mana_cost,
-                                                        image_uris: { normal: card.image_url },
-                                                        prices: { eur: '0' }
-                                                    } as any); 
-                                                }}
-                                                style={{ 
-                                                    width: '44px', height: '44px', 
-                                                    background: 'rgba(0,0,0,0.9)', color: '#fff', 
-                                                    border: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)',
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: '1.4rem', fontWeight: 'bold',
-                                                    transition: 'background 0.2s, transform 0.1s'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                  e.currentTarget.style.background = 'var(--color-green)';
-                                                  e.currentTarget.style.transform = 'scale(1.1)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                  e.currentTarget.style.background = 'rgba(0,0,0,0.9)';
-                                                  e.currentTarget.style.transform = 'scale(1)';
-                                                }}
-                                                title="Añadir una"
-                                             >
-                                                +
-                                             </button>
-                                             <button 
-                                                onClick={(e) => { e.stopPropagation(); handleRemoveCard(card); }}
-                                                style={{ 
-                                                    width: '44px', height: '44px', 
-                                                    background: 'rgba(0,0,0,0.9)', color: '#fff', 
-                                                    border: 'none', borderBottom: '1px solid rgba(255,255,255,0.1)',
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: '1.4rem', fontWeight: 'bold',
-                                                    transition: 'background 0.2s, transform 0.1s'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                  e.currentTarget.style.background = 'var(--color-red)';
-                                                  e.currentTarget.style.transform = 'scale(1.1)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                  e.currentTarget.style.background = 'rgba(0,0,0,0.9)';
-                                                  e.currentTarget.style.transform = 'scale(1)';
-                                                }}
-                                                title="Quitar una"
-                                             >
-                                                -
-                                             </button>
-                                             <button 
-                                                onClick={(e) => { e.stopPropagation(); setActiveInfoCard(card); }}
-                                                style={{ 
-                                                    width: '44px', height: '44px', 
-                                                    background: 'rgba(20,20,20,0.95)', color: 'var(--color-gold)', 
-                                                    border: 'none',
-                                                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                    fontSize: '1.2rem',
-                                                    transition: 'background 0.2s, transform 0.1s'
-                                                }}
-                                                onMouseEnter={(e) => {
-                                                  e.currentTarget.style.background = '#333';
-                                                  e.currentTarget.style.transform = 'scale(1.1)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                  e.currentTarget.style.background = 'rgba(20,20,20,0.95)';
-                                                  e.currentTarget.style.transform = 'scale(1)';
-                                                }}
-                                                title="Ver detalles y arte"
-                                             >
-                                                ✨
-                                             </button>
-                                             {isOwner && deckId && (
-                                               <button 
-                                                  onClick={(e) => { 
-                                                    e.stopPropagation(); 
-                                                    setEditingTags({ 
-                                                      cardName: card.card_name, 
-                                                      tags: cardTags[card.card_name] || [] 
-                                                    }); 
-                                                  }}
-                                                  style={{ 
-                                                      width: '44px', height: '44px', 
-                                                      background: 'rgba(20,20,20,0.95)', color: 'var(--color-gold)', 
-                                                      border: 'none',
-                                                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                                      fontSize: '1.2rem',
-                                                      transition: 'background 0.2s, transform 0.1s'
-                                                  }}
-                                                  onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = '#333';
-                                                    e.currentTarget.style.transform = 'scale(1.1)';
-                                                  }}
-                                                  onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = 'rgba(20,20,20,0.95)';
-                                                    e.currentTarget.style.transform = 'scale(1)';
-                                                  }}
-                                                  title="Etiquetar carta"
-                                               >
-                                                  🏷️
-                                               </button>
-                                             )}
-                                        </div>
-                                      </div>
+                                          onFlip={(e) => { e.stopPropagation(); handleFlip(card); }}
+                                          onAddOne={() => handleAddCard({ 
+                                              name: card.card_name, 
+                                              type_line: card.type_line, 
+                                              mana_cost: card.mana_cost,
+                                              image_uris: { normal: card.image_url },
+                                              prices: { eur: '0' }
+                                          } as any)}
+                                          onRemove={() => handleRemoveCard(card)}
+                                          onEditTags={() => setEditingTags({ 
+                                            cardName: card.card_name, 
+                                            tags: cardTags[card.card_name] || [] 
+                                          })}
+                                          onShowInfo={() => setActiveInfoCard(card)}
+                                        />
                                       );
                                     })}
                                   </div>
@@ -1047,9 +561,19 @@ export default function DeckVisualizer({
                     <div className="grid-cards-container">
                       {sortedList.map((card, idx) => {
                         const isGC = isGameChangerValue(card.card_name);
+                        const isHovered = hoveredCard === card;
                         return (
-                          <div 
+                          <CardItem 
                             key={`${card.card_name}-${idx}`}
+                            card={card}
+                            idx={idx}
+                            isLast={true}
+                            isHovered={isHovered}
+                            isFlipped={flippedCards.has(card.card_name)}
+                            isGC={isGC}
+                            isOwner={isOwner}
+                            viewMode="grid"
+                            userCollection={userCollection}
                             onClick={() => setActiveInfoCard(card)}
                             onMouseEnter={(e) => {
                               setHoveredCard(card);
@@ -1059,27 +583,21 @@ export default function DeckVisualizer({
                               setHoveredCard(null);
                               stopHoverTimer();
                             }}
-                            className={`grid-card-item ${isGC ? 'is-game-changer' : ''}`}
-                          >
-                             {isGC && (
-                               <div className="game-changer-badge" title="Game Changer">
-                                 <span>⚡</span>
-                                </div>
-                             )}
-                             <div className="card-wrapper-premium">
-                               <img 
-                                 src={card.image_url || ''} 
-                                 alt={card.card_name}
-                                 className="premium-card-img"
-                               />
-                               <div className="card-qty-badge">
-                                 <span>x{card.quantity}</span>
-                                 {userCollection.has(card.card_name.toLowerCase()) && (
-                                   <span title="En tu colección" style={{ color: '#60a5fa', fontSize: '10px' }}>📦</span>
-                                 )}
-                               </div>
-                             </div>
-                          </div>
+                            onFlip={(e) => { e.stopPropagation(); handleFlip(card); }}
+                            onAddOne={() => handleAddCard({ 
+                                name: card.card_name, 
+                                type_line: card.type_line, 
+                                mana_cost: card.mana_cost,
+                                image_uris: { normal: card.image_url },
+                                prices: { eur: '0' }
+                            } as any)}
+                            onRemove={() => handleRemoveCard(card)}
+                            onEditTags={() => setEditingTags({ 
+                              cardName: card.card_name, 
+                              tags: cardTags[card.card_name] || [] 
+                            })}
+                            onShowInfo={() => setActiveInfoCard(card)}
+                          />
                         );
                       })}
                     </div>
@@ -1526,122 +1044,6 @@ export default function DeckVisualizer({
           padding-bottom: 1rem;
         }
 
-        .card-slice {
-          position: relative;
-        }
-
-        .card-slice::after {
-          content: '';
-          position: absolute;
-          inset: 0;
-          border-radius: 12px;
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), inset 0 -1px 1px rgba(0,0,0,0.4);
-          pointer-events: none;
-          z-index: 2;
-        }
-
-        .card-slice.is-game-changer::before {
-          content: '';
-          position: absolute;
-          inset: -2px;
-          background: linear-gradient(45deg, var(--color-gold), transparent, var(--color-gold));
-          border-radius: 14px;
-          z-index: -1;
-          opacity: 0.5;
-          filter: blur(8px);
-          animation: goldGlow 3s infinite alternate;
-        }
-
-        @keyframes goldGlow {
-          from { opacity: 0.3; filter: blur(4px); }
-          to { opacity: 0.7; filter: blur(12px); }
-        }
-
-        .masonry-layout-premium {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 2.5rem;
-          padding: 1rem 0;
-        }
-
-        .grid-category-block {
-          background: rgba(255, 255, 255, 0.02);
-          padding: 1.5rem;
-          border-radius: 20px;
-          border: 1px solid rgba(255, 255, 255, 0.04);
-          transition: all 0.3s;
-        }
-
-        .grid-category-block:hover {
-          background: rgba(255, 255, 255, 0.04);
-          border-color: rgba(212, 175, 55, 0.2);
-        }
-
-        .grid-cards-container {
-          display: flex;
-          flex-direction: column;
-          gap: 1.2rem;
-        }
-
-        .grid-card-item {
-          width: 100%;
-          aspect-ratio: 63 / 88;
-          position: relative;
-          cursor: pointer;
-          transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-
-        .grid-card-item:hover {
-          transform: translateY(-8px) scale(1.03) rotate(2deg);
-          z-index: 10;
-        }
-
-        .card-wrapper-premium {
-          width: 100%;
-          height: 100%;
-          border-radius: 12px;
-          overflow: hidden;
-          box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-          border: 1px solid rgba(255,255,255,0.1);
-          position: relative;
-        }
-
-        .premium-card-img {
-          width: 100%;
-          height: 100%;
-          object-fit: fill;
-          transition: transform 0.6s;
-        }
-
-        .grid-card-item:hover .premium-card-img {
-          transform: scale(1.1);
-        }
-
-        .card-qty-badge {
-          position: absolute;
-          top: 0;
-          left: 0;
-          padding: 4px 10px;
-          background: rgba(0,0,0,0.85);
-          backdrop-filter: blur(4px);
-          color: #fff;
-          font-size: 0.8rem;
-          font-weight: 800;
-          border-bottom-right-radius: 10px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          border: 1px solid rgba(255,255,255,0.1);
-          border-top: none;
-          border-left: none;
-        }
-
-        .flip-btn-premium:hover {
-          transform: translateY(-50%) scale(1.15) rotate(180deg) !important;
-          background: var(--color-gold) !important;
-          color: #000 !important;
-          box-shadow: 0 0 20px rgba(212, 175, 55, 0.6) !important;
-        }
       `}</style>
       <PlaytestModal 
         isOpen={showPlaytest} 

@@ -20,6 +20,7 @@ import DeckVisualizer from '@/components/DeckVisualizer';
 import TagStats from '@/components/TagStats';
 import DeckAlerts from '@/components/DeckAlerts';
 import { calculateDeckBudget } from '@/lib/budgetUtils';
+import { transformScryfallToDeckCard } from '@/lib/deckUtils';
 import ConfirmationDialog from '@/components/ConfirmationDialog';
 
 export default function DeckDetailPage() {
@@ -131,23 +132,8 @@ export default function DeckDetailPage() {
       }
 
       if (change.card_in && typeof change.card_in !== 'string') {
-        const sc: ScryfallCard = change.card_in;
-        const imageUrl = sc.image_uris?.normal || sc.card_faces?.[0]?.image_uris?.normal || '';
-        const backImageUrl = sc.card_faces?.[1]?.image_uris?.normal || null;
-        const oracleText = sc.oracle_text || sc.card_faces?.map(f => `${f.name}: ${f.oracle_text}`).join('\n\n') || null;
-
-        await supabase.from('deck_cards').insert({
-          deck_id: id,
-          card_name: sc.name,
-          quantity: 1,
-          is_commander: false,
-          type_line: sc.type_line,
-          mana_cost: sc.mana_cost || sc.card_faces?.[0]?.mana_cost || null,
-          image_url: imageUrl,
-          back_image_url: backImageUrl,
-          oracle_text: oracleText,
-          scryfall_id: sc.id
-        });
+        const deckCard = transformScryfallToDeckCard(change.card_in, id as string);
+        await supabase.from('deck_cards').insert(deckCard);
       }
 
       await fetchData(5, true);
@@ -375,7 +361,12 @@ export default function DeckDetailPage() {
 
       <div className={styles.fullWidthRow} style={{ marginTop: '3rem' }}>
          <h2 style={{ marginBottom: '1.5rem' }}>Planificador de Mejoras</h2>
-         <Wishlist deckId={id as string} isOwner={user?.id === deck?.user_id} />
+         <Wishlist 
+            deckId={id as string} 
+            isOwner={user?.id === deck?.user_id} 
+            onUpdateDeck={handleUpdateDeck}
+            deckCards={deckCards}
+          />
       </div>
 
       {showPicker && (
