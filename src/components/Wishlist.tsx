@@ -58,7 +58,8 @@ export default function Wishlist({
   const [confirmDialog, setConfirmDialog] = useState<{ title: string, message: string, onConfirm: () => void } | null>(null);
   const [successCount, setSuccessCount] = useState<number | null>(null);
 
-  const currentMonthKey = new Date().toISOString().slice(0, 7);
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthOptions = getMonthOptions();
 
   const handleOpenVersionPicker = async (item: WishlistCard) => {

@@ -131,7 +131,8 @@ export default function DeckDetailPage() {
 
   const handleUpdateDeck = async (change: any) => {
     try {
-      const month = new Date().toISOString().slice(0, 7);
+      const now = new Date();
+      const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
       let cardDataIn = change.card_in;
       
       // 1. Si solo tenemos el nombre (string), intentamos completar los datos

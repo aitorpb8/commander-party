@@ -228,15 +228,17 @@ export function useWishlist({ deckId, onUpdateDeck, externalTrendingPrices }: Us
   // Grouping logic
   const getMonthOptions = () => {
     const options = [];
-    const date = new Date();
-    date.setDate(1); 
+    const now = new Date();
+    // Use local time to avoid UTC shifts
     for (let i = 0; i < 6; i++) {
-      const value = date.toISOString().slice(0, 7);
-      const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
+      const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
       const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const value = `${year}-${month}`;
+      
+      const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
       const label = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
       options.push({ value, label });
-      date.setMonth(date.getMonth() + 1);
     }
     return options;
   };

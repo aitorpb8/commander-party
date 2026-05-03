@@ -59,7 +59,8 @@ const WishlistColumn: React.FC<WishlistColumnProps> = ({
     }
   }
   
-  const date = new Date(`${monthKey}-01`);
+  const [y, m] = monthKey.split('-').map(Number);
+  const date = new Date(y, m - 1, 1);
   const monthName = date.toLocaleDateString('es-ES', { month: 'long' });
   const year = date.getFullYear();
   const title = isBacklog ? <><IconInbox /> Backlog</> : `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${year}`;
