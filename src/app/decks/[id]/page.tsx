@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 import styles from './DeckDetail.module.css';
 import DeckHeader from '@/components/deck/DeckHeader';
 import DeckActionButtons from '@/components/deck/DeckActionButtons';
@@ -112,7 +113,13 @@ export default function DeckDetailPage() {
       // If card_in is just a name (string), try to fetch full data
       if (typeof cardDataIn === 'string' && cardDataIn.length > 0) {
         const sc = await getCardByName(cardDataIn);
-        if (sc) cardDataIn = sc;
+        if (sc) {
+          cardDataIn = sc;
+        } else {
+          // If we can't find the card, we shouldn't proceed with a substitution that would leave the deck incomplete
+          toast.error(`No se encontró la carta "${cardDataIn}" en Scryfall. Revisa el nombre.`);
+          return;
+        }
       }
 
       const cardNameIn = typeof cardDataIn === 'string' ? cardDataIn : (cardDataIn?.name || '');
@@ -130,11 +137,12 @@ export default function DeckDetailPage() {
           cost: upgradeCost,
           month,
           description: change.description || null,
-          scryfall_id: typeof cardDataIn === 'string' ? null : (cardDataIn?.id || null)
+          scryfall_id: (cardDataIn && typeof cardDataIn !== 'string') ? cardDataIn.id : null
       });
       if (upgradeError) throw upgradeError;
 
       // 2. Update deck_cards table (The visual state)
+      // Only delete if we are sure we have the new card or if it's just a removal
       if (cardNameOut) {
         await supabase.from('deck_cards').delete().eq('deck_id', id).eq('card_name', cardNameOut);
       }
@@ -145,7 +153,9 @@ export default function DeckDetailPage() {
       }
 
       await fetchData(5, true);
+      toast.success('Cambio realizado correctamente');
     } catch (err: any) {
+      toast.error('Error al actualizar el mazo');
       setMessageDialog({ title: 'Error', message: err.message, isError: true });
     }
   };

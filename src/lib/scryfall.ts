@@ -7,16 +7,27 @@ export async function getCardByName(
   name: string
 ): Promise<ScryfallCard | null> {
   try {
-    const encodedName = encodeURIComponent(`!"${name}" -is:extra -is:artseries -layout:token`);
-    const res = await fetch(`${PROXY_GET}?path=cards/search&q=${encodedName}&order=eur&dir=asc`);
+    // 1. Try exact match first
+    const exactQuery = `!"${name}" -is:extra -is:artseries -layout:token`;
+    const res = await fetch(`${PROXY_GET}?path=cards/search&q=${encodeURIComponent(exactQuery)}&order=eur&dir=asc`);
 
-    if (!res.ok) {
-      if (res.status === 404) return null;
-      throw new Error(`Scryfall API Error: ${res.statusText}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.data && data.data[0]) return data.data[0];
     }
 
-    const data = await res.json();
-    return (data.data && data.data[0]) || null;
+    // 2. If exact fails, try a fuzzy/relaxed search
+    console.log(`Exact match failed for "${name}", trying relaxed search...`);
+    const relaxedQuery = `${name} -is:extra -is:artseries -layout:token`;
+    const resRelaxed = await fetch(`${PROXY_GET}?path=cards/search&q=${encodeURIComponent(relaxedQuery)}&order=eur&dir=asc`);
+    
+    if (resRelaxed.ok) {
+      const dataRelaxed = await resRelaxed.json();
+      // Return the most relevant/cheapest version
+      return (dataRelaxed.data && dataRelaxed.data[0]) || null;
+    }
+
+    return null;
   } catch (error) {
     console.error("Error fetching card:", error);
     return null;
