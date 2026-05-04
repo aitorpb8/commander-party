@@ -50,25 +50,48 @@ export default function ManaAnalysis({ cards, onCMCFilter, activeFilter }: ManaA
     const isLand = c.type_line?.toLowerCase().includes('land');
     const cost = c.mana_cost || '';
     const text = c.oracle_text || '';
+    const typeLine = c.type_line?.toLowerCase() || '';
+    const t = text.toLowerCase();
 
     if (!isLand) {
       const cmc = Math.min(calculateCMC(cost), 7);
       curve[cmc] += c.quantity;
+    }
 
-      (cost.match(/W/g) || []).forEach(() => pips.W += c.quantity);
-      (cost.match(/U/g) || []).forEach(() => pips.U += c.quantity);
-      (cost.match(/B/g) || []).forEach(() => pips.B += c.quantity);
-      (cost.match(/R/g) || []).forEach(() => pips.R += c.quantity);
-      (cost.match(/G/g) || []).forEach(() => pips.G += c.quantity);
+    if (isLand) {
+        if (typeLine.includes('plains') || t.includes('{w}')) prod.W += c.quantity;
+        if (typeLine.includes('island') || t.includes('{u}')) prod.U += c.quantity;
+        if (typeLine.includes('swamp') || t.includes('{b}')) prod.B += c.quantity;
+        if (typeLine.includes('mountain') || t.includes('{r}')) prod.R += c.quantity;
+        if (typeLine.includes('forest') || t.includes('{g}')) prod.G += c.quantity;
+        
+        if (t.includes('any color') || t.includes('any one color') || t.includes('search your library for a basic land')) {
+            prod.W += c.quantity; prod.U += c.quantity; prod.B += c.quantity; prod.R += c.quantity; prod.G += c.quantity;
+        }
+        if (t.includes('search your library for a')) {
+            if (t.includes('plains')) prod.W += c.quantity;
+            if (t.includes('island')) prod.U += c.quantity;
+            if (t.includes('swamp')) prod.B += c.quantity;
+            if (t.includes('mountain')) prod.R += c.quantity;
+            if (t.includes('forest')) prod.G += c.quantity;
+        }
     } else {
-      if (text.includes('{W}') || text.includes('Plains')) prod.W += c.quantity;
-      if (text.includes('{U}') || text.includes('Island')) prod.U += c.quantity;
-      if (text.includes('{B}') || text.includes('Swamp')) prod.B += c.quantity;
-      if (text.includes('{R}') || text.includes('Mountain')) prod.R += c.quantity;
-      if (text.includes('{G}') || text.includes('Forest')) prod.G += c.quantity;
-      if (text.includes('any color')) {
-         prod.W += c.quantity; prod.U += c.quantity; prod.B += c.quantity; prod.R += c.quantity; prod.G += c.quantity;
-      }
+        (cost.match(/W/g) || []).forEach(() => pips.W += c.quantity);
+        (cost.match(/U/g) || []).forEach(() => pips.U += c.quantity);
+        (cost.match(/B/g) || []).forEach(() => pips.B += c.quantity);
+        (cost.match(/R/g) || []).forEach(() => pips.R += c.quantity);
+        (cost.match(/G/g) || []).forEach(() => pips.G += c.quantity);
+        
+        if (t.includes('add {') || t.includes('add one mana of any color') || t.includes('add one mana of any type')) {
+            if (t.includes('{w}')) prod.W += c.quantity;
+            if (t.includes('{u}')) prod.U += c.quantity;
+            if (t.includes('{b}')) prod.B += c.quantity;
+            if (t.includes('{r}')) prod.R += c.quantity;
+            if (t.includes('{g}')) prod.G += c.quantity;
+            if (t.includes('any color') || t.includes('any one color') || t.includes('any type')) {
+                prod.W += c.quantity; prod.U += c.quantity; prod.B += c.quantity; prod.R += c.quantity; prod.G += c.quantity;
+            }
+        }
     }
   });
 

@@ -59,9 +59,9 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
 
   // 2. Local Tag Counters
   const taggedCards = Object.entries(cardTags);
-  const drawCount = taggedCards.filter(([_, tags]) => tags.includes('Draw')).length;
-  const rampCount = taggedCards.filter(([_, tags]) => tags.includes('Ramp')).length;
-  const removalCount = taggedCards.filter(([_, tags]) => tags.includes('Removal') || tags.includes('Board Wipe')).length;
+  const drawCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Draw', 'Card Advantage', 'Loot / Rummage', 'Impulse Draw'].includes(t))).length;
+  const rampCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Ramp', 'Mana Rock', 'Mana Dork', 'Land Ramp', 'Ritual', 'Cost Reduction', 'Treasures'].includes(t))).length;
+  const removalCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Removal', 'Board Wipe', 'Asymmetric Wipe', 'Exile', 'Art/Ench Hate'].includes(t))).length;
   const winConCount = taggedCards.filter(([_, tags]) => tags.includes('Win-Con')).length;
 
   // 3. Mana & Pip Analysis
@@ -72,27 +72,44 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
     const isLand = c.type_line?.toLowerCase().includes('land');
     const cost = c.mana_cost || '';
     const text = c.oracle_text || '';
+    const typeLine = c.type_line?.toLowerCase() || '';
+    const t = text.toLowerCase();
 
-    const producesMana = (rawStr: string) => {
-        if (!rawStr) return;
-        const str = rawStr.toLowerCase();
-        if (str.includes('{w}') || str.includes('plains')) prod.W += c.quantity;
-        if (str.includes('{u}') || str.includes('island')) prod.U += c.quantity;
-        if (str.includes('{b}') || str.includes('swamp')) prod.B += c.quantity;
-        if (str.includes('{r}') || str.includes('mountain')) prod.R += c.quantity;
-        if (str.includes('{g}') || str.includes('forest')) prod.G += c.quantity;
-        if (str.includes('any color') || str.includes('any type') || str.includes('any one color') || str.includes('basic land')) {
+    if (isLand) {
+        if (typeLine.includes('plains') || t.includes('{w}')) prod.W += c.quantity;
+        if (typeLine.includes('island') || t.includes('{u}')) prod.U += c.quantity;
+        if (typeLine.includes('swamp') || t.includes('{b}')) prod.B += c.quantity;
+        if (typeLine.includes('mountain') || t.includes('{r}')) prod.R += c.quantity;
+        if (typeLine.includes('forest') || t.includes('{g}')) prod.G += c.quantity;
+        
+        if (t.includes('any color') || t.includes('any one color') || t.includes('search your library for a basic land')) {
             prod.W += c.quantity; prod.U += c.quantity; prod.B += c.quantity; prod.R += c.quantity; prod.G += c.quantity;
         }
-    };
-
-    if (isLand) { producesMana(text); } else {
+        // Specific Fetchlands (e.g. Arid Mesa text says "Search your library for a Mountain or Plains")
+        if (t.includes('search your library for a')) {
+            if (t.includes('plains')) prod.W += c.quantity;
+            if (t.includes('island')) prod.U += c.quantity;
+            if (t.includes('swamp')) prod.B += c.quantity;
+            if (t.includes('mountain')) prod.R += c.quantity;
+            if (t.includes('forest')) prod.G += c.quantity;
+        }
+    } else {
         (cost.match(/W/g) || []).forEach(() => pips.W += c.quantity);
         (cost.match(/U/g) || []).forEach(() => pips.U += c.quantity);
         (cost.match(/B/g) || []).forEach(() => pips.B += c.quantity);
         (cost.match(/R/g) || []).forEach(() => pips.R += c.quantity);
         (cost.match(/G/g) || []).forEach(() => pips.G += c.quantity);
-        if (text.toLowerCase().includes('add') || text.toLowerCase().includes('search')) producesMana(text);
+        
+        if (t.includes('add {') || t.includes('add one mana of any color') || t.includes('add one mana of any type')) {
+            if (t.includes('{w}')) prod.W += c.quantity;
+            if (t.includes('{u}')) prod.U += c.quantity;
+            if (t.includes('{b}')) prod.B += c.quantity;
+            if (t.includes('{r}')) prod.R += c.quantity;
+            if (t.includes('{g}')) prod.G += c.quantity;
+            if (t.includes('any color') || t.includes('any one color') || t.includes('any type')) {
+                prod.W += c.quantity; prod.U += c.quantity; prod.B += c.quantity; prod.R += c.quantity; prod.G += c.quantity;
+            }
+        }
     }
   });
 
