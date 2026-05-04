@@ -14,10 +14,13 @@ interface TagEditorProps {
 }
 
 const TAG_CATEGORIES: Record<string, string[]> = {
-  'Motor del Mazo': ['Ramp', 'Draw', 'Tutor', 'Fixing'],
-  'Interacción': ['Removal', 'Board Wipe', 'Counterspell', 'Protection'],
-  'Sinergia y Victoria': ['Recursion', 'Sacrifice', 'Token Generator', 'Win-Con', 'Combo Piece'],
-  'Otros': ['Utility', 'Stax', 'Graveyard Hate']
+  'Mana & Acceleration': ['Ramp', 'Mana Rock', 'Mana Dork', 'Land Ramp', 'Ritual', 'Cost Reduction', 'Mana Fix', 'Treasures'],
+  'Draw & Advantage': ['Draw', 'Card Advantage', 'Loot / Rummage', 'Impulse Draw', 'Tutor', 'Fetch'],
+  'Interaction': ['Removal', 'Board Wipe', 'Asymmetric Wipe', 'Counterspell', 'Bounce', 'Exile', 'Art/Ench Hate', 'Graveyard Hate', 'Discard'],
+  'Protection': ['Protection', 'Hexproof / Shroud', 'Indestructible', 'Fog', 'Lifegain', 'Pillowfort'],
+  'Mechanics': ['Token Generator', 'Sacrifice', 'Recursion', 'Blink / Flicker', '+1/+1 Counters', '-1/-1 Counters', 'Proliferate', 'Burn', 'Mill', 'Infect / Toxic', 'Auras / Equipment', 'Clone', 'Theft / Steal'],
+  'Archetypes': ['Tribal / Typal', 'Enchantress', 'Spellslinger', 'Landfall', 'Group Hug', 'Group Slug', 'Chaos', 'Vehicles', 'Mutate', 'Cascade / Discover', 'Exile Matters', 'Energy'],
+  'Strategy & Role': ['Win-Con', 'Combo Piece', 'Enabler', 'Payoff', 'ETB / Death Trigger', 'Stax', 'Hatebear', 'Goad', 'Evasion', 'Extra Turns', 'Free Spell']
 };
 
 export default function TagEditor({ deckId, cardName, currentTags, onClose, onSave }: TagEditorProps) {
@@ -67,7 +70,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
       onClose();
     } catch (err) {
       console.error('Error saving tags:', err);
-      alert('Error al guardar etiquetas');
+      alert('Error saving tags');
     } finally {
       setSaving(false);
     }
@@ -110,7 +113,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
         onClick={(e) => e.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Etiquetar: {cardName}</h3>
+          <h3 style={{ margin: 0, color: 'var(--color-gold)' }}>Tag: {cardName}</h3>
           <button 
             onClick={onClose}
             style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', fontSize: '1.5rem' }}
@@ -119,7 +122,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
 
         <div style={{ marginBottom: '1.5rem' }}>
           <h4 style={{ fontSize: '0.8rem', color: '#888', marginBottom: '1rem', textTransform: 'uppercase' }}>
-            Etiquetas por Categoría
+            Tags by Category
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
@@ -159,7 +162,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
 
         <div style={{ marginBottom: '1.5rem' }}>
           <h4 style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-            Etiqueta Personalizada
+            Custom Tag
           </h4>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             <input
@@ -167,7 +170,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
               value={customTag}
               onChange={e => setCustomTag(e.target.value)}
               onKeyPress={e => e.key === 'Enter' && addCustomTag()}
-              placeholder="Ej: Combo Piece"
+              placeholder="e.g. Secret Tech"
               style={{
                 flex: 1,
                 padding: '0.5rem',
@@ -190,7 +193,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
         {selectedTags.length > 0 && (
           <div style={{ marginBottom: '1.5rem' }}>
             <h4 style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-              Etiquetas Seleccionadas ({selectedTags.length})
+              Selected Tags ({selectedTags.length})
             </h4>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
               {selectedTags.map(tag => (
@@ -227,14 +230,14 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
             className="btn btn-gold"
             style={{ flex: 1 }}
           >
-            {saving ? 'Guardando...' : 'Guardar'}
+            {saving ? 'Saving...' : 'Save'}
           </button>
           <button
             onClick={onClose}
             className="btn"
             style={{ flex: 1, background: '#333' }}
           >
-            Cancelar
+            Cancel
           </button>
         </div>
       </div>
