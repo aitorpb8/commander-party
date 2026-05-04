@@ -4,7 +4,8 @@ import { DeckCard } from '@/types';
 import { 
   checkSingleton, 
   validateCommanderLegality, 
-  getCardColorIdentity 
+  getCardColorIdentity,
+  calculateCMC
 } from '@/lib/magicUtils';
 
 interface Alert {
@@ -62,11 +63,16 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
   const drawCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Draw', 'Card Advantage', 'Loot / Rummage', 'Impulse Draw'].includes(t))).length;
   const rampCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Ramp', 'Mana Rock', 'Mana Dork', 'Land Ramp', 'Ritual', 'Cost Reduction', 'Treasures'].includes(t))).length;
   const removalCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Removal', 'Board Wipe', 'Asymmetric Wipe', 'Exile', 'Art/Ench Hate'].includes(t))).length;
+  const boardWipeCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Board Wipe', 'Asymmetric Wipe'].includes(t))).length;
   const winConCount = taggedCards.filter(([_, tags]) => tags.includes('Win-Con')).length;
+  const landCount = cards.filter(c => c.type_line?.toLowerCase().includes('land')).reduce((acc, c) => acc + c.quantity, 0);
+  const totalDeckSize = cards.reduce((acc, c) => acc + c.quantity, 0);
 
   // 3. Mana & Pip Analysis
   const pips = { W: 0, U: 0, B: 0, R: 0, G: 0 };
   const prod = { W: 0, U: 0, B: 0, R: 0, G: 0 };
+  let totalCMC = 0;
+  let nonLandCount = 0;
 
   cards.forEach(c => {
     const isLand = c.type_line?.toLowerCase().includes('land');
@@ -94,6 +100,9 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
             if (t.includes('forest')) prod.G += c.quantity;
         }
     } else {
+        totalCMC += calculateCMC(cost) * c.quantity;
+        nonLandCount += c.quantity;
+
         (cost.match(/W/g) || []).forEach(() => pips.W += c.quantity);
         (cost.match(/U/g) || []).forEach(() => pips.U += c.quantity);
         (cost.match(/B/g) || []).forEach(() => pips.B += c.quantity);
@@ -115,10 +124,25 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
 
   // 4. Generate Alerts
   // 4.1. Core Categories
-  if (drawCount < 8) alerts.push({ level: drawCount < 5 ? 'critical' : 'warning', title: 'Pocas fuentes de robo', message: `Solo tienes ${drawCount} cartas de robo. Objetivo: 8-10.`, action: 'Añade más fuentes de robo de cartas' });
-  if (rampCount < 8) alerts.push({ level: rampCount < 5 ? 'critical' : 'warning', title: 'Poco ramp', message: `Solo tienes ${rampCount} cartas de ramp. Objetivo: 8-10.`, action: 'Añade más fuentes de maná' });
-  if (removalCount < 5) alerts.push({ level: removalCount < 3 ? 'critical' : 'warning', title: 'Poco removal', message: `Solo tienes ${removalCount} cartas de removal. Objetivo: 5-7.`, action: 'Añade más removal o board wipes' });
+  if (drawCount < 10) alerts.push({ level: drawCount < 7 ? 'critical' : 'warning', title: 'Pocas fuentes de robo', message: `Solo tienes ${drawCount} cartas de robo. Objetivo recomendado: 10+.`, action: 'Añade más fuentes de robo o ventaja de cartas' });
+  if (rampCount < 10) alerts.push({ level: rampCount < 7 ? 'critical' : 'warning', title: 'Poco ramp', message: `Solo tienes ${rampCount} cartas de ramp. Objetivo recomendado: 10-12+.`, action: 'Añade más fuentes de maná o rocas' });
+  if (removalCount < 10) alerts.push({ level: removalCount < 6 ? 'critical' : 'warning', title: 'Poca interacción', message: `Solo tienes ${removalCount} cartas de interacción/removal. Objetivo recomendado: 10-12.`, action: 'Añade más removal o counterspells' });
+  
+  if (landCount < 34) alerts.push({ level: landCount < 30 ? 'critical' : 'warning', title: 'Pocas tierras', message: `Tienes ${landCount} tierras. Lo estándar es 35-38.`, action: 'Añade más tierras a tu base de maná' });
+  if (landCount > 42) alerts.push({ level: 'warning', title: 'Demasiadas tierras', message: `Tienes ${landCount} tierras. Podrías sufrir "mana flood".`, action: 'Recorta tierras por hechizos de utilidad' });
+  
+  if (boardWipeCount === 0) alerts.push({ level: 'warning', title: 'Sin limpiamesas', message: 'No has etiquetado ningún Board Wipe. Objetivo: 2-4.', action: 'Añade algún reseteo de mesa por si te quedas atrás' });
   if (winConCount === 0) alerts.push({ level: 'warning', title: 'Sin win-cons etiquetadas', message: 'No has etiquetado ninguna carta como "Win-Con".', action: 'Etiqueta tus condiciones de victoria' });
+
+  // 4.1.5. Advanced Heuristics
+  if (totalDeckSize !== 100) {
+      alerts.push({ level: 'critical', title: 'Tamaño de Mazo Incorrecto', message: `El mazo debe tener exactamente 100 cartas (tienes ${totalDeckSize}).`, action: 'Añade o recorta cartas hasta llegar a 100' });
+  }
+  
+  const avgCMC = nonLandCount > 0 ? (totalCMC / nonLandCount) : 0;
+  if (avgCMC > 3.6) {
+      alerts.push({ level: 'warning', title: 'Curva de maná muy alta', message: `Tu coste de maná medio (CMC) es ${avgCMC.toFixed(2)}. Un mazo optimizado suele estar por debajo de 3.6.`, action: 'Cambia hechizos caros por alternativas más baratas' });
+  }
 
   // 4.2. Mana Balance
   ['W', 'U', 'B', 'R', 'G'].forEach(col => {

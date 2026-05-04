@@ -15,11 +15,12 @@ interface DeckGridItemProps {
   totalSpent?: number;
   leagueBudget?: number;
   remainingBalance?: number;
+  strategyTags?: string[];
 }
 
 export default function DeckGridItem({ 
   deck, currentUserId, customSpent, customBudget,
-  totalSpent, leagueBudget, remainingBalance
+  totalSpent, leagueBudget, remainingBalance, strategyTags = []
 }: DeckGridItemProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -66,6 +67,7 @@ export default function DeckGridItem({
                 remainingBalance={remainingBalance}
                 imageUrl={deck.image_url || 'https://via.placeholder.com/150'}
                 colors={[]}
+                strategyTags={strategyTags}
             />
         </Link>
         {isOwner && (

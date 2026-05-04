@@ -55,6 +55,26 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
     monthlySpendMap.set(u.deck_id, (monthlySpendMap.get(u.deck_id) || 0) + (u.cost || 0));
   });
 
+  // Fetch card tags to derive per-deck strategy tags
+  const deckIds = decks?.map((d: any) => d.id) || [];
+  const { data: allCardTags } = deckIds.length > 0
+    ? await supabase.from('deck_card_tags').select('deck_id, tags').in('deck_id', deckIds)
+    : { data: [] };
+
+  // Compute top-4 most frequent tags per deck
+  const deckStrategyTagsMap = new Map<string, string[]>();
+  (allCardTags || []).forEach((row: any) => {
+    if (!row.tags) return;
+    const freq = deckStrategyTagsMap.get(row.deck_id) as any || {};
+    row.tags.forEach((tag: string) => { freq[tag] = (freq[tag] || 0) + 1; });
+    deckStrategyTagsMap.set(row.deck_id, freq);
+  });
+  const deckTopTagsMap = new Map<string, string[]>();
+  deckStrategyTagsMap.forEach((freq: any, deckId) => {
+    const sorted = Object.entries(freq).sort(([,a],[,b]) => (b as number) - (a as number));
+    deckTopTagsMap.set(deckId, sorted.slice(0, 4).map(([tag]) => tag));
+  });
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -85,6 +105,7 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
                 totalSpent={budgetInfo.totalSpent}
                 leagueBudget={budgetInfo.dynamicLimit}
                 remainingBalance={budgetInfo.remaining}
+                strategyTags={deckTopTagsMap.get(deck.id) || []}
               />
             );
           })}

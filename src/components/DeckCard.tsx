@@ -9,18 +9,19 @@ interface DeckCardProps {
   playerAvatar?: string;
   deckName: string;
   commanderName: string;
-  spent: number; // Monthly spent
-  budget: number; // Monthly limit
+  spent: number;
+  budget: number;
   totalSpent?: number;
   leagueBudget?: number;
   remainingBalance?: number;
   imageUrl: string;
-  colors: string[]; 
+  colors: string[];
+  strategyTags?: string[];
 }
 
 export default function DeckCard({ 
   playerName, playerAvatar, deckName, commanderName, spent, budget, 
-  totalSpent = 0, leagueBudget = 0, remainingBalance = 0, imageUrl 
+  totalSpent = 0, leagueBudget = 0, remainingBalance = 0, imageUrl, strategyTags = []
 }: DeckCardProps) {
   const percentage = budget > 0 ? (spent / budget) * 100 : (spent > 0 ? 100 : 0);
   
@@ -141,6 +142,31 @@ export default function DeckCard({
             />
           </div>
         </div>
+
+        {/* Strategy Tags Strip */}
+        {strategyTags.length > 0 && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            padding: '0.5rem 0.75rem',
+            borderTop: '1px solid rgba(255,255,255,0.06)',
+            marginTop: '0.25rem',
+            overflow: 'hidden',
+          }}>
+            <span style={{ fontSize: '0.7rem', color: '#666', flexShrink: 0 }}>🏷️</span>
+            <span style={{
+              fontSize: '0.7rem',
+              color: '#888',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              letterSpacing: '0.01em',
+            }}>
+              {strategyTags.join(', ')}
+            </span>
+          </div>
+        )}
 
       </div>
     </div>

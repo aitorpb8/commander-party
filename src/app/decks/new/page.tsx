@@ -30,8 +30,6 @@ export default function NewDeckPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [importMode, setImportMode] = useState<'url' | 'text' | 'precon'>('precon');
-  const [decklist, setDecklist] = useState('');
   const { user, loading: authLoading } = useAuth();
 
   React.useEffect(() => {
@@ -61,12 +59,8 @@ export default function NewDeckPage() {
           archidekt_id: targetUrl.match(/decks\/(\d+)/)?.[1] || null,
         };
       } 
-      // Priority 2: Import from URL
-      else if (importMode === 'url' || overrideUrl) {
-        if (!targetUrl.includes('archidekt.com')) {
-          throw new Error('URL no soportada. Actualmente solo aceptamos importaciones desde Archidekt.');
-        }
-
+      // Priority 2: Import from Archidekt URL
+      else if (overrideUrl && targetUrl.includes('archidekt.com')) {
         try {
           const res = await fetch('/api/import/archidekt', {
             method: 'POST',
@@ -78,23 +72,21 @@ export default function NewDeckPage() {
         } catch (fetchErr: any) {
           console.warn("Import cards failed, falling back to basic metadata:", fetchErr);
           data = {
-            name: overrideMetadata?.name || data.name || 'Mazo Importado',
-            commander: overrideMetadata?.commander || data.commander || 'Comandante Desconocido',
+            name: overrideMetadata?.name || 'Mazo Precon',
+            commander: overrideMetadata?.commander || 'Comandante Desconocido',
             archidekt_id: targetUrl.match(/decks\/(\d+)/)?.[1] || null,
             cards: []
           };
-          setError('No pudimos cargar las cartas, pero crearemos el mazo. Podrás añadirlas luego.');
+          setError('No pudimos cargar las cartas, pero crearemos el mazo. Podrás sincronizarlo desde la página del mazo.');
         }
-      } 
-      // Priority 3: Manual list
+      }
+      // Priority 3: Fallback — create empty deck with precon metadata only
       else {
-        const lines = decklist.split('\n').filter(l => l.trim().length > 0);
-        const commanderLine = lines.find(l => l.toLowerCase().includes('commander')) || lines[0];
         data = {
-          name: 'Mazo Manual',
-          commander: (commanderLine || '').replace(/^\d+\s+/, '').replace(/\(.*\)/, '').trim(),
+          name: overrideMetadata?.name || 'Mazo Precon',
+          commander: overrideMetadata?.commander || 'Comandante',
           archidekt_id: null,
-          cards: [] 
+          cards: []
         };
       }
 
@@ -174,10 +166,8 @@ export default function NewDeckPage() {
     else if (precon.url.includes('/decks/')) {
       handleImport(undefined, precon.url, undefined, metadata);
     } else {
-      // Manual pre-fill for search URLs
-      setImportMode('url');
-      setUrl(precon.url);
-      setError('Este mazo antiguo no tiene lista automática. Por favor, busca la lista en Archidekt y pégala aquí.');
+      // Force empty deck creation for old precons without cached lists
+      handleImport(undefined, precon.url, undefined, metadata);
     }
   };
 
@@ -197,79 +187,12 @@ export default function NewDeckPage() {
 
       <h1 style={{ color: 'var(--color-gold)', marginBottom: '1.5rem', textAlign: 'center' }}>Registrar Nuevo Mazo</h1>
       <div className="card">
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem', background: '#111', padding: '6px', borderRadius: '12px' }}>
-          {[
-            { id: 'precon', label: 'Preconstruidos' },
-            { id: 'url', label: 'URL (Importar)' },
-            { id: 'text', label: 'Lista Manual' }
-          ].map(tab => (
-            <button 
-              key={tab.id}
-              onClick={() => setImportMode(tab.id as any)} 
-              className="btn" 
-              style={{ 
-                flex: 1, 
-                background: importMode === tab.id ? 'var(--color-gold)' : 'transparent', 
-                color: importMode === tab.id ? 'black' : '#888',
-                fontWeight: 'bold',
-                borderRadius: '8px',
-                border: 'none',
-                padding: '0.6rem'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
+          <p style={{ color: '#888', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
+            Selecciona un mazo original para empezar tu liga. Se importará automáticamente.
+          </p>
+          <PreconSelector onSelect={handlePreconSelect} />
         </div>
-        
-        {importMode === 'precon' && (
-          <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-            <p style={{ color: '#888', marginBottom: '1.5rem', fontSize: '0.9rem', textAlign: 'center' }}>
-              Selecciona un mazo original para empezar tu liga. Se importará automáticamente.
-            </p>
-            <PreconSelector onSelect={handlePreconSelect} />
-          </div>
-        )}
-
-        {importMode !== 'precon' && (
-          <form onSubmit={handleImport} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'fadeIn 0.3s ease-out' }}>
-            {importMode === 'url' ? (
-              <input 
-                type="text" 
-                placeholder="URL de Archidekt..." 
-                value={url}
-                onChange={e => setUrl(e.target.value)}
-                style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #444', background: '#111', color: 'white' }}
-                required
-              />
-            ) : (
-              <textarea 
-                placeholder="Pega aquí tu lista (formato Cockatrice)..." 
-                value={decklist}
-                onChange={e => setDecklist(e.target.value)}
-                style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #444', background: '#111', color: 'white', minHeight: '200px', fontFamily: 'monospace' }}
-                required
-              />
-            )}
-
-            <div style={{ marginTop: '0.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', color: '#888', marginBottom: '0.5rem' }}>
-                Base Preconstruida (Opcional)
-              </label>
-              <input 
-                type="text" 
-                placeholder="URL del Precon original..." 
-                value={preconUrl}
-                onChange={e => setPreconUrl(e.target.value)}
-                style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #444', background: '#111', color: 'white', width: '100%', fontSize: '0.9rem' }}
-              />
-            </div>
-
-            <button className="btn btn-gold" disabled={loading} style={{ marginTop: '1rem', padding: '0.8rem' }}>
-              Registrar Mazo
-            </button>
-          </form>
-        )}
 
         {error && <p style={{ color: 'var(--color-red)', marginTop: '1rem', textAlign: 'center' }}>{error}</p>}
       </div>
