@@ -107,11 +107,14 @@ export default function DeckDetailPage() {
   };
 
   const fetchTags = async () => {
-    const { data } = await supabase.from('card_tags').select('*').eq('deck_id', id);
+    const { data, error } = await supabase.from('deck_card_tags').select('*').eq('deck_id', id);
+    if (error) {
+      console.error('Error fetching tags:', error);
+      return;
+    }
     const tagsMap: Record<string, string[]> = {};
-    data?.forEach(t => {
-      if (!tagsMap[t.card_name]) tagsMap[t.card_name] = [];
-      tagsMap[t.card_name].push(t.tag);
+    data?.forEach(row => {
+      tagsMap[row.card_name] = row.tags || [];
     });
     setCardTags(tagsMap);
   };

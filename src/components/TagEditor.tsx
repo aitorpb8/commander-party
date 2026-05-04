@@ -13,20 +13,12 @@ interface TagEditorProps {
   onSave: (tags: string[]) => void;
 }
 
-const PREDEFINED_TAGS = [
-  'Ramp',
-  'Draw',
-  'Removal',
-  'Board Wipe',
-  'Win-Con',
-  'Tutor',
-  'Protection',
-  'Utility',
-  'Counterspell',
-  'Recursion',
-  'Sacrifice',
-  'Token Generator'
-];
+const TAG_CATEGORIES: Record<string, string[]> = {
+  'Motor del Mazo': ['Ramp', 'Draw', 'Tutor', 'Fixing'],
+  'Interacción': ['Removal', 'Board Wipe', 'Counterspell', 'Protection'],
+  'Sinergia y Victoria': ['Recursion', 'Sacrifice', 'Token Generator', 'Win-Con', 'Combo Piece'],
+  'Otros': ['Utility', 'Stax', 'Graveyard Hate']
+};
 
 export default function TagEditor({ deckId, cardName, currentTags, onClose, onSave }: TagEditorProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>(currentTags);
@@ -126,27 +118,41 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
         </div>
 
         <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ fontSize: '0.8rem', color: '#888', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-            Etiquetas Predefinidas
+          <h4 style={{ fontSize: '0.8rem', color: '#888', marginBottom: '1rem', textTransform: 'uppercase' }}>
+            Etiquetas por Categoría
           </h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {PREDEFINED_TAGS.map(tag => (
-              <button
-                key={tag}
-                onClick={() => toggleTag(tag)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '20px',
-                  border: selectedTags.includes(tag) ? '2px solid var(--color-gold)' : '1px solid #444',
-                  background: selectedTags.includes(tag) ? 'rgba(212, 175, 55, 0.2)' : '#222',
-                  color: selectedTags.includes(tag) ? 'var(--color-gold)' : '#aaa',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {tag}
-              </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
+              <div key={category}>
+                <div style={{ fontSize: '0.7rem', color: 'var(--color-gold)', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.5rem', opacity: 0.8 }}>
+                  {category}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  {tags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      style={{
+                        padding: '0.4rem 0.8rem',
+                        borderRadius: '20px',
+                        border: selectedTags.includes(tag) ? '1px solid var(--color-gold)' : '1px solid #333',
+                        background: selectedTags.includes(tag) ? 'rgba(212, 175, 55, 0.15)' : 'rgba(0,0,0,0.3)',
+                        color: selectedTags.includes(tag) ? 'var(--color-gold)' : '#aaa',
+                        cursor: 'pointer',
+                        fontSize: '0.8rem',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                      onMouseEnter={(e) => { if(!selectedTags.includes(tag)) e.currentTarget.style.borderColor = '#666'; }}
+                      onMouseLeave={(e) => { if(!selectedTags.includes(tag)) e.currentTarget.style.borderColor = '#333'; }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>
