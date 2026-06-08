@@ -20,12 +20,21 @@ export async function GET(request: Request) {
     });
 
     const res = await fetch(finalUrl.toString(), {
+      headers: {
+        'User-Agent': 'CommanderParty/1.0 (contact: aitorpb8@example.com)',
+        'Accept': 'application/json'
+      },
       next: { revalidate: 3600 } // Cache for 1 hour by default
     });
 
     if (!res.ok) {
       if (res.status === 404) return NextResponse.json({ error: "Not found" }, { status: 404 });
-      return NextResponse.json({ error: `Scryfall API Error: ${res.statusText}` }, { status: res.status });
+      try {
+        const errorData = await res.json();
+        return NextResponse.json({ error: errorData.details || `Scryfall API Error: ${res.statusText}` }, { status: res.status });
+      } catch {
+        return NextResponse.json({ error: `Scryfall API Error: ${res.statusText}` }, { status: res.status });
+      }
     }
 
     const data = await res.json();

@@ -31,7 +31,12 @@ export async function POST(req: Request) {
     // 2. Fetch Commander image from Scryfall
     let imageUrl = "https://cards.scryfall.io/large/front/placeholder.jpg";
     try {
-      const scryRes = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(commander)}`);
+      const scryRes = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(commander)}`, {
+        headers: {
+          'User-Agent': 'CommanderParty/1.0 (contact: aitorpb8@example.com)',
+          'Accept': 'application/json'
+        }
+      });
       if (scryRes.ok) {
         const scryData = await scryRes.json();
         imageUrl = scryData.image_uris?.large || scryData.image_uris?.normal || imageUrl;

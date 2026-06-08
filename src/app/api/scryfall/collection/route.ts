@@ -9,12 +9,21 @@ export async function POST(request: Request) {
     // Scryfall /cards/collection expects { identifiers: [...] }
     const res = await fetch(`${SCRYFALL_API}/cards/collection`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'User-Agent': 'CommanderParty/1.0 (contact: aitorpb8@example.com)',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify(body),
     });
 
     if (!res.ok) {
-      return NextResponse.json({ error: `Scryfall API Error: ${res.statusText}` }, { status: res.status });
+      try {
+        const errorData = await res.json();
+        return NextResponse.json({ error: errorData.details || `Scryfall API Error: ${res.statusText}` }, { status: res.status });
+      } catch {
+        return NextResponse.json({ error: `Scryfall API Error: ${res.statusText}` }, { status: res.status });
+      }
     }
 
     const data = await res.json();
