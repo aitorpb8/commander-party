@@ -111805,5 +111805,2733 @@
       "image_url": "https://api.scryfall.com/cards/c219dd22-433c-4f6a-a0c4-fae12239291c?format=image",
       "oracle_text": "Trample\nWhenever Yidris deals combat damage to a player, as you cast spells from your hand this turn, they gain cascade. (When you cast the spell, exile cards from the top of your library until you exile a nonland card that costs less. You may cast it without paying its mana cost. Put the exiled cards on the bottom in a random order.)"
     }
+  ],
+  "Wakanda Forever": [
+    {
+      "name": "T'Challa, the Black Panther",
+      "quantity": 1,
+      "is_commander": true,
+      "type_line": "Legendary Creature — Human Hero Noble",
+      "mana_cost": "{1}{G}{W}",
+      "image_url": "https://api.scryfall.com/cards/d5a3537f-ac0a-4517-8a89-92abe8c0b8d0?format=image"
+    },
+    {
+      "name": "Dora Milaje Elite",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Warrior",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/1d1e00e3-7f3c-4a49-859b-398283c38e61?format=image"
+    },
+    {
+      "name": "Everett K. Ross, Hapless Attaché",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Advisor",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/dd33edfe-578f-4b24-bd27-5a965b6c14ad?format=image"
+    },
+    {
+      "name": "Hatut Zeraze Strike Force",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Warrior Spy",
+      "mana_cost": "{3}{W}",
+      "image_url": "https://api.scryfall.com/cards/d96a9ecd-86a3-49ae-851c-ce93b0dca6af?format=image"
+    },
+    {
+      "name": "King Solomon's Frogs",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact —",
+      "mana_cost": "{3}{W}",
+      "image_url": "https://api.scryfall.com/cards/6908808f-e47e-4acb-a405-41b8018a5729?format=image"
+    },
+    {
+      "name": "Midnight Angel Armor",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{3}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/5b5b87ba-c6cc-4f25-a5c9-22464a41de65?format=image"
+    },
+    {
+      "name": "Queen Mother Ramonda",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Noble",
+      "mana_cost": "{3}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/6b971f0b-42de-46bc-8e26-51eb5be447ec?format=image"
+    },
+    {
+      "name": "Royal Talon Fighter Jet",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Vehicle",
+      "mana_cost": "{X}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/e94da91d-6c76-4909-91e3-2f8d97398654?format=image"
+    },
+    {
+      "name": "The Spear of Bashenga",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact — Equipment",
+      "mana_cost": "{4}{W}",
+      "image_url": "https://api.scryfall.com/cards/b8cc0703-f626-4d42-90bb-1a26e331a9de?format=image"
+    },
+    {
+      "name": "Arcane Signet",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/ec924d56-d1d9-4226-9e73-cfcc5ab4f708?format=image"
+    },
+    {
+      "name": "Sol Ring",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{1}",
+      "image_url": "https://api.scryfall.com/cards/a739dd30-1fce-49db-99fb-15e346f4f2db?format=image"
+    },
+    {
+      "name": "Command Tower",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/ef8ac50e-251b-411b-aee9-e5102843d1ed?format=image"
+    },
+    {
+      "name": "Ancestral Communion",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{1}{G}",
+      "image_url": "https://api.scryfall.com/cards/ad4224f8-ee83-4833-99a1-71e3ecbe9718?format=image"
+    },
+    {
+      "name": "Fight for the Throne",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{G}",
+      "image_url": "https://api.scryfall.com/cards/6da747ef-4d8f-49a2-8682-52ab87e6ad6e?format=image"
+    },
+    {
+      "name": "M'Baku, Jabari Chieftain",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Warrior Noble",
+      "mana_cost": "{1}{G}{G}",
+      "image_url": "https://api.scryfall.com/cards/2e330643-5714-4724-a65c-0873ce9cc5a6?format=image"
+    },
+    {
+      "name": "Nakia, Wakandan Operative",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "mana_cost": "{2}{G}",
+      "image_url": "https://api.scryfall.com/cards/6cd88c80-a445-4f88-95e3-e370620c90fc?format=image"
+    },
+    {
+      "name": "W'Kabi, Shield of the Nation",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "mana_cost": "{1}{G}",
+      "image_url": "https://api.scryfall.com/cards/9fb292a4-cf71-4aeb-b92e-eab2e3177653?format=image"
+    },
+    {
+      "name": "Wakanda Forever!",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{4}{G}{G}",
+      "image_url": "https://api.scryfall.com/cards/8b893d46-25f0-4c6a-b9a3-ff25277be918?format=image"
+    },
+    {
+      "name": "Zuri, Warrior of Wakanda",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "mana_cost": "{1}{G}",
+      "image_url": "https://api.scryfall.com/cards/b8225b51-d5a4-4b46-9a10-b581362b6a11?format=image"
+    },
+    {
+      "name": "Bast, Panther Goddess",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Cat God",
+      "mana_cost": "{2}{G}{W}",
+      "image_url": "https://api.scryfall.com/cards/c53a05f1-8e95-4a39-b2a3-a21d3d19b5b3?format=image"
+    },
+    {
+      "name": "Okoye, Mighty and Adored",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "mana_cost": "{2}{G}{W}",
+      "image_url": "https://api.scryfall.com/cards/18ee486e-dc25-4de7-a71f-f11fdf100176?format=image"
+    },
+    {
+      "name": "Shuri, the Black Panther",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero Noble",
+      "mana_cost": "{G}{W}",
+      "image_url": "https://api.scryfall.com/cards/bb9efb2e-3fe8-4f21-82c5-e089d835bdd5?format=image"
+    },
+    {
+      "name": "Storm, Queen of Wakanda",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Hero Noble",
+      "mana_cost": "{3}{G}{W}",
+      "image_url": "https://api.scryfall.com/cards/0a61d843-2a7c-459c-9018-1ee4488c90a9?format=image"
+    },
+    {
+      "name": "T'Chaka, Venerable King",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero Noble",
+      "mana_cost": "{G}{W}",
+      "image_url": "https://api.scryfall.com/cards/28deeaf6-c32b-41f1-b94f-0ae303377ea0?format=image"
+    },
+    {
+      "name": "Heart-Shaped Herb",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/1725b91a-bac4-4f91-b2b5-bb66086b54a3?format=image"
+    },
+    {
+      "name": "Kimoyo Beads",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/1138096a-0d7c-461b-af83-3c90f681722d?format=image"
+    },
+    {
+      "name": "N'Yami-Class Mother Ship",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Vehicle",
+      "mana_cost": "{6}",
+      "image_url": "https://api.scryfall.com/cards/3ae767c5-fc28-4d9f-9e5a-ee28735f4054?format=image"
+    },
+    {
+      "name": "Panther Habit",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/111f2e18-43b7-4a80-b53a-ed1cc14e500d?format=image"
+    },
+    {
+      "name": "Panther Robot",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature Artifact — Cat Robot",
+      "mana_cost": "{10}",
+      "image_url": "https://api.scryfall.com/cards/8bb7185d-fc07-4f2f-9762-aa7e7c287cba?format=image"
+    },
+    {
+      "name": "Shuri's Fabricator",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/ace834f0-7f64-4716-8599-f96f674e61a1?format=image"
+    },
+    {
+      "name": "Vibranium Mining Mech",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Vehicle",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/2212e15b-5deb-4ab8-9f6f-7991e750e21a?format=image"
+    },
+    {
+      "name": "Vibranium Strike Gauntlets",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/2b47e8b0-471c-4429-8273-d114fdf95e13?format=image"
+    },
+    {
+      "name": "The Great Mound",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/11b3f96c-138e-431e-a1d6-5ebae4cb6b2f?format=image"
+    },
+    {
+      "name": "Divine Visitation",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{3}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/dabd95db-b4ca-446b-bb68-6f52cec9ed2a?format=image"
+    },
+    {
+      "name": "Loyal Retainers",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Advisor",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/3092e715-36cf-4b41-95c1-cf271646db39?format=image"
+    },
+    {
+      "name": "Martial Coup",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{X}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/a0660e74-6973-41d7-a20b-8d71fed1495a?format=image"
+    },
+    {
+      "name": "Vanquish the Horde",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{6}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/f392782b-7464-4617-b421-6b5d0e2880fc?format=image"
+    },
+    {
+      "name": "Birds of Paradise",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Bird",
+      "mana_cost": "{G}",
+      "image_url": "https://api.scryfall.com/cards/492c2f9a-51e7-4e0f-9899-23bf43ea988b?format=image"
+    },
+    {
+      "name": "Conduit of Worlds",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}{G}{G}",
+      "image_url": "https://api.scryfall.com/cards/8380eb8d-d1c3-4f96-b3b9-54845188c1d1?format=image"
+    },
+    {
+      "name": "Greater Good",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{2}{G}{G}",
+      "image_url": "https://api.scryfall.com/cards/9dd8b16f-3dfd-4e04-a2e9-ec87d0e007c9?format=image"
+    },
+    {
+      "name": "Nature's Lore",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{1}{G}",
+      "image_url": "https://api.scryfall.com/cards/7afc4a15-5ff8-457a-aa62-803b2d78d912?format=image"
+    },
+    {
+      "name": "Overwhelming Stampede",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{3}{G}{G}",
+      "image_url": "https://api.scryfall.com/cards/6996b9c4-e78c-4970-91c7-9025a0a4f670?format=image"
+    },
+    {
+      "name": "Coveted Jewel",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{6}",
+      "image_url": "https://api.scryfall.com/cards/06a7ad3b-87d4-47f0-9450-facac00dfe97?format=image"
+    },
+    {
+      "name": "Gilded Lotus",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{5}",
+      "image_url": "https://api.scryfall.com/cards/28e619e6-ecc1-49c3-8fa9-ce42becdb9ba?format=image"
+    },
+    {
+      "name": "Helm of the Host",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact — Equipment",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/70ffc71f-328d-421d-926b-6f2e45ffb812?format=image"
+    },
+    {
+      "name": "Metalwork Colossus",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature Artifact — Construct",
+      "mana_cost": "{11}",
+      "image_url": "https://api.scryfall.com/cards/d7e2d686-1fbc-449a-9af4-f00a71ff7911?format=image"
+    },
+    {
+      "name": "Solemn Simulacrum",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature Artifact — Golem",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/daafd816-f7c1-4630-9e5c-a1e5db570a35?format=image"
+    },
+    {
+      "name": "Trading Post",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/03499a72-e865-46ff-bcb2-75e53e4b600e?format=image"
+    },
+    {
+      "name": "Bountiful Promenade",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/f0b11ba3-68ba-4067-af40-2a55e31b395e?format=image"
+    },
+    {
+      "name": "Canopy Vista",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Forest",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/369e6485-fbc7-45f9-ac9d-2e26dd94f2d5?format=image"
+    },
+    {
+      "name": "Fortified Village",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/15f81ac6-a550-4782-a3a9-22d7fef1c206?format=image"
+    },
+    {
+      "name": "Razorverge Thicket",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/df1233de-4449-4c32-944b-e19bed666324?format=image"
+    },
+    {
+      "name": "Scattered Groves",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Forest",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/6bd38442-854d-43b1-a80c-9d841c3a304d?format=image"
+    },
+    {
+      "name": "Scavenger Grounds",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Desert",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/9fbe68ba-ffe5-4fe0-ac0a-0b3221e4f395?format=image"
+    },
+    {
+      "name": "Sungrass Prairie",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/841f369e-6532-469c-8565-78094b33a3d9?format=image"
+    },
+    {
+      "name": "Sunpetal Grove",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/e83092ee-4a90-4eac-915f-3fd01b7d9bd0?format=image"
+    },
+    {
+      "name": "Throne of the High City",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/6aac7a6d-90c7-4fe7-b6d3-f63a7170ee96?format=image"
+    },
+    {
+      "name": "Scourglass",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{3}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/bd961730-9e55-418e-904d-0443b1bf1114?format=image"
+    },
+    {
+      "name": "Fleecemane Lion",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Cat",
+      "mana_cost": "{G}{W}",
+      "image_url": "https://api.scryfall.com/cards/13a8b618-6e8f-46cf-b456-dffa35831a67?format=image"
+    },
+    {
+      "name": "Hammer of Nazahn",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact — Equipment",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/e1aae864-cad1-48b2-bb33-8c2dbb53f5ec?format=image"
+    },
+    {
+      "name": "Mind's Eye",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{5}",
+      "image_url": "https://api.scryfall.com/cards/708ad400-fa01-4473-aa9e-ba3db965b521?format=image"
+    },
+    {
+      "name": "Sword of the Animist",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact — Equipment",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/ff890d40-710d-4b28-b303-37f4b7adcf42?format=image"
+    },
+    {
+      "name": "Thran Dynamo",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/873d52a8-f10e-4116-8511-bf63aeb2e413?format=image"
+    },
+    {
+      "name": "Dispatch",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{W}",
+      "image_url": "https://api.scryfall.com/cards/99d30a21-b003-4a17-a4c5-97811f230896?format=image"
+    },
+    {
+      "name": "Generous Gift",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/c3f9b454-97e9-4c77-b37a-e974221ae385?format=image"
+    },
+    {
+      "name": "Ingenious Smith",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Artificer",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/2962e4d3-3f01-47d4-abe3-75658700c132?format=image"
+    },
+    {
+      "name": "Palace Jailer",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Soldier",
+      "mana_cost": "{2}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/3a8c2a84-e0f2-4611-af3d-42f4578ad4e3?format=image"
+    },
+    {
+      "name": "Valorous Stance",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/f726d332-6961-403d-83f8-25c997f4dffc?format=image"
+    },
+    {
+      "name": "Beast Within",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{2}{G}",
+      "image_url": "https://api.scryfall.com/cards/400b43aa-c1d2-4435-b863-061f43889422?format=image"
+    },
+    {
+      "name": "Harmonize",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{2}{G}{G}",
+      "image_url": "https://api.scryfall.com/cards/bd7138fb-6aa7-455e-b1f7-ca08d747277d?format=image"
+    },
+    {
+      "name": "Loyal Guardian",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Rhino",
+      "mana_cost": "{4}{G}",
+      "image_url": "https://api.scryfall.com/cards/6d81eda0-2520-4531-815a-8dea27306776?format=image"
+    },
+    {
+      "name": "Meteor Golem",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature Artifact — Golem",
+      "mana_cost": "{7}",
+      "image_url": "https://api.scryfall.com/cards/a1a1cfec-72ca-499b-b621-fa2d8502ea20?format=image"
+    },
+    {
+      "name": "Whispersilk Cloak",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/a3f31ac4-09ca-4712-a311-50d28824bfad?format=image"
+    },
+    {
+      "name": "Evolving Wilds",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/c0318a48-30e4-4ef7-be3d-5e561c5ce428?format=image"
+    },
+    {
+      "name": "Path of Ancestry",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/836b8f52-10d2-4716-9f7b-38fb23bc68de?format=image"
+    },
+    {
+      "name": "Terramorphic Expanse",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/719704eb-04b2-4e2f-9954-50f77dd9bf08?format=image"
+    },
+    {
+      "name": "Plains",
+      "quantity": 12,
+      "is_commander": false,
+      "type_line": "Basic Land — Plains",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/a3ae6956-7f2d-4569-a9f8-3972b5ec5e56?format=image"
+    },
+    {
+      "name": "Forest",
+      "quantity": 12,
+      "is_commander": false,
+      "type_line": "Basic Land — Forest",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/5f533364-0f91-4e49-aaeb-83c4c1f6d316?format=image"
+    }
+  ],
+  "Doom Prevails": [
+    {
+      "name": "Mountain",
+      "quantity": 5,
+      "is_commander": false,
+      "type_line": "Basic Land — Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/1e9919e6-c904-4724-9f46-bf4f7c1b7134?format=image"
+    },
+    {
+      "name": "Swamp",
+      "quantity": 6,
+      "is_commander": false,
+      "type_line": "Basic Land — Swamp",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/3dc20c2b-7344-43d1-8ea0-22bab837657e?format=image"
+    },
+    {
+      "name": "Molecule Man",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{6}",
+      "image_url": "https://api.scryfall.com/cards/ee64d0dd-e3d8-4abc-b9d6-b19c505fbfa1?format=image"
+    },
+    {
+      "name": "Extract Power",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{5}{U}",
+      "image_url": "https://api.scryfall.com/cards/11aaa7c6-c79d-48f9-af66-3b360d3b15b5?format=image"
+    },
+    {
+      "name": "Glorious Purpose",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment — Plan",
+      "mana_cost": "{1}{U}",
+      "image_url": "https://api.scryfall.com/cards/d78f2105-030f-4951-aa02-0d4db3d34f59?format=image"
+    },
+    {
+      "name": "Helmut Zemo, Mastermind",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain Noble",
+      "mana_cost": "{2}{U}",
+      "image_url": "https://api.scryfall.com/cards/545f7f8d-f6a3-4e85-a53c-3eb9b28ebd14?format=image"
+    },
+    {
+      "name": "Age of Ultron",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment — Saga",
+      "mana_cost": "{4}{B}",
+      "image_url": "https://api.scryfall.com/cards/54050442-c9b1-481a-a1cd-77c147e9013e?format=image"
+    },
+    {
+      "name": "Damocles Base, Sword of Kang",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact — Vehicle",
+      "mana_cost": "{4}{B}",
+      "image_url": "https://api.scryfall.com/cards/89936964-7131-4ebf-b956-9692659866c1?format=image"
+    },
+    {
+      "name": "Endless Ranks of HYDRA",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{3}{B}",
+      "image_url": "https://api.scryfall.com/cards/27da10b3-a131-4afc-ab84-5df93160d81f?format=image"
+    },
+    {
+      "name": "The Frightful Four",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Villain",
+      "mana_cost": "{3}{B}",
+      "image_url": "https://api.scryfall.com/cards/3e792132-de96-47aa-bcd5-58f1e9be5932?format=image"
+    },
+    {
+      "name": "Iron Monger, Sadistic Tycoon",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Human Villain",
+      "mana_cost": "{2}{B}",
+      "image_url": "https://api.scryfall.com/cards/799554d1-d1fb-4206-af9a-80d3582bedc0?format=image"
+    },
+    {
+      "name": "Klaw, Master of Sound",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Elemental Rogue Villain",
+      "mana_cost": "{2}{B}",
+      "image_url": "https://api.scryfall.com/cards/5c589d94-7cea-4d4c-91a8-4d939634a5e5?format=image"
+    },
+    {
+      "name": "Abomination, World Ravager",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Berserker Villain Gamma",
+      "mana_cost": "{7}{R}",
+      "image_url": "https://api.scryfall.com/cards/fddd2e68-8e1e-4162-a2c7-49da2c86d471?format=image"
+    },
+    {
+      "name": "Doctor Doom, King of Latveria",
+      "quantity": 1,
+      "is_commander": true,
+      "type_line": "Legendary Creature — Human Villain Noble",
+      "mana_cost": "{1}{U}{B}{R}",
+      "image_url": "https://api.scryfall.com/cards/ac011c2d-d4d9-4f17-a1fb-7e30d25ca249?format=image"
+    },
+    {
+      "name": "Batroc the Leaper",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{1}{R}",
+      "image_url": "https://api.scryfall.com/cards/e34e33ea-042e-409c-b304-52644ec5b1f5?format=image"
+    },
+    {
+      "name": "Killmonger, Ruthless Usurper",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/0ec1ec8b-24d7-40e4-9e9d-4d9ec4f0a4f8?format=image"
+    },
+    {
+      "name": "Lady Loki, Agent of Chaos",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Villain God Sorcerer",
+      "mana_cost": "{5}{R}",
+      "image_url": "https://api.scryfall.com/cards/44ac85d4-0429-4813-b7fe-eed1f6575b7d?format=image"
+    },
+    {
+      "name": "Living Laser",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Elemental Villain",
+      "mana_cost": "{4}{R}",
+      "image_url": "https://api.scryfall.com/cards/595ee0b4-393f-4bda-bcb4-f0fa43cf7ed2?format=image"
+    },
+    {
+      "name": "Loki's Scepter",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact —",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/57e90938-9225-4c15-b4fb-aad2cced2e6a?format=image"
+    },
+    {
+      "name": "Puppet Master, String Puller",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Artificer Villain",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/ab888daa-1161-4917-bca0-efd5c430b2d9?format=image"
+    },
+    {
+      "name": "Stilt-Man, Towering Terror",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Rogue Villain",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/7ffa820c-ac05-4b3d-a0ec-5cbd3c42ac9c?format=image"
+    },
+    {
+      "name": "Titania, Proud Pummeler",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{3}{R}",
+      "image_url": "https://api.scryfall.com/cards/31255422-9afa-416c-90b2-62baf1d02cca?format=image"
+    },
+    {
+      "name": "Archnemesis",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment — Aura",
+      "mana_cost": "{1}{U}{B}",
+      "image_url": "https://api.scryfall.com/cards/b440109f-af52-415e-94d3-d4997f5bee3e?format=image"
+    },
+    {
+      "name": "Kang Prime",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{3}{U}{B}",
+      "image_url": "https://api.scryfall.com/cards/88cf0311-d7e3-40bb-85fa-3cca973c5e44?format=image"
+    },
+    {
+      "name": "Loki, the Deceiver",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Villain God Sorcerer",
+      "mana_cost": "{1}{U}{B}{R}",
+      "image_url": "https://api.scryfall.com/cards/c0cd3d41-909b-4f20-a44b-db82807d10ae?format=image"
+    },
+    {
+      "name": "Red Ghost, Intangible Genius",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Scientist Villain",
+      "mana_cost": "{2}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/35bae013-51e9-4047-91e3-3b366ad0764e?format=image"
+    },
+    {
+      "name": "The Squadron Sinister",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{5}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/96714d95-baef-45e3-a2b0-00a8bdb3a76d?format=image"
+    },
+    {
+      "name": "Typhoid Mary, Fractured",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Villain",
+      "mana_cost": "{1}{B}{R}",
+      "image_url": "https://api.scryfall.com/cards/6880df6d-2ec3-459d-aa4f-92f595fab9b8?format=image"
+    },
+    {
+      "name": "Ultron, Unlimited",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Villain Robot",
+      "mana_cost": "{1}{U}{B}",
+      "image_url": "https://api.scryfall.com/cards/bf5b410f-d6cb-4a74-a975-372975cf21f6?format=image"
+    },
+    {
+      "name": "Doom's Time Platform",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/6f7935d1-d588-40ca-804f-bac56d986d74?format=image"
+    },
+    {
+      "name": "Tri-Sentinel, Act of Vengeance",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Villain Robot",
+      "mana_cost": "{7}",
+      "image_url": "https://api.scryfall.com/cards/a4960ab8-fac3-4a11-a3f6-46527cf228ea?format=image"
+    },
+    {
+      "name": "Black Market Connections",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{2}{B}",
+      "image_url": "https://api.scryfall.com/cards/9d9ca869-e68a-4f53-9f52-85c714dac6f3?format=image"
+    },
+    {
+      "name": "Kindred Dominance",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{5}{B}{B}",
+      "image_url": "https://api.scryfall.com/cards/f6cd7c08-f5d4-4bdc-a254-809d900b0fc3?format=image"
+    },
+    {
+      "name": "Lethal Scheme",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{2}{B}{B}",
+      "image_url": "https://api.scryfall.com/cards/b2d9c467-6e56-401c-ade1-95dad7e4e766?format=image"
+    },
+    {
+      "name": "Toxic Deluge",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{2}{B}",
+      "image_url": "https://api.scryfall.com/cards/de5afccc-8d42-4bd6-b068-b9ea2361655e?format=image"
+    },
+    {
+      "name": "Blasphemous Act",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{8}{R}",
+      "image_url": "https://api.scryfall.com/cards/7d4b1d44-126e-4987-9a9f-f0f9627a09cb?format=image"
+    },
+    {
+      "name": "Chaos Warp",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/57f61970-382e-415c-868b-6bbb6c78825d?format=image"
+    },
+    {
+      "name": "Bedevil",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{B}{B}{R}",
+      "image_url": "https://api.scryfall.com/cards/985b9779-b8f6-4d7e-9490-5d2b91ee8db2?format=image"
+    },
+    {
+      "name": "Currency Converter",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{1}",
+      "image_url": "https://api.scryfall.com/cards/4eab054c-93f8-4da4-afb9-8f4c73c19213?format=image"
+    },
+    {
+      "name": "Progenitor's Icon",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/55a7f877-dc7c-4c1b-b233-900958c9e8f5?format=image"
+    },
+    {
+      "name": "Skullclamp",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{1}",
+      "image_url": "https://api.scryfall.com/cards/1d8b007b-3169-4ee3-80c7-781fc096fc7a?format=image"
+    },
+    {
+      "name": "Canyon Slough",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Swamp Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/587cc3ba-75c2-46a0-bd44-6f953fe1eb01?format=image"
+    },
+    {
+      "name": "Choked Estuary",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/0c37e84e-e7e0-4dfe-bf17-daeb2e434861?format=image"
+    },
+    {
+      "name": "Coastal Peak",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d2a70a9d-2d9f-4afd-9393-8d6518936ee2?format=image"
+    },
+    {
+      "name": "Dragonskull Summit",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d20e433a-eb62-4301-bc20-bfe27468b033?format=image"
+    },
+    {
+      "name": "Drowned Catacomb",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/ebea49ab-e5cf-46d9-ae35-226a7321ede0?format=image"
+    },
+    {
+      "name": "Exotic Orchard",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/8853ff94-bf44-4cfd-9d3a-0743c361fb0d?format=image"
+    },
+    {
+      "name": "Fetid Pools",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Swamp",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/5fa4556f-2fdc-42e6-98cb-291cee2ca3ac?format=image"
+    },
+    {
+      "name": "Foreboding Ruins",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/76fdf6be-e13b-49ee-9d50-8625edb49951?format=image"
+    },
+    {
+      "name": "Frostboil Snarl",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/ae705a26-5371-4236-904c-fe3e58b4721d?format=image"
+    },
+    {
+      "name": "Luxury Suite",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/3c409d1e-f634-44a2-8fcf-dcdcb0babc3f?format=image"
+    },
+    {
+      "name": "Scavenger Grounds",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Desert",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/9fbe68ba-ffe5-4fe0-ac0a-0b3221e4f395?format=image"
+    },
+    {
+      "name": "Scorched Geyser",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/43abdfba-0a55-4b8a-858e-3372ee40a579?format=image"
+    },
+    {
+      "name": "Smoldering Marsh",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Swamp Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d707c477-440f-417c-970a-0e7426a58045?format=image"
+    },
+    {
+      "name": "Sulfur Falls",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/c762f475-7e58-4477-839b-b3c55434b88f?format=image"
+    },
+    {
+      "name": "Sunken Hollow",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Swamp",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/3a8eef9b-9b03-42cd-a27a-07021bf0b33f?format=image"
+    },
+    {
+      "name": "Spark Double",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Illusion",
+      "mana_cost": "{3}{U}",
+      "image_url": "https://api.scryfall.com/cards/c0bd188b-7fb9-4070-a92b-80b81ba71c61?format=image"
+    },
+    {
+      "name": "Titan of Littjara",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Illusion",
+      "mana_cost": "{4}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/6ac8eb8a-01b8-41b2-b725-01a1fc17fcb7?format=image"
+    },
+    {
+      "name": "Moonstone, Harsh Mistress",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain Doctor",
+      "mana_cost": "{3}{B}",
+      "image_url": "https://api.scryfall.com/cards/1a1b2bd0-e17d-4b34-a8ee-7c913a6bc945?format=image"
+    },
+    {
+      "name": "Kang, Temporal Tyrant",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{2}{U}{B}",
+      "image_url": "https://api.scryfall.com/cards/fb96ee86-5139-472a-9c4b-8a8a4280fc7e?format=image"
+    },
+    {
+      "name": "Villainous Hideout",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/cb4727f5-4a7e-487e-bd72-5f58eb8bf88e?format=image"
+    },
+    {
+      "name": "Containment Construct",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature Artifact — Construct",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/050c52b1-5dea-4aae-aa32-e501d61b56e7?format=image"
+    },
+    {
+      "name": "Chameleon, Master of Disguise",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Shapeshifter Villain",
+      "mana_cost": "{3}{U}",
+      "image_url": "https://api.scryfall.com/cards/dcc50ba7-c4be-4c20-a1fc-466194aab7c2?format=image"
+    },
+    {
+      "name": "Propaganda",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{2}{U}",
+      "image_url": "https://api.scryfall.com/cards/ac943e31-26bc-4b54-b73f-460e6e402d86?format=image"
+    },
+    {
+      "name": "Night's Whisper",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{1}{B}",
+      "image_url": "https://api.scryfall.com/cards/1ed2b60b-5f20-4ae6-93fb-51540ad9c9e7?format=image"
+    },
+    {
+      "name": "Syphon Mind",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{3}{B}",
+      "image_url": "https://api.scryfall.com/cards/be3f418b-25c3-4370-a1de-50e8e88c2ef6?format=image"
+    },
+    {
+      "name": "Tombstone, Career Criminal",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{2}{B}",
+      "image_url": "https://api.scryfall.com/cards/d3cd086b-8ffe-452f-9bb1-cc235058a3af?format=image"
+    },
+    {
+      "name": "Withering Torment",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{2}{B}",
+      "image_url": "https://api.scryfall.com/cards/06d44ada-f98e-405f-89d3-ac1002bfb854?format=image"
+    },
+    {
+      "name": "Superior Foes of Spider-Man",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Rogue Villain",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/bb759a0b-df7b-43c8-8e8e-bd52535cdbc0?format=image"
+    },
+    {
+      "name": "Vandalblast",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{R}",
+      "image_url": "https://api.scryfall.com/cards/71067239-d46f-4201-a91c-6aa4c41fa8b1?format=image"
+    },
+    {
+      "name": "Prowler, Clawed Thief",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Rogue Villain",
+      "mana_cost": "{1}{U}{B}",
+      "image_url": "https://api.scryfall.com/cards/08d18fce-e250-4bcb-9acf-08a8a6e4f1e2?format=image"
+    },
+    {
+      "name": "Terminate",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{B}{R}",
+      "image_url": "https://api.scryfall.com/cards/379ffc67-4142-4ead-a871-0f851523745e?format=image"
+    },
+    {
+      "name": "Patchwork Banner",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/537ea7e7-e8e8-4736-bdd9-1085f1a7c259?format=image"
+    },
+    {
+      "name": "Swiftfoot Boots",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/6675632d-d74a-4b1e-8539-ac678d5545a5?format=image"
+    },
+    {
+      "name": "Talisman of Dominance",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/00d4a1d4-b86a-4c05-9ecc-130e011e0486?format=image"
+    },
+    {
+      "name": "Talisman of Indulgence",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/ccacf88d-407d-465d-958a-1389b7d700e6?format=image"
+    },
+    {
+      "name": "Crumbling Necropolis",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d28542af-936f-44e5-a4e3-119f23c9f0d6?format=image"
+    },
+    {
+      "name": "Path of Ancestry",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/836b8f52-10d2-4716-9f7b-38fb23bc68de?format=image"
+    },
+    {
+      "name": "Secluded Courtyard",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/c0d17d04-cf0b-4918-bfec-b34b0d98a602?format=image"
+    },
+    {
+      "name": "Terramorphic Expanse",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/a81f924b-0527-4311-8120-9bfff71524f6?format=image"
+    },
+    {
+      "name": "Unclaimed Territory",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d3782952-3839-4a94-95bc-716611d3ece6?format=image"
+    },
+    {
+      "name": "Island",
+      "quantity": 4,
+      "is_commander": false,
+      "type_line": "Basic Land — Island",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/02f76514-9e0d-4d74-a224-15a2d7b44ae1?format=image"
+    },
+    {
+      "name": "Madame Hydra",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{2}{B}{R}",
+      "image_url": "https://api.scryfall.com/cards/e94ccedb-1d27-4098-8823-d8d99b30387c?format=image"
+    },
+    {
+      "name": "Arcane Signet",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/09cb4254-b88c-4231-b604-a144a20187a2?format=image"
+    },
+    {
+      "name": "Command Tower",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/a508330c-f223-4ee3-8610-e2c394519ae6?format=image"
+    },
+    {
+      "name": "Sol Ring",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{1}",
+      "image_url": "https://api.scryfall.com/cards/a7fc546e-7e3c-436d-a0b9-9ac3548ec344?format=image"
+    },
+    {
+      "name": "Baron Strucker, HYDRA Overlord",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Villain",
+      "mana_cost": "{2}{B}",
+      "image_url": "https://api.scryfall.com/cards/eaf2251a-ffaf-4055-9474-7e3d08d89609?format=image"
+    },
+    {
+      "name": "Kang Dynasty",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment — Saga",
+      "mana_cost": "{3}{U}",
+      "image_url": "https://api.scryfall.com/cards/5e4223df-c9fc-410a-913a-17bbfd054b57?format=image"
+    }
+  ],
+  "The Fantastic Four": [
+    {
+      "name": "Island",
+      "quantity": 5,
+      "is_commander": false,
+      "type_line": "Basic Land — Island",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/02f76514-9e0d-4d74-a224-15a2d7b44ae1?format=image"
+    },
+    {
+      "name": "Captain America, Team Leader",
+      "quantity": 1,
+      "is_commander": true,
+      "type_line": "Legendary Creature — Human Soldier Hero",
+      "mana_cost": "{U}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/910a6dfc-04a2-4c6d-b2ba-507bc75ec821?format=image"
+    },
+    {
+      "name": "Mountain",
+      "quantity": 5,
+      "is_commander": false,
+      "type_line": "Basic Land — Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/4bdbae27-9a55-485f-a1fc-3fa988184e9d?format=image"
+    },
+    {
+      "name": "Avenge",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{4}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/8b385779-bc6b-4f67-8724-d8ae136d1436?format=image"
+    },
+    {
+      "name": "Falcon and Redwing",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Bird Hero",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/e565fb47-acca-4348-87bb-afdadbf55e8a?format=image"
+    },
+    {
+      "name": "Hercules, Olympian Hero",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Warrior Hero Demigod",
+      "mana_cost": "{3}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/77be0e26-90db-41a5-97c2-43cf6ef87ab0?format=image"
+    },
+    {
+      "name": "Heroic Return",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{5}{W}",
+      "image_url": "https://api.scryfall.com/cards/707e0b51-701b-4eb6-b721-19c21a3c4d90?format=image"
+    },
+    {
+      "name": "Heroic Sacrifice",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/ec7bd155-1dd6-4fc3-870f-e0905f8c6d42?format=image"
+    },
+    {
+      "name": "Methods of the Mighty",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{3}{W}",
+      "image_url": "https://api.scryfall.com/cards/f3699f46-6173-47e1-97b2-a7632224fb6c?format=image"
+    },
+    {
+      "name": "Winter Soldier, Reborn Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Soldier Hero",
+      "mana_cost": "{4}{W}",
+      "image_url": "https://api.scryfall.com/cards/de13b219-a99c-47ef-8b68-d57463cf5de8?format=image"
+    },
+    {
+      "name": "Iron Man, Armored Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Human Hero",
+      "mana_cost": "{3}{U}",
+      "image_url": "https://api.scryfall.com/cards/94af0633-59c6-4893-ab44-232d37573dde?format=image"
+    },
+    {
+      "name": "Jarvis, Earth's Mightiest Butler",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Advisor",
+      "mana_cost": "{2}{U}",
+      "image_url": "https://api.scryfall.com/cards/62c31cd8-0c30-4cfb-89d6-2e4dac19f6ea?format=image"
+    },
+    {
+      "name": "Professor Hulk",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Scientist Hero Gamma",
+      "mana_cost": "{4}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/1b03fa4e-b3a1-4c23-8341-e9ce89aa872f?format=image"
+    },
+    {
+      "name": "The Wasp, Winsome Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero",
+      "mana_cost": "{1}{U}",
+      "image_url": "https://api.scryfall.com/cards/ce5fb436-fcc6-426f-a33b-a8ba904df0ff?format=image"
+    },
+    {
+      "name": "West Coast Expansion",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{X}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/41533f78-4a4e-424a-9612-a8bdb2a14b4b?format=image"
+    },
+    {
+      "name": "Firebird, Blazing Ranger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero Ranger",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/11dc3b30-b130-4558-ab37-9c32792641ea?format=image"
+    },
+    {
+      "name": "Photon, Mighty Marvel",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero",
+      "mana_cost": "{3}{R}",
+      "image_url": "https://api.scryfall.com/cards/2b164aca-2bda-49a6-81ce-16ef4721ec63?format=image"
+    },
+    {
+      "name": "She-Hulk, Wallbreaker",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Hero Gamma",
+      "mana_cost": "{5}{R}",
+      "image_url": "https://api.scryfall.com/cards/8c57fb16-f4a3-437c-be27-d1c00a2be01e?format=image"
+    },
+    {
+      "name": "War Machine, Avenging Arsenal",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Human Hero",
+      "mana_cost": "{4}{R}",
+      "image_url": "https://api.scryfall.com/cards/8c62621f-20b2-4950-a74a-7c2e4fc02e54?format=image"
+    },
+    {
+      "name": "Ant-Man, Elusive Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Rogue Hero",
+      "mana_cost": "{1}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/18e2b0a4-0ed3-48e6-8334-198a19e54bff?format=image"
+    },
+    {
+      "name": "Black Widow, Agile Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Spy Hero",
+      "mana_cost": "{1}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/8c2bf77c-9acf-4e2c-9cad-e74546f26070?format=image"
+    },
+    {
+      "name": "Captain Marvel, Apex Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero Kree",
+      "mana_cost": "{5}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/516e14ce-9cc8-4be3-aacb-ba801f26a6bc?format=image"
+    },
+    {
+      "name": "Director Nick Fury",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Spy Hero",
+      "mana_cost": "{U}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/9a19d4ec-399a-4371-acc3-0956dd4dcb84?format=image"
+    },
+    {
+      "name": "Hawkeye, Avenging Archer",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Archer Hero",
+      "mana_cost": "{2}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/1f394a6f-3649-4464-939b-c183b2b01768?format=image"
+    },
+    {
+      "name": "Love on the Battlefield",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{1}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/3f2e65ff-27ae-4dfc-bf17-66f0c4949699?format=image"
+    },
+    {
+      "name": "Quicksilver, Speedster",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Hero",
+      "mana_cost": "{3}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/5a454bad-c137-4d7c-9fcc-928c0c1798f4?format=image"
+    },
+    {
+      "name": "Scarlet Witch, Chaotic Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Hero Warlock",
+      "mana_cost": "{2}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/2308c274-40d8-490f-955e-67a57b89525a?format=image"
+    },
+    {
+      "name": "Shang-Chi and the Ten Rings",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "mana_cost": "{1}{W}{U}",
+      "image_url": "https://api.scryfall.com/cards/8d6288b7-c959-437b-9a3f-eb85c306c9f2?format=image"
+    },
+    {
+      "name": "Avengers Quinjet",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Vehicle",
+      "mana_cost": "{5}",
+      "image_url": "https://api.scryfall.com/cards/c090d4b3-b108-4596-9d6d-738eb5e2249c?format=image"
+    },
+    {
+      "name": "Hulkbuster Armor",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact — Equipment",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/0cd857a3-ad93-4d74-80e0-c99d0a04a60a?format=image"
+    },
+    {
+      "name": "Jocasta, Automaton Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Hero Robot",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/f666e211-0d80-4f01-b206-dac19bcbcfa7?format=image"
+    },
+    {
+      "name": "Vision, Synthezoid Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Hero Robot",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/f7007b77-84ec-4391-b279-8c188dd569d0?format=image"
+    },
+    {
+      "name": "Austere Command",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{4}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/a8bc7912-e201-468a-b251-140205cb741c?format=image"
+    },
+    {
+      "name": "Bastion Protector",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Soldier",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/1582488a-ad15-487e-9271-6d9330b46fb4?format=image"
+    },
+    {
+      "name": "Dismantling Wave",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/39e7bb05-96df-4e76-90a6-3f3625b7965a?format=image"
+    },
+    {
+      "name": "Folk Hero",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Enchantment — Background",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/85bf7c95-4534-435b-bb25-f39340ecf9be?format=image"
+    },
+    {
+      "name": "Gift of Immortality",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment — Aura",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/4ae22015-073a-4666-9e3b-15dcf61f50ce?format=image"
+    },
+    {
+      "name": "Kindred Discovery",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{3}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/19bdedb2-768b-4adf-8193-917a10c8f729?format=image"
+    },
+    {
+      "name": "Door of Destinies",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/1d0d80c7-87b5-47cc-b2fd-7defd281e1a2?format=image"
+    },
+    {
+      "name": "Metallic Mimic",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature Artifact — Shapeshifter",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/2623640e-51bb-4aba-a31f-1b6d170f58f6?format=image"
+    },
+    {
+      "name": "Tome of Legends",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Book",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/84546bb2-6c82-4e3e-8f64-cb7aa865ee60?format=image"
+    },
+    {
+      "name": "Clifftop Retreat",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/4a7f7767-1959-4812-8654-0a22634096b1?format=image"
+    },
+    {
+      "name": "Coastal Peak",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d2a70a9d-2d9f-4afd-9393-8d6518936ee2?format=image"
+    },
+    {
+      "name": "Exotic Orchard",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/8853ff94-bf44-4cfd-9d3a-0743c361fb0d?format=image"
+    },
+    {
+      "name": "Frostboil Snarl",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/ae705a26-5371-4236-904c-fe3e58b4721d?format=image"
+    },
+    {
+      "name": "Furycalm Snarl",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/afc12892-4978-4442-ace5-c4dea5c0ee00?format=image"
+    },
+    {
+      "name": "Glacial Fortress",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d673a2d5-0c61-48dc-8c8d-06f0c7b6b8bf?format=image"
+    },
+    {
+      "name": "Glittering Massif",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/a01274c2-a8f4-43b5-bd91-c4905b8cee7e?format=image"
+    },
+    {
+      "name": "Irrigated Farmland",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Island",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/996b4484-a701-409a-822c-aa19be89a2c6?format=image"
+    },
+    {
+      "name": "Plaza of Heroes",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/96fe4b9b-d766-463b-a6df-345ebebfc17c?format=image"
+    },
+    {
+      "name": "Port Town",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/3f962cab-c058-41f5-b7e1-5b063f374eb0?format=image"
+    },
+    {
+      "name": "Prairie Stream",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Island",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/b2e133b4-2263-4ac2-8d16-7bf307d5e104?format=image"
+    },
+    {
+      "name": "Radiant Summit",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/81b619cc-900c-4d65-83da-8b9dcb370984?format=image"
+    },
+    {
+      "name": "Scavenger Grounds",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Desert",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/9fbe68ba-ffe5-4fe0-ac0a-0b3221e4f395?format=image"
+    },
+    {
+      "name": "Scorched Geyser",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/43abdfba-0a55-4b8a-858e-3372ee40a579?format=image"
+    },
+    {
+      "name": "Spectator Seating",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/4c62dcfc-4bc8-4551-b3c7-9eec26be3362?format=image"
+    },
+    {
+      "name": "Sulfur Falls",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/c762f475-7e58-4477-839b-b3c55434b88f?format=image"
+    },
+    {
+      "name": "Raise the Palisade",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{4}{U}",
+      "image_url": "https://api.scryfall.com/cards/ce9347e8-962f-4fc1-808f-b59ac751de13?format=image"
+    },
+    {
+      "name": "Thor, Asgard's Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Warrior God Hero",
+      "mana_cost": "{2}{R}{R}",
+      "image_url": "https://api.scryfall.com/cards/00fa6bb3-e769-4a0e-9ee6-42eea85a237b?format=image"
+    },
+    {
+      "name": "Captain Mar-Vell, Space-Born",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Soldier Hero Kree",
+      "mana_cost": "{4}{W}",
+      "image_url": "https://api.scryfall.com/cards/27924c2f-756c-42af-9830-18a5a2735137?format=image"
+    },
+    {
+      "name": "Patriot, Shield Wielder",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/1467d7c9-00d8-43f1-b4e7-a279d2b10503?format=image"
+    },
+    {
+      "name": "Speed, Young Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Hero",
+      "mana_cost": "{1}{R}",
+      "image_url": "https://api.scryfall.com/cards/7224b9cc-6a88-4aea-a7ab-ab64e0e25451?format=image"
+    },
+    {
+      "name": "Captain America, Living Legend",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Soldier Hero",
+      "mana_cost": "{1}{W}{U}",
+      "image_url": "https://api.scryfall.com/cards/debe1ab2-ed15-4b8d-96f4-ad35bab44f82?format=image"
+    },
+    {
+      "name": "Avengers Tower",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/88f0d9c9-8a1f-4b5a-b6f9-821ddd658d27?format=image"
+    },
+    {
+      "name": "Destroy Evil",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/af2498a2-3763-408a-9bd2-279034869285?format=image"
+    },
+    {
+      "name": "Make Your Move",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/05fa34df-99b0-4121-b2f1-d41afe97b200?format=image"
+    },
+    {
+      "name": "Swords to Plowshares",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{W}",
+      "image_url": "https://api.scryfall.com/cards/b4e9c870-23c0-413a-ae39-265f09da16d1?format=image"
+    },
+    {
+      "name": "Arcane Denial",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{U}",
+      "image_url": "https://api.scryfall.com/cards/5eb843ef-b223-40d0-a461-54b16d188d0e?format=image"
+    },
+    {
+      "name": "Reconnaissance Mission",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{2}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/9fdd83d4-b473-498f-b45e-174f025e1259?format=image"
+    },
+    {
+      "name": "Rip Apart",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/b4964c78-b9ca-43c2-bcaa-bf75d92b9065?format=image"
+    },
+    {
+      "name": "Arcane Signet",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/1cad1bd2-7c56-4ce0-99a6-b2a49c1288dd?format=image"
+    },
+    {
+      "name": "Hero's Blade",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/6f2fa911-5735-4ee2-828f-59dea6927b20?format=image"
+    },
+    {
+      "name": "Relic of Legends",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/89691cda-e38b-4f53-bee6-4c234186e6ad?format=image"
+    },
+    {
+      "name": "Sol Ring",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{1}",
+      "image_url": "https://api.scryfall.com/cards/91fdb56b-54d5-4272-8319-505ff987fe9b?format=image"
+    },
+    {
+      "name": "Talisman of Conviction",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/a365885c-f7d9-4ea1-9125-5265055e5570?format=image"
+    },
+    {
+      "name": "Talisman of Creativity",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/3ed13229-bbbb-41a7-933e-8975a6b64226?format=image"
+    },
+    {
+      "name": "Talisman of Progress",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/b356ee36-1c62-4097-87d7-fef6a6dad067?format=image"
+    },
+    {
+      "name": "Thought Vessel",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/6ec6a910-f6d0-4225-8b55-d329dc788c64?format=image"
+    },
+    {
+      "name": "Command Tower",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/0548fb60-c843-4f8f-a029-6f10efc63a41?format=image"
+    },
+    {
+      "name": "Mystic Monastery",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/bc23343a-3a01-4975-8430-17bf15fa639d?format=image"
+    },
+    {
+      "name": "Path of Ancestry",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/836b8f52-10d2-4716-9f7b-38fb23bc68de?format=image"
+    },
+    {
+      "name": "Secluded Courtyard",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/c0d17d04-cf0b-4918-bfec-b34b0d98a602?format=image"
+    },
+    {
+      "name": "Unclaimed Territory",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d3782952-3839-4a94-95bc-716611d3ece6?format=image"
+    },
+    {
+      "name": "Fellwar Stone",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/1e24e2bc-b239-4f9a-85c0-5f272f58ed43?format=image"
+    },
+    {
+      "name": "Herald's Horn",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/1c2e4ff2-5c14-488e-8548-eb89ffd18e41?format=image"
+    },
+    {
+      "name": "Rescue, Pepper Potts",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Human Hero",
+      "mana_cost": "{1}{U}",
+      "image_url": "https://api.scryfall.com/cards/5292644f-b15b-4964-ba82-e37383f88eb8?format=image"
+    },
+    {
+      "name": "Plains",
+      "quantity": 6,
+      "is_commander": false,
+      "type_line": "Basic Land — Plains",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/5f029c91-f20b-4aa5-a7d9-dd6ddef1c877?format=image"
+    }
+  ],
+  "Avengers Assemble": [
+    {
+      "name": "Island",
+      "quantity": 5,
+      "is_commander": false,
+      "type_line": "Basic Land — Island",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/02f76514-9e0d-4d74-a224-15a2d7b44ae1?format=image"
+    },
+    {
+      "name": "Captain America, Team Leader",
+      "quantity": 1,
+      "is_commander": true,
+      "type_line": "Legendary Creature — Human Soldier Hero",
+      "mana_cost": "{U}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/910a6dfc-04a2-4c6d-b2ba-507bc75ec821?format=image"
+    },
+    {
+      "name": "Mountain",
+      "quantity": 5,
+      "is_commander": false,
+      "type_line": "Basic Land — Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/4bdbae27-9a55-485f-a1fc-3fa988184e9d?format=image"
+    },
+    {
+      "name": "Avenge",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{4}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/8b385779-bc6b-4f67-8724-d8ae136d1436?format=image"
+    },
+    {
+      "name": "Falcon and Redwing",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Bird Hero",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/e565fb47-acca-4348-87bb-afdadbf55e8a?format=image"
+    },
+    {
+      "name": "Hercules, Olympian Hero",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Warrior Hero Demigod",
+      "mana_cost": "{3}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/77be0e26-90db-41a5-97c2-43cf6ef87ab0?format=image"
+    },
+    {
+      "name": "Heroic Return",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{5}{W}",
+      "image_url": "https://api.scryfall.com/cards/707e0b51-701b-4eb6-b721-19c21a3c4d90?format=image"
+    },
+    {
+      "name": "Heroic Sacrifice",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/ec7bd155-1dd6-4fc3-870f-e0905f8c6d42?format=image"
+    },
+    {
+      "name": "Methods of the Mighty",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{3}{W}",
+      "image_url": "https://api.scryfall.com/cards/f3699f46-6173-47e1-97b2-a7632224fb6c?format=image"
+    },
+    {
+      "name": "Winter Soldier, Reborn Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Soldier Hero",
+      "mana_cost": "{4}{W}",
+      "image_url": "https://api.scryfall.com/cards/de13b219-a99c-47ef-8b68-d57463cf5de8?format=image"
+    },
+    {
+      "name": "Iron Man, Armored Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Human Hero",
+      "mana_cost": "{3}{U}",
+      "image_url": "https://api.scryfall.com/cards/94af0633-59c6-4893-ab44-232d37573dde?format=image"
+    },
+    {
+      "name": "Jarvis, Earth's Mightiest Butler",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Advisor",
+      "mana_cost": "{2}{U}",
+      "image_url": "https://api.scryfall.com/cards/62c31cd8-0c30-4cfb-89d6-2e4dac19f6ea?format=image"
+    },
+    {
+      "name": "Professor Hulk",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Scientist Hero Gamma",
+      "mana_cost": "{4}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/1b03fa4e-b3a1-4c23-8341-e9ce89aa872f?format=image"
+    },
+    {
+      "name": "The Wasp, Winsome Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero",
+      "mana_cost": "{1}{U}",
+      "image_url": "https://api.scryfall.com/cards/ce5fb436-fcc6-426f-a33b-a8ba904df0ff?format=image"
+    },
+    {
+      "name": "West Coast Expansion",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{X}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/41533f78-4a4e-424a-9612-a8bdb2a14b4b?format=image"
+    },
+    {
+      "name": "Firebird, Blazing Ranger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero Ranger",
+      "mana_cost": "{2}{R}",
+      "image_url": "https://api.scryfall.com/cards/11dc3b30-b130-4558-ab37-9c32792641ea?format=image"
+    },
+    {
+      "name": "Photon, Mighty Marvel",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero",
+      "mana_cost": "{3}{R}",
+      "image_url": "https://api.scryfall.com/cards/2b164aca-2bda-49a6-81ce-16ef4721ec63?format=image"
+    },
+    {
+      "name": "She-Hulk, Wallbreaker",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Hero Gamma",
+      "mana_cost": "{5}{R}",
+      "image_url": "https://api.scryfall.com/cards/8c57fb16-f4a3-437c-be27-d1c00a2be01e?format=image"
+    },
+    {
+      "name": "War Machine, Avenging Arsenal",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Human Hero",
+      "mana_cost": "{4}{R}",
+      "image_url": "https://api.scryfall.com/cards/8c62621f-20b2-4950-a74a-7c2e4fc02e54?format=image"
+    },
+    {
+      "name": "Ant-Man, Elusive Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Rogue Hero",
+      "mana_cost": "{1}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/18e2b0a4-0ed3-48e6-8334-198a19e54bff?format=image"
+    },
+    {
+      "name": "Black Widow, Agile Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Spy Hero",
+      "mana_cost": "{1}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/8c2bf77c-9acf-4e2c-9cad-e74546f26070?format=image"
+    },
+    {
+      "name": "Captain Marvel, Apex Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero Kree",
+      "mana_cost": "{5}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/516e14ce-9cc8-4be3-aacb-ba801f26a6bc?format=image"
+    },
+    {
+      "name": "Director Nick Fury",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Spy Hero",
+      "mana_cost": "{U}{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/9a19d4ec-399a-4371-acc3-0956dd4dcb84?format=image"
+    },
+    {
+      "name": "Hawkeye, Avenging Archer",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Archer Hero",
+      "mana_cost": "{2}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/1f394a6f-3649-4464-939b-c183b2b01768?format=image"
+    },
+    {
+      "name": "Love on the Battlefield",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{1}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/3f2e65ff-27ae-4dfc-bf17-66f0c4949699?format=image"
+    },
+    {
+      "name": "Quicksilver, Speedster",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Hero",
+      "mana_cost": "{3}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/5a454bad-c137-4d7c-9fcc-928c0c1798f4?format=image"
+    },
+    {
+      "name": "Scarlet Witch, Chaotic Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Hero Warlock",
+      "mana_cost": "{2}{U}{R}",
+      "image_url": "https://api.scryfall.com/cards/2308c274-40d8-490f-955e-67a57b89525a?format=image"
+    },
+    {
+      "name": "Shang-Chi and the Ten Rings",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Warrior Hero",
+      "mana_cost": "{1}{W}{U}",
+      "image_url": "https://api.scryfall.com/cards/8d6288b7-c959-437b-9a3f-eb85c306c9f2?format=image"
+    },
+    {
+      "name": "Avengers Quinjet",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Vehicle",
+      "mana_cost": "{5}",
+      "image_url": "https://api.scryfall.com/cards/c090d4b3-b108-4596-9d6d-738eb5e2249c?format=image"
+    },
+    {
+      "name": "Hulkbuster Armor",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Artifact — Equipment",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/0cd857a3-ad93-4d74-80e0-c99d0a04a60a?format=image"
+    },
+    {
+      "name": "Jocasta, Automaton Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Hero Robot",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/f666e211-0d80-4f01-b206-dac19bcbcfa7?format=image"
+    },
+    {
+      "name": "Vision, Synthezoid Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Hero Robot",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/f7007b77-84ec-4391-b279-8c188dd569d0?format=image"
+    },
+    {
+      "name": "Austere Command",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{4}{W}{W}",
+      "image_url": "https://api.scryfall.com/cards/a8bc7912-e201-468a-b251-140205cb741c?format=image"
+    },
+    {
+      "name": "Bastion Protector",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature — Human Soldier",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/1582488a-ad15-487e-9271-6d9330b46fb4?format=image"
+    },
+    {
+      "name": "Dismantling Wave",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/39e7bb05-96df-4e76-90a6-3f3625b7965a?format=image"
+    },
+    {
+      "name": "Folk Hero",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Enchantment — Background",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/85bf7c95-4534-435b-bb25-f39340ecf9be?format=image"
+    },
+    {
+      "name": "Gift of Immortality",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment — Aura",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/4ae22015-073a-4666-9e3b-15dcf61f50ce?format=image"
+    },
+    {
+      "name": "Kindred Discovery",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{3}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/19bdedb2-768b-4adf-8193-917a10c8f729?format=image"
+    },
+    {
+      "name": "Door of Destinies",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{4}",
+      "image_url": "https://api.scryfall.com/cards/1d0d80c7-87b5-47cc-b2fd-7defd281e1a2?format=image"
+    },
+    {
+      "name": "Metallic Mimic",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Creature Artifact — Shapeshifter",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/2623640e-51bb-4aba-a31f-1b6d170f58f6?format=image"
+    },
+    {
+      "name": "Tome of Legends",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Book",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/84546bb2-6c82-4e3e-8f64-cb7aa865ee60?format=image"
+    },
+    {
+      "name": "Clifftop Retreat",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/4a7f7767-1959-4812-8654-0a22634096b1?format=image"
+    },
+    {
+      "name": "Coastal Peak",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d2a70a9d-2d9f-4afd-9393-8d6518936ee2?format=image"
+    },
+    {
+      "name": "Exotic Orchard",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/8853ff94-bf44-4cfd-9d3a-0743c361fb0d?format=image"
+    },
+    {
+      "name": "Frostboil Snarl",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/ae705a26-5371-4236-904c-fe3e58b4721d?format=image"
+    },
+    {
+      "name": "Furycalm Snarl",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/afc12892-4978-4442-ace5-c4dea5c0ee00?format=image"
+    },
+    {
+      "name": "Glacial Fortress",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d673a2d5-0c61-48dc-8c8d-06f0c7b6b8bf?format=image"
+    },
+    {
+      "name": "Glittering Massif",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/a01274c2-a8f4-43b5-bd91-c4905b8cee7e?format=image"
+    },
+    {
+      "name": "Irrigated Farmland",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Island",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/996b4484-a701-409a-822c-aa19be89a2c6?format=image"
+    },
+    {
+      "name": "Plaza of Heroes",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/96fe4b9b-d766-463b-a6df-345ebebfc17c?format=image"
+    },
+    {
+      "name": "Port Town",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/3f962cab-c058-41f5-b7e1-5b063f374eb0?format=image"
+    },
+    {
+      "name": "Prairie Stream",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Island",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/b2e133b4-2263-4ac2-8d16-7bf307d5e104?format=image"
+    },
+    {
+      "name": "Radiant Summit",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Plains Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/81b619cc-900c-4d65-83da-8b9dcb370984?format=image"
+    },
+    {
+      "name": "Scavenger Grounds",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Desert",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/9fbe68ba-ffe5-4fe0-ac0a-0b3221e4f395?format=image"
+    },
+    {
+      "name": "Scorched Geyser",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land — Island Mountain",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/43abdfba-0a55-4b8a-858e-3372ee40a579?format=image"
+    },
+    {
+      "name": "Spectator Seating",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/4c62dcfc-4bc8-4551-b3c7-9eec26be3362?format=image"
+    },
+    {
+      "name": "Sulfur Falls",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/c762f475-7e58-4477-839b-b3c55434b88f?format=image"
+    },
+    {
+      "name": "Raise the Palisade",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{4}{U}",
+      "image_url": "https://api.scryfall.com/cards/ce9347e8-962f-4fc1-808f-b59ac751de13?format=image"
+    },
+    {
+      "name": "Thor, Asgard's Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Warrior God Hero",
+      "mana_cost": "{2}{R}{R}",
+      "image_url": "https://api.scryfall.com/cards/00fa6bb3-e769-4a0e-9ee6-42eea85a237b?format=image"
+    },
+    {
+      "name": "Captain Mar-Vell, Space-Born",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Soldier Hero Kree",
+      "mana_cost": "{4}{W}",
+      "image_url": "https://api.scryfall.com/cards/27924c2f-756c-42af-9830-18a5a2735137?format=image"
+    },
+    {
+      "name": "Patriot, Shield Wielder",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Hero",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/1467d7c9-00d8-43f1-b4e7-a279d2b10503?format=image"
+    },
+    {
+      "name": "Speed, Young Avenger",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Mutant Hero",
+      "mana_cost": "{1}{R}",
+      "image_url": "https://api.scryfall.com/cards/7224b9cc-6a88-4aea-a7ab-ab64e0e25451?format=image"
+    },
+    {
+      "name": "Captain America, Living Legend",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature — Human Soldier Hero",
+      "mana_cost": "{1}{W}{U}",
+      "image_url": "https://api.scryfall.com/cards/debe1ab2-ed15-4b8d-96f4-ad35bab44f82?format=image"
+    },
+    {
+      "name": "Avengers Tower",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/88f0d9c9-8a1f-4b5a-b6f9-821ddd658d27?format=image"
+    },
+    {
+      "name": "Destroy Evil",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{W}",
+      "image_url": "https://api.scryfall.com/cards/af2498a2-3763-408a-9bd2-279034869285?format=image"
+    },
+    {
+      "name": "Make Your Move",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{2}{W}",
+      "image_url": "https://api.scryfall.com/cards/05fa34df-99b0-4121-b2f1-d41afe97b200?format=image"
+    },
+    {
+      "name": "Swords to Plowshares",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{W}",
+      "image_url": "https://api.scryfall.com/cards/b4e9c870-23c0-413a-ae39-265f09da16d1?format=image"
+    },
+    {
+      "name": "Arcane Denial",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Instant —",
+      "mana_cost": "{1}{U}",
+      "image_url": "https://api.scryfall.com/cards/5eb843ef-b223-40d0-a461-54b16d188d0e?format=image"
+    },
+    {
+      "name": "Reconnaissance Mission",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Enchantment —",
+      "mana_cost": "{2}{U}{U}",
+      "image_url": "https://api.scryfall.com/cards/9fdd83d4-b473-498f-b45e-174f025e1259?format=image"
+    },
+    {
+      "name": "Rip Apart",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Sorcery —",
+      "mana_cost": "{R}{W}",
+      "image_url": "https://api.scryfall.com/cards/b4964c78-b9ca-43c2-bcaa-bf75d92b9065?format=image"
+    },
+    {
+      "name": "Arcane Signet",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/1cad1bd2-7c56-4ce0-99a6-b2a49c1288dd?format=image"
+    },
+    {
+      "name": "Hero's Blade",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact — Equipment",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/6f2fa911-5735-4ee2-828f-59dea6927b20?format=image"
+    },
+    {
+      "name": "Relic of Legends",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/89691cda-e38b-4f53-bee6-4c234186e6ad?format=image"
+    },
+    {
+      "name": "Sol Ring",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{1}",
+      "image_url": "https://api.scryfall.com/cards/91fdb56b-54d5-4272-8319-505ff987fe9b?format=image"
+    },
+    {
+      "name": "Talisman of Conviction",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/a365885c-f7d9-4ea1-9125-5265055e5570?format=image"
+    },
+    {
+      "name": "Talisman of Creativity",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/3ed13229-bbbb-41a7-933e-8975a6b64226?format=image"
+    },
+    {
+      "name": "Talisman of Progress",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/b356ee36-1c62-4097-87d7-fef6a6dad067?format=image"
+    },
+    {
+      "name": "Thought Vessel",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/6ec6a910-f6d0-4225-8b55-d329dc788c64?format=image"
+    },
+    {
+      "name": "Command Tower",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/0548fb60-c843-4f8f-a029-6f10efc63a41?format=image"
+    },
+    {
+      "name": "Mystic Monastery",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/bc23343a-3a01-4975-8430-17bf15fa639d?format=image"
+    },
+    {
+      "name": "Path of Ancestry",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/836b8f52-10d2-4716-9f7b-38fb23bc68de?format=image"
+    },
+    {
+      "name": "Secluded Courtyard",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/c0d17d04-cf0b-4918-bfec-b34b0d98a602?format=image"
+    },
+    {
+      "name": "Unclaimed Territory",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Land —",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/d3782952-3839-4a94-95bc-716611d3ece6?format=image"
+    },
+    {
+      "name": "Fellwar Stone",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{2}",
+      "image_url": "https://api.scryfall.com/cards/1e24e2bc-b239-4f9a-85c0-5f272f58ed43?format=image"
+    },
+    {
+      "name": "Herald's Horn",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Artifact —",
+      "mana_cost": "{3}",
+      "image_url": "https://api.scryfall.com/cards/1c2e4ff2-5c14-488e-8548-eb89ffd18e41?format=image"
+    },
+    {
+      "name": "Rescue, Pepper Potts",
+      "quantity": 1,
+      "is_commander": false,
+      "type_line": "Legendary Creature Artifact — Human Hero",
+      "mana_cost": "{1}{U}",
+      "image_url": "https://api.scryfall.com/cards/5292644f-b15b-4964-ba82-e37383f88eb8?format=image"
+    },
+    {
+      "name": "Plains",
+      "quantity": 6,
+      "is_commander": false,
+      "type_line": "Basic Land — Plains",
+      "mana_cost": "",
+      "image_url": "https://api.scryfall.com/cards/5f029c91-f20b-4aa5-a7d9-dd6ddef1c877?format=image"
+    }
   ]
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { searchCards, ScryfallCard, getAveragePrice, getCollection, getCardPrints, getCardByName } from '@/lib/scryfall';
 import { calculateCardCost } from '@/lib/deckUtils';
@@ -21,6 +21,11 @@ interface UseWishlistProps {
   externalTrendingPrices?: Record<string, number>;
 }
 
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 export function useWishlist({ deckId, onUpdateDeck, externalTrendingPrices }: UseWishlistProps) {
   const [wishlist, setWishlist] = useState<WishlistCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,13 +34,8 @@ export function useWishlist({ deckId, onUpdateDeck, externalTrendingPrices }: Us
   const [query, setQuery] = useState('');
   const [searchResults, setSearchResults] = useState<ScryfallCard[]>([]);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
-
-  const fetchWishlist = async () => {
-    const { data, error } = await supabase
+  const fetchWishlist = useCallback(async () => {
+    const { data } = await supabase
       .from('deck_wishlist')
       .select('*')
       .eq('deck_id', deckId)
@@ -44,11 +44,11 @@ export function useWishlist({ deckId, onUpdateDeck, externalTrendingPrices }: Us
       
     if (data) setWishlist(data);
     setLoading(false);
-  };
+  }, [deckId]);
 
   useEffect(() => {
     fetchWishlist();
-  }, [deckId]);
+  }, [fetchWishlist]);
 
   // Fetch trending prices for wishlist items
   useEffect(() => {
@@ -71,7 +71,7 @@ export function useWishlist({ deckId, onUpdateDeck, externalTrendingPrices }: Us
       setLoadingTrending(false);
     };
     fetchTrending();
-  }, [wishlist.length === 0]); // Only re-run if wishlist becomes empty or on first load with items
+  }, [wishlist]); // Only re-run if wishlist becomes empty or on first load with items
 
   // Search logic
   useEffect(() => {

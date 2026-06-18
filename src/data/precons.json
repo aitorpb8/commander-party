@@ -1,5 +1,41 @@
 [
   {
+    "id": "precon-wakanda-forever",
+    "name": "Wakanda Forever",
+    "commander": "T'Challa, the Black Panther",
+    "imageUrl": "https://cards.scryfall.io/large/front/c/1/c1c8ad61-b7e1-446c-8b74-6e29371ea1d5.jpg?1781500275",
+    "url": "https://archidekt.com/decks/23426916/wakanda_forever_marvel_super_heroes",
+    "series": "Marvel Super Heroes",
+    "year": 2026
+  },
+  {
+    "id": "precon-doom-prevails",
+    "name": "Doom Prevails",
+    "commander": "Doctor Doom, King of Latveria",
+    "imageUrl": "https://cards.scryfall.io/large/front/0/9/099ed408-9178-4403-8b2d-479ca3cbda9b.jpg?1780413198",
+    "url": "https://archidekt.com/decks/23394508/doom_prevails_marvel_super_heroes",
+    "series": "Marvel Super Heroes",
+    "year": 2026
+  },
+  {
+    "id": "precon-fantastic-four",
+    "name": "The Fantastic Four",
+    "commander": "Mister Fantastic",
+    "imageUrl": "https://cards.scryfall.io/normal/front/f/1/f1d80509-ece1-4b6d-bfe5-c6d003f581cf.jpg?1765294256",
+    "url": "https://archidekt.com/decks/23342365/avengers_assemble_marvel_super_heroes",
+    "series": "Marvel Super Heroes",
+    "year": 2026
+  },
+    {
+    "id": "precon-avengers-assemble",
+    "name": "Avengers Assemble",
+    "commander": "Captain America, Team Leader",
+    "imageUrl": "https://cards.scryfall.io/large/front/6/1/61a51b67-d941-4e07-9c12-ffe583cb65d4.jpg?1780413188",
+    "url": "https://archidekt.com/decks/23342365/avengers_assemble_marvel_super_heroes",
+    "series": "Marvel Super Heroes",
+    "year": 2026
+  },
+  {
     "id": "precon-silverquill-influence",
     "name": "Silverquill Influence",
     "commander": "Killian, Decisive Mentor",

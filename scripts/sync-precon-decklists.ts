@@ -141,6 +141,8 @@ async function sync() {
 
   console.log('🔄 Checking for updates...\n');
 
+  const force = process.argv.includes('--force');
+
   for (const precon of precons) {
     const isSupported = precon.url.includes('archidekt.com') || precon.url.includes('moxfield.com');
     if (!isSupported) {
@@ -148,10 +150,12 @@ async function sync() {
       continue;
     }
 
-    // For this specific task, we'll force update if the user wants, 
-    // but usually we check if it's missing or if we want a full refresh.
-    // Let's print which one we're doing.
-    console.log(`📦 Proccessing "${precon.name}"...`);
+    if (!force && decklists[precon.name] && decklists[precon.name].length > 0) {
+      console.log(`⏩ Skipping "${precon.name}" (Already cached)`);
+      continue;
+    }
+
+    console.log(`📦 Processing "${precon.name}"...`);
     
     const cards = await fetchDeckCards(precon.url);
     if (cards.length > 0) {
