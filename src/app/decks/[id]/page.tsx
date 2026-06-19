@@ -177,30 +177,77 @@ export default function DeckDetailPage() {
       });
       if (upgradeError) throw upgradeError;
 
-      // 5. Actualizar tabla deck_cards (Sustitución atómica)
-      if (cardNameOut) {
-        await supabase.from('deck_cards').delete().eq('deck_id', id).eq('card_name', cardNameOut);
-      }
+      // 5. Actualizar tabla deck_cards
+      // Query existing cards with these names to decide if we insert, update or delete
+      const { data: existingIn } = cardNameIn 
+        ? await supabase.from('deck_cards').select('*').eq('deck_id', id).eq('card_name', cardNameIn) 
+        : { data: null };
+      const { data: existingOut } = cardNameOut 
+        ? await supabase.from('deck_cards').select('*').eq('deck_id', id).eq('card_name', cardNameOut) 
+        : { data: null };
 
-      if (cardDataIn && typeof cardDataIn === 'object') {
-        // Si es un objeto de Scryfall (tiene .name), lo transformamos
-        // Si ya es un objeto DeckCard (tiene .card_name), lo usamos casi tal cual
-        const deckCard = (cardDataIn as any).name 
-          ? transformScryfallToDeckCard(cardDataIn, id as string)
-          : { ...cardDataIn, deck_id: id }; // Ya es un DeckCard
+      const cardInRow = existingIn && existingIn[0];
+      const cardOutRow = existingOut && existingOut[0];
+
+      // A) Swap of the same card (e.g., change edition, toggle commander)
+      if (cardNameIn && cardNameOut && cardNameIn === cardNameOut) {
+        if (cardInRow) {
+          const deckCard = (cardDataIn as any).name 
+            ? transformScryfallToDeckCard(cardDataIn, id as string, cardDataIn.is_commander || cardInRow.is_commander)
+            : { ...cardDataIn, deck_id: id };
           
-        // Remove DB-specific ID if it exists to avoid primary key conflicts on new insert
-        if ((deckCard as any).id && (cardDataIn as any).name) {
-           delete (deckCard as any).id;
+          if ((deckCard as any).id) delete (deckCard as any).id;
+          const { collector_number, quantity, ...safeDeckCard } = deckCard as any;
+          // Keep current quantity unless specifically overridden
+          const targetQuantity = change.quantity !== undefined ? change.quantity : cardInRow.quantity;
+
+          const { error: updateError } = await supabase
+            .from('deck_cards')
+            .update({ ...safeDeckCard, quantity: targetQuantity })
+            .eq('id', cardInRow.id);
+          if (updateError) throw updateError;
+        }
+      }
+      // B) Different cards or single card update
+      else {
+        // Handle removal / decrement of cardNameOut
+        if (cardNameOut && cardOutRow) {
+          const isCompleteRemoval = change.description === 'Eliminado desde editor visual' || cardOutRow.quantity <= 1;
+          if (isCompleteRemoval) {
+            const { error: deleteError } = await supabase.from('deck_cards').delete().eq('id', cardOutRow.id);
+            if (deleteError) throw deleteError;
+          } else {
+            const { error: updateError } = await supabase
+              .from('deck_cards')
+              .update({ quantity: cardOutRow.quantity - 1 })
+              .eq('id', cardOutRow.id);
+            if (updateError) throw updateError;
+          }
         }
 
-        // Strip out potentially non-existent DB columns just in case
-        const { set_code, set_name, collector_number, ...safeDeckCard } = deckCard as any;
+        // Handle addition / increment of cardNameIn
+        if (cardNameIn && cardDataIn) {
+          if (cardInRow) {
+            const targetQuantity = change.quantity !== undefined ? change.quantity : (cardInRow.quantity + 1);
+            const { error: updateError } = await supabase
+              .from('deck_cards')
+              .update({ quantity: targetQuantity })
+              .eq('id', cardInRow.id);
+            if (updateError) throw updateError;
+          } else {
+            const deckCard = (cardDataIn as any).name 
+              ? transformScryfallToDeckCard(cardDataIn, id as string)
+              : { ...cardDataIn, deck_id: id };
+            
+            if ((deckCard as any).id) delete (deckCard as any).id;
+            const { collector_number, ...safeDeckCard } = deckCard as any;
+            
+            // Set quantity correctly
+            safeDeckCard.quantity = change.quantity !== undefined ? change.quantity : 1;
 
-        const { error: insertError } = await supabase.from('deck_cards').insert(safeDeckCard);
-        if (insertError) {
-          console.error("Error inserting deck_card:", insertError);
-          throw insertError;
+            const { error: insertError } = await supabase.from('deck_cards').insert(safeDeckCard);
+            if (insertError) throw insertError;
+          }
         }
       }
 

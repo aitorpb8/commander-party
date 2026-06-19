@@ -35,20 +35,7 @@ export default function DeckActionButtons({
            Exportar Mazo
         </button>
       </div>
-      {isOwner && hasArchidektId && (
-        <button 
-          onClick={onSyncArchidekt} 
-          className="btn-premium btn-premium-dark" 
-          style={{ 
-            width: '100%', 
-            fontSize: '0.75rem', 
-            padding: '0.6rem',
-            borderColor: 'rgba(212, 175, 55, 0.2)'
-          }}
-        >
-          🔄 Sincronizar con Archidekt
-        </button>
-      )}
+      
       <button 
         onClick={onExportPro} 
         className="btn-premium btn-premium-gold" 

@@ -3,12 +3,34 @@ export type { ScryfallCard };
 
 const PROXY_GET = "/api/scryfall/proxy";
 
+function normalizeBasicLandName(query: string): string {
+  const normalizedQuery = query.toLowerCase().trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, ""); // Remove accents/diacritics
+
+  if (/^(islas?|illes?)\s*(basicas?)?$/.test(normalizedQuery)) {
+    return 'Island';
+  } else if (/^(montanas?|muntanyes?)\s*(basicas?)?$/.test(normalizedQuery)) {
+    return 'Mountain';
+  } else if (/^(llanuras?|planes?)\s*(basicas?)?$/.test(normalizedQuery)) {
+    return 'Plains';
+  } else if (/^(pantanos?|pantans?)\s*(basicas?)?$/.test(normalizedQuery)) {
+    return 'Swamp';
+  } else if (/^(bosques?|boscos?)\s*(basicas?)?$/.test(normalizedQuery)) {
+    return 'Forest';
+  } else if (/^yermos?$/.test(normalizedQuery)) {
+    return 'Wastes';
+  }
+  return query;
+}
+
 export async function getCardByName(
   name: string
 ): Promise<ScryfallCard | null> {
+  const targetName = normalizeBasicLandName(name);
   try {
     // 1. Try exact match first
-    const exactQuery = `!"${name}" -is:extra -is:artseries -layout:token`;
+    const exactQuery = `!"${targetName}" -is:extra -is:artseries -layout:token`;
     const res = await fetch(`${PROXY_GET}?path=cards/search&q=${encodeURIComponent(exactQuery)}&order=eur&dir=asc`);
 
     if (res.ok) {
@@ -17,8 +39,8 @@ export async function getCardByName(
     }
 
     // 2. If exact fails, try a fuzzy/relaxed search
-    console.log(`Exact match failed for "${name}", trying relaxed search...`);
-    const relaxedQuery = `${name} -is:extra -is:artseries -layout:token`;
+    console.log(`Exact match failed for "${targetName}", trying relaxed search...`);
+    const relaxedQuery = `${targetName} -is:extra -is:artseries -layout:token`;
     const resRelaxed = await fetch(`${PROXY_GET}?path=cards/search&q=${encodeURIComponent(relaxedQuery)}&order=eur&dir=asc`);
     
     if (resRelaxed.ok) {
@@ -36,12 +58,15 @@ export async function getCardByName(
 
 export async function getCollection(identifiers: { name?: string, id?: string }[]): Promise<ScryfallCard[]> {
   if (identifiers.length === 0) return [];
+  const normalizedIdentifiers = identifiers.map(id => 
+    id.name ? { ...id, name: normalizeBasicLandName(id.name) } : id
+  );
   try {
     // Use internal API route to avoid CORS issues with POST requests
     const res = await fetch('/api/scryfall/collection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifiers })
+      body: JSON.stringify({ identifiers: normalizedIdentifiers })
     });
 
     if (!res.ok) return [];
@@ -55,6 +80,8 @@ export async function getCollection(identifiers: { name?: string, id?: string }[
 
 export async function searchCards(query: string): Promise<ScryfallCard[]> {
   if (query.length < 2) return [];
+
+  query = normalizeBasicLandName(query);
   
   const performSearch = async (q: string) => {
     // Forcefully exclude tokens, art series, and extras from all searches
