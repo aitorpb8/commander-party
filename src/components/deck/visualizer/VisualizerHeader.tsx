@@ -8,6 +8,7 @@ interface VisualizerHeaderProps {
   cards: DeckCard[];
   onShowPlaytest: () => void;
   onShare: () => void;
+  onPrintProxies: () => void;
   shareStatus: 'idle' | 'copied';
   groupBy: GroupBy;
   setGroupBy: (val: GroupBy) => void;
@@ -19,12 +20,14 @@ interface VisualizerHeaderProps {
   setFilter: (val: string) => void;
   showFilters: boolean;
   setShowFilters: (val: boolean) => void;
+  filterPanel?: React.ReactNode;
 }
 
 const VisualizerHeader: React.FC<VisualizerHeaderProps> = ({
   cards,
   onShowPlaytest,
   onShare,
+  onPrintProxies,
   shareStatus,
   groupBy,
   setGroupBy,
@@ -35,7 +38,8 @@ const VisualizerHeader: React.FC<VisualizerHeaderProps> = ({
   filter,
   setFilter,
   showFilters,
-  setShowFilters
+  setShowFilters,
+  filterPanel
 }) => {
   return (
     <div className={styles.visualizerContainer} style={{ marginBottom: '1.5rem' }}>
@@ -60,6 +64,18 @@ const VisualizerHeader: React.FC<VisualizerHeaderProps> = ({
               Playtest
             </button>
             <button 
+              onClick={onPrintProxies}
+              className="btn-premium btn-premium-dark"
+              style={{ fontSize: '0.8rem', padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              Proxies
+            </button>
+            <button 
               onClick={onShare}
               className={`btn-premium ${shareStatus === 'copied' ? 'btn-premium-gold' : 'btn-premium-dark'}`}
               style={{ fontSize: '0.8rem', padding: '0.6rem 1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
@@ -81,7 +97,7 @@ const VisualizerHeader: React.FC<VisualizerHeaderProps> = ({
         
         {/* Bottom Row: Filters & Search */}
         <div className={styles.filtersBar} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', width: '100%' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, overflowX: 'auto', paddingBottom: '4px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flex: 1, paddingBottom: '4px' }}>
             <DeckFilters 
               groupBy={groupBy}
               setGroupBy={setGroupBy}
@@ -92,26 +108,38 @@ const VisualizerHeader: React.FC<VisualizerHeaderProps> = ({
             />
           </div>
 
-          <div className={styles.searchGroup} style={{ marginLeft: 'auto' }}>
+          <div className={styles.searchGroup} style={{ marginLeft: 'auto', position: 'relative' }}>
             <input 
               type="text" 
               placeholder="Buscar carta..." 
               value={filter}
               onChange={e => setFilter(e.target.value)}
-              className="search-input"
+              className={styles.searchInput}
             />
             <button
               onClick={() => setShowFilters(!showFilters)}
-              className={`filter-toggle ${showFilters ? 'active' : ''}`}
+              className={`btn-premium ${showFilters ? 'btn-premium-gold' : 'btn-premium-dark'}`}
+              style={{ 
+                margin: '0 4px', 
+                padding: '0.4rem', 
+                borderRadius: '50%',
+                width: '32px',
+                height: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
               title="Filtros Avanzados"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M20 7h-9"></path>
                 <path d="M14 17H5"></path>
                 <circle cx="17" cy="17" r="3"></circle>
                 <circle cx="7" cy="7" r="3"></circle>
               </svg>
             </button>
+            {filterPanel}
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ import PlaytestModal from '@/components/deck/PlaytestModal';
 import CardDetailsModal from '@/components/deck/CardDetailsModal';
 import VersionPickerModal from '@/components/deck/VersionPickerModal';
 import PreviewCardOverlay from '@/components/deck/PreviewCardOverlay';
+import ProxyPrintModal from '@/components/deck/ProxyPrintModal';
 import { renderSymbols } from '@/components/ManaSymbols';
 import DeckFilterPanel, { AdvancedFilters } from '@/components/deck/DeckFilterPanel';
 import SyncCompleteModal from '@/components/deck/SyncCompleteModal';
@@ -30,6 +31,7 @@ interface DeckVisualizerProps {
   onUpdateDeck?: (change: { card_in?: any, card_out?: string, cost?: number, description?: string }) => Promise<boolean | void> | void;
   preconCardNames?: Set<string>;
   deckId?: string;
+  deckName?: string;
   cardTags?: Record<string, string[]>;
   onTagsUpdate?: () => void;
   userCollection?: Set<string>;
@@ -48,6 +50,7 @@ export default function DeckVisualizer({
   onUpdateDeck, 
   preconCardNames = new Set(), 
   deckId, 
+  deckName = 'Mazo',
   cardTags = {}, 
   onTagsUpdate,
   userCollection = new Set(),
@@ -84,6 +87,7 @@ export default function DeckVisualizer({
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
   const [showPlaytest, setShowPlaytest] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
   const [editingTags, setEditingTags] = useState<{ cardName: string, tags: string[] } | null>(null);
   const [showFilters, setShowFilters] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>({
@@ -304,6 +308,7 @@ export default function DeckVisualizer({
         cards={cards}
         onShowPlaytest={() => setShowPlaytest(true)}
         onShare={handleShare}
+        onPrintProxies={() => setShowPrintModal(true)}
         shareStatus={shareStatus}
         groupBy={groupBy}
         setGroupBy={setGroupBy}
@@ -315,125 +320,125 @@ export default function DeckVisualizer({
         setFilter={setFilter}
         showFilters={showFilters}
         setShowFilters={setShowFilters}
-      />
-            {showFilters && (
-              <DeckFilterPanel 
-                cards={cards} // Pass all cards to calculate available sets
-                filters={advancedFilters}
-                onChange={setAdvancedFilters}
-                onClose={() => setShowFilters(false)}
-                onSyncMetadata={async () => {
-                   const missingSet = cards.filter(c => !c.set_code);
-                   if (missingSet.length === 0) {
-                     alert("Todas las cartas tienen metadatos de set.");
-                     return;
-                   }
-                   if (!confirm(`Se van a actualizar ${missingSet.length} cartas. Esto puede tardar unos segundos. ¿Continuar?`)) return;
+        filterPanel={showFilters && (
+          <DeckFilterPanel 
+            cards={cards} // Pass all cards to calculate available sets
+            filters={advancedFilters}
+            onChange={setAdvancedFilters}
+            onClose={() => setShowFilters(false)}
+            onSyncMetadata={async () => {
+               const missingSet = cards.filter(c => !c.set_code);
+               if (missingSet.length === 0) {
+                 alert("Todas las cartas tienen metadatos de set.");
+                 return;
+               }
+               if (!confirm(`Se van a actualizar ${missingSet.length} cartas. Esto puede tardar unos segundos. ¿Continuar?`)) return;
 
-                   // Unique identifiers
-                   // We prefer ID if present, else Name
-                   const identifiers = missingSet.map(c => c.scryfall_id ? { id: c.scryfall_id } : { name: c.card_name });
-                   
-                   // Chunk
-                   const chunks = [];
-                   for (let i = 0; i < identifiers.length; i += 75) {
-                     chunks.push(identifiers.slice(i, i + 75));
-                   }
+               // Unique identifiers
+               // We prefer ID if present, else Name
+               const identifiers = missingSet.map(c => c.scryfall_id ? { id: c.scryfall_id } : { name: c.card_name });
+               
+               // Chunk
+               const chunks = [];
+               for (let i = 0; i < identifiers.length; i += 75) {
+                 chunks.push(identifiers.slice(i, i + 75));
+               }
 
-                   let updatedCount = 0;
-                   const supabase = createClient();
+               let updatedCount = 0;
+               const supabase = createClient();
 
-                   for (const chunk of chunks) {
-                      const results = await getCollection(chunk);
-                      for (const scryCard of results) {
-                         const setCode = scryCard.set;
-                         const setName = scryCard.set_name;
-                         
-                         // Update in DB
-                         // Matches by scryfall_id OR name
-                         // Since our DB stores unique ID per row, but we don't have row ID easily matched here without iterating DeckCards...
-                         // Actually 'cards' are DeckCard objects, so they have 'id' (DB ID) presumably.
-                         
-                         const matchInDeck = missingSet.find(c => (c.scryfall_id === scryCard.id) || (c.card_name.toLowerCase() === scryCard.name.toLowerCase()));
-                         if (matchInDeck && matchInDeck.id) {
-                            await supabase
+               for (const chunk of chunks) {
+                  const results = await getCollection(chunk);
+                  for (const scryCard of results) {
+                     const setCode = scryCard.set;
+                     const setName = scryCard.set_name;
+                     
+                     // Update in DB
+                     // Matches by scryfall_id OR name
+                     // Since our DB stores unique ID per row, but we don't have row ID easily matched here without iterating DeckCards...
+                     // Actually 'cards' are DeckCard objects, so they have 'id' (DB ID) presumably.
+                     
+                     const matchInDeck = missingSet.find(c => (c.scryfall_id === scryCard.id) || (c.card_name.toLowerCase() === scryCard.name.toLowerCase()));
+                     if (matchInDeck && matchInDeck.id) {
+                        await supabase
+                          .from('deck_cards')
+                          .update({ set_code: setCode, set_name: setName })
+                          .eq('id', matchInDeck.id);
+                        updatedCount++;
+                     }
+                  }
+               }
+               
+               // Complete
+               setShowFilters(false);
+               setSyncCount(updatedCount);
+               
+               // Reload data in background or just wait for user to close modal to reload?
+               // The modal will trigger reload on close.
+            }}
+            onFixMetadata={async () => {
+               // Fix Logic: Extract ID from Image URL if scryfall_id is missing
+               // This recovers the specific printing if the user had an image set but no metadata.
+               const candidates = cards.filter(c => !c.scryfall_id && c.image_url && c.image_url.includes('scryfall.io'));
+               if (candidates.length === 0) {
+                 alert("No se encontraron cartas recuperables (sin ID pero con imagen Scryfall).");
+                 return;
+               }
+
+               if (!confirm(`Se intentarán recuperar las ediciones correctas de ${candidates.length} cartas basándose en su imagen (útil para tierras básicas). ¿Continuar?`)) return;
+
+               const identifiers: { id: string }[] = [];
+               const cardMap = new Map<string, DeckCard>();
+
+               candidates.forEach(c => {
+                  // Regex to find UUID in URL: .../front/x/y/UUID.jpg
+                  // or .../back/x/y/UUID.jpg
+                  const match = c.image_url?.match(/\/(?:front|back)\/.\/.\/([a-z0-9-]+)\.jpg/);
+                  if (match && match[1]) {
+                      identifiers.push({ id: match[1] });
+                      cardMap.set(match[1], c);
+                  }
+               });
+
+               if (identifiers.length === 0) {
+                   alert("No se pudieron extraer IDs válidos de las imágenes.");
+                   return;
+               }
+
+               // Chunk requests
+               const chunks = [];
+               for (let i = 0; i < identifiers.length; i += 75) {
+                  chunks.push(identifiers.slice(i, i + 75));
+               }
+
+               let updatedCount = 0;
+               const supabase = createClient();
+
+               for (const chunk of chunks) {
+                   const results = await getCollection(chunk);
+                   for (const scryCard of results) {
+                       // Find the card in our deck that matches this ID (via the map)
+                       const deckCard = cardMap.get(scryCard.id);
+                       if (deckCard && deckCard.id) {
+                           await supabase
                               .from('deck_cards')
-                              .update({ set_code: setCode, set_name: setName })
-                              .eq('id', matchInDeck.id);
-                            updatedCount++;
-                         }
-                      }
-                   }
-                   
-                   // Complete
-                   setShowFilters(false);
-                   setSyncCount(updatedCount);
-                   
-                   // Reload data in background or just wait for user to close modal to reload?
-                   // The modal will trigger reload on close.
-                }}
-                onFixMetadata={async () => {
-                   // Fix Logic: Extract ID from Image URL if scryfall_id is missing
-                   // This recovers the specific printing if the user had an image set but no metadata.
-                   const candidates = cards.filter(c => !c.scryfall_id && c.image_url && c.image_url.includes('scryfall.io'));
-                   if (candidates.length === 0) {
-                     alert("No se encontraron cartas recuperables (sin ID pero con imagen Scryfall).");
-                     return;
-                   }
-
-                   if (!confirm(`Se intentarán recuperar las ediciones correctas de ${candidates.length} cartas basándose en su imagen (útil para tierras básicas). ¿Continuar?`)) return;
-
-                   const identifiers: { id: string }[] = [];
-                   const cardMap = new Map<string, DeckCard>();
-
-                   candidates.forEach(c => {
-                      // Regex to find UUID in URL: .../front/x/y/UUID.jpg
-                      // or .../back/x/y/UUID.jpg
-                      const match = c.image_url?.match(/\/(?:front|back)\/.\/.\/([a-z0-9-]+)\.jpg/);
-                      if (match && match[1]) {
-                          identifiers.push({ id: match[1] });
-                          cardMap.set(match[1], c);
-                      }
-                   });
-
-                   if (identifiers.length === 0) {
-                       alert("No se pudieron extraer IDs válidos de las imágenes.");
-                       return;
-                   }
-
-                   // Chunk requests
-                   const chunks = [];
-                   for (let i = 0; i < identifiers.length; i += 75) {
-                      chunks.push(identifiers.slice(i, i + 75));
-                   }
-
-                   let updatedCount = 0;
-                   const supabase = createClient();
-
-                   for (const chunk of chunks) {
-                       const results = await getCollection(chunk);
-                       for (const scryCard of results) {
-                           // Find the card in our deck that matches this ID (via the map)
-                           const deckCard = cardMap.get(scryCard.id);
-                           if (deckCard && deckCard.id) {
-                               await supabase
-                                  .from('deck_cards')
-                                  .update({ 
-                                      scryfall_id: scryCard.id,
-                                      set_code: scryCard.set, 
-                                      set_name: scryCard.set_name 
-                                  })
-                                  .eq('id', deckCard.id);
-                               updatedCount++;
-                           }
+                              .update({ 
+                                  scryfall_id: scryCard.id,
+                                  set_code: scryCard.set, 
+                                  set_name: scryCard.set_name 
+                              })
+                              .eq('id', deckCard.id);
+                           updatedCount++;
                        }
                    }
+               }
 
-                   setShowFilters(false);
-                   setSyncCount(updatedCount);
-                }}
-              />
-            )}
+               setShowFilters(false);
+               setSyncCount(updatedCount);
+            }}
+          />
+        )}
+      />
 
       {syncCount !== null && (
           <SyncCompleteModal 
@@ -862,7 +867,7 @@ export default function DeckVisualizer({
           color: #81c784;
         }
 
-        .filters-bar {
+         .filters-bar {
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -871,54 +876,6 @@ export default function DeckVisualizer({
           padding: 0.5rem 1rem;
           border-radius: 16px;
           border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .search-group {
-          display: flex;
-          align-items: center;
-          background: rgba(0, 0, 0, 0.3);
-          border-radius: 12px;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 2px;
-          transition: all 0.3s;
-        }
-
-        .search-group:focus-within {
-          border-color: var(--color-gold);
-          box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
-        }
-
-        .search-input {
-          background: transparent;
-          border: none;
-          color: white;
-          padding: 0.5rem 1rem;
-          font-size: 0.9rem;
-          outline: none;
-          width: 180px;
-        }
-
-        .filter-toggle {
-          background: transparent;
-          border: none;
-          color: #666;
-          padding: 0.5rem;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 8px;
-          transition: all 0.2s;
-        }
-
-        .filter-toggle:hover {
-          color: #fff;
-          background: rgba(255, 255, 255, 0.05);
-        }
-
-        .filter-toggle.active {
-          color: var(--color-gold);
-          background: rgba(212, 175, 55, 0.15);
         }
 
         .game-changer-badge {
@@ -1117,6 +1074,15 @@ export default function DeckVisualizer({
       />
       
       <PreviewCardOverlay previewCard={previewCard} />
+
+      {showPrintModal && (
+        <ProxyPrintModal 
+          isOpen={showPrintModal}
+          onClose={() => setShowPrintModal(false)}
+          cards={cards}
+          deckName={deckName}
+        />
+      )}
     </div>
   );
 }

@@ -4,6 +4,31 @@
   flex-direction: column;
 }
 
+.searchGroup {
+  display: flex;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 2px;
+  transition: all 0.3s;
+}
+
+.searchGroup:focus-within {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+}
+
+.searchInput {
+  background: transparent;
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  outline: none;
+  width: 180px;
+}
+
 .stackLayout {
   display: flex;
   gap: 1rem;

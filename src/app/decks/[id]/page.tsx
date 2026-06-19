@@ -403,6 +403,7 @@ export default function DeckDetailPage() {
           onUpdateDeck={handleUpdateDeck} 
           preconCardNames={preconNames}
           deckId={id as string}
+          deckName={deck?.name || 'Mazo'}
           cardTags={cardTags}
           onTagsUpdate={fetchTags}
           userCollection={new Set(userCollection.map(c => c.card_name.toLowerCase()))}

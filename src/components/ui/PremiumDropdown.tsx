@@ -31,7 +31,7 @@ export default function PremiumDropdown({ label, value, options, onChange, width
   const activeOption = options.find(o => o.value === value) || options[0];
 
   return (
-    <div ref={menuRef} style={{ position: 'relative' }}>
+    <div ref={menuRef} style={{ position: 'relative', zIndex: isOpen ? 100 : undefined }}>
       <div 
          onClick={() => setIsOpen(!isOpen)}
          style={{
