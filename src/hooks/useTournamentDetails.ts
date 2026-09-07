@@ -113,6 +113,7 @@ export function useTournamentDetails({ tournamentId }: UseTournamentDetailsProps
         .from('decks')
         .select('id, name, commander, image_url')
         .eq('user_id', pid)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(1);
 

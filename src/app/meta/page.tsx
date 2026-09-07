@@ -31,7 +31,10 @@ export default async function MetaPage() {
   );
 
   // 1. Fetch all Decks
-  const { data: decks } = await supabase.from('decks').select('*, profiles!user_id(username)');
+  const { data: decks } = await supabase
+    .from('decks')
+    .select('*, profiles!user_id(username)')
+    .is('deleted_at', null);
   
   // 2. Fetch all Upgrades
   const { data: upgrades } = await supabase.from('deck_upgrades').select('*').order('created_at', { ascending: false });

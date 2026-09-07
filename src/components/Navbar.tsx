@@ -28,7 +28,7 @@ export default function Navbar() {
   useEffect(() => {
     const fetchData = async () => {
       const { count: pCount, data: pData } = await supabase.from('profiles').select('*', { count: 'exact' });
-      const { count: dCount } = await supabase.from('decks').select('*', { count: 'exact', head: true });
+      const { count: dCount } = await supabase.from('decks').select('*', { count: 'exact', head: true }).is('deleted_at', null);
       setStats({ players: pCount || 0, decks: dCount || 0 });
       setPlayerList(pData || []);
     };

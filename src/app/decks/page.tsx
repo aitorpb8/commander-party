@@ -33,7 +33,8 @@ export default async function DecksPage(props: { searchParams: Promise<{ user?: 
 
   let query = supabase
     .from('decks')
-    .select('*, profiles!user_id(username)');
+    .select('*, profiles!user_id(username)')
+    .is('deleted_at', null);
   
   if (filterUser) {
     query = query.eq('user_id', filterUser);

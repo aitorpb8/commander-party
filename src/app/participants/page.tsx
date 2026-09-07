@@ -14,7 +14,7 @@ export default function ParticipantsPage() {
   useEffect(() => {
     const fetchPlayers = async () => {
       const { data: profiles, error: pError } = await supabase.from('profiles').select('*');
-      const { data: decks, error: dError } = await supabase.from('decks').select('*');
+      const { data: decks, error: dError } = await supabase.from('decks').select('*').is('deleted_at', null);
       const { data: upgrades, error: uError } = await supabase.from('deck_upgrades').select('*');
       const { data: matches, error: mError } = await supabase.from('matches').select('*');
 

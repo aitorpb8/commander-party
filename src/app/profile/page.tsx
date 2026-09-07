@@ -5,16 +5,23 @@ import { createClient } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { calculateAchievements, Badge } from '@/lib/achievements';
+import ConfirmDeleteModal from '@/components/deck/ConfirmDeleteModal';
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [decks, setDecks] = useState<any[]>([]);
+  const [archivedDecks, setArchivedDecks] = useState<any[]>([]);
   const [upgrades, setUpgrades] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  
+  // Delete modal state
+  const [deckToDelete, setDeckToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
   
   // Form state
   const [username, setUsername] = useState('');
@@ -45,7 +52,14 @@ export default function ProfilePage() {
       const { data: decksData } = await supabase
         .from('decks')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .is('deleted_at', null);
+
+      const { data: archivedData } = await supabase
+        .from('decks')
+        .select('*')
+        .eq('user_id', user.id)
+        .not('deleted_at', 'is', null);
 
       const deckIds = decksData?.map(d => d.id) || [];
 
@@ -66,6 +80,7 @@ export default function ProfilePage() {
       setBio(profileData?.bio || ''); 
       setCollectionUrl(profileData?.collection_url || '');
       setDecks(decksData || []);
+      setArchivedDecks(archivedData || []);
       setUpgrades(upgradesData || []);
       setMatches(matchesData || []);
       setLoading(false);
@@ -73,6 +88,45 @@ export default function ProfilePage() {
 
     fetchData();
   }, [router, supabase, user, authLoading]);
+
+  const handleConfirmArchive = async () => {
+    if (!deckToDelete) return;
+    setIsDeleting(true);
+    const nowIso = new Date().toISOString();
+    const { error } = await supabase
+      .from('decks')
+      .update({ deleted_at: nowIso })
+      .eq('id', deckToDelete.id);
+
+    if (error) {
+      alert('Error al archivar el mazo: ' + error.message);
+    } else {
+      const archivedDeck = { ...deckToDelete, deleted_at: nowIso };
+      setDecks(prev => prev.filter(d => d.id !== deckToDelete.id));
+      setArchivedDecks(prev => [archivedDeck, ...prev]);
+      setDeckToDelete(null);
+    }
+    setIsDeleting(false);
+  };
+
+  const handleRestoreDeck = async (deckId: string) => {
+    setRestoringId(deckId);
+    const { error } = await supabase
+      .from('decks')
+      .update({ deleted_at: null })
+      .eq('id', deckId);
+
+    if (error) {
+      alert('Error al restaurar el mazo: ' + error.message);
+    } else {
+      const restored = archivedDecks.find(d => d.id === deckId);
+      if (restored) {
+        setArchivedDecks(prev => prev.filter(d => d.id !== deckId));
+        setDecks(prev => [...prev, { ...restored, deleted_at: null }]);
+      }
+    }
+    setRestoringId(null);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -294,7 +348,7 @@ export default function ProfilePage() {
           <div className="card">
             <h3 style={{ marginBottom: '1rem' }}>Mis Mazos</h3>
             {decks.length === 0 ? (
-                <p style={{ color: '#888', fontStyle: 'italic' }}>No tienes mazos registrados.</p>
+                <p style={{ color: '#888', fontStyle: 'italic' }}>No tienes mazos activos registrados.</p>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {decks.map((deck) => (
@@ -312,20 +366,7 @@ export default function ProfilePage() {
                                 <span style={{ fontSize: '0.8rem', color: '#888' }}>{deck.commander}</span>
                             </div>
                             <button 
-                                onClick={async () => {
-                                    if (window.confirm('¿Estás seguro de que quieres eliminar este mazo? Esta acción no se puede deshacer.')) {
-                                        const { error } = await supabase
-                                            .from('decks')
-                                            .delete()
-                                            .eq('id', deck.id);
-                                        
-                                        if (error) {
-                                            alert('Error al eliminar el mazo: ' + error.message);
-                                        } else {
-                                            setDecks(prev => prev.filter(d => d.id !== deck.id));
-                                        }
-                                    }
-                                }}
+                                onClick={() => setDeckToDelete(deck)}
                                 style={{ 
                                     background: 'transparent', 
                                     border: '1px solid var(--color-red)', 
@@ -337,13 +378,79 @@ export default function ProfilePage() {
                                 }}
                                 className="hover-red-bg"
                             >
-                                Eliminar
+                                Archivar / Eliminar
                             </button>
                         </div>
                     ))}
                 </div>
             )}
+
+            {/* Papelera / Mazos Archivados */}
+            {archivedDecks.length > 0 && (
+              <div style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px dashed #333' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                  <span style={{ fontSize: '1.1rem' }}>🗑️</span>
+                  <h4 style={{ margin: 0, color: '#aaa', fontSize: '1rem' }}>Papelera de Mazos Archivados</h4>
+                  <span style={{ fontSize: '0.75rem', background: '#333', color: '#ccc', padding: '2px 8px', borderRadius: '10px' }}>
+                    {archivedDecks.length}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.8rem', color: '#666', marginBottom: '1rem' }}>
+                  Estos mazos no están visibles en la liga, pero conservan intactas todas sus cartas y mejoras. Puedes restaurarlos en cualquier momento.
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {archivedDecks.map((deck) => (
+                    <div 
+                      key={deck.id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.85rem 1rem',
+                        background: 'rgba(255, 255, 255, 0.02)',
+                        borderRadius: '8px',
+                        border: '1px solid #282828'
+                      }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 500, color: '#999', textDecoration: 'line-through' }}>{deck.name}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#666' }}>
+                          Comandante: {deck.commander} • Archivado el {new Date(deck.deleted_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleRestoreDeck(deck.id)}
+                        disabled={restoringId === deck.id}
+                        style={{
+                          background: 'rgba(212, 175, 55, 0.1)',
+                          border: '1px solid var(--color-gold)',
+                          color: 'var(--color-gold)',
+                          padding: '0.45rem 0.9rem',
+                          borderRadius: '6px',
+                          cursor: restoringId === deck.id ? 'not-allowed' : 'pointer',
+                          fontSize: '0.8rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        {restoringId === deck.id ? 'Restaurando...' : '♻️ Restaurar'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
+
+          <ConfirmDeleteModal
+            isOpen={!!deckToDelete}
+            deckName={deckToDelete?.name || ''}
+            commanderName={deckToDelete?.commander}
+            isDeleting={isDeleting}
+            onClose={() => setDeckToDelete(null)}
+            onConfirm={handleConfirmArchive}
+          />
         </main>
       </div>
     </div>

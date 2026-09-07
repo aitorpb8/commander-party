@@ -7,6 +7,8 @@ import DeckCard from '@/components/DeckCard';
 import { createClient } from '@/lib/supabaseClient';
 import { calculateDeckBudget } from '@/lib/budgetUtils';
 
+import ConfirmDeleteModal from '@/components/deck/ConfirmDeleteModal';
+
 interface DeckGridItemProps {
   deck: any;
   currentUserId?: string;
@@ -25,30 +27,32 @@ export default function DeckGridItem({
   const router = useRouter();
   const supabase = createClient();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const finalMonthlySpent = customSpent !== undefined ? customSpent : 0;
   const finalMonthlyBudget = customBudget !== undefined ? customBudget : 0;
   
   const isOwner = currentUserId === deck.user_id;
 
-  const handleDelete = async (e: React.MouseEvent) => {
+  const handleDeleteClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    setShowDeleteModal(true);
+  };
 
-    if (!window.confirm('¿Estás seguro de que quieres eliminar este mazo? Esta acción no se puede deshacer.')) {
-      return;
-    }
-
+  const handleConfirmDelete = async () => {
     setIsDeleting(true);
     const { error } = await supabase
       .from('decks')
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', deck.id);
 
     if (error) {
-      alert('Error al eliminar el mazo: ' + error.message);
+      alert('Error al archivar el mazo: ' + error.message);
       setIsDeleting(false);
     } else {
+      setShowDeleteModal(false);
+      setIsDeleting(false);
       router.refresh();
     }
   };
@@ -71,28 +75,40 @@ export default function DeckGridItem({
             />
         </Link>
         {isOwner && (
+          <>
             <button
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={isDeleting}
-                title="Eliminar Mazo"
+                title="Eliminar / Archivar Mazo"
                 style={{
                     position: 'absolute',
                     top: '10px',
                     right: '10px',
-                    background: 'transparent',
+                    background: 'rgba(0, 0, 0, 0.4)',
+                    borderRadius: '6px',
                     width: '32px',
                     height: '32px',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '1.2rem',
-                    zIndex: 10
+                    fontSize: '1.1rem',
+                    zIndex: 10,
+                    border: '1px solid rgba(255, 255, 255, 0.1)'
                 }}
                 className="hover-red-bg"
             >
                 {isDeleting ? '...' : '🗑️'}
             </button>
+            <ConfirmDeleteModal
+              isOpen={showDeleteModal}
+              deckName={deck.name}
+              commanderName={deck.commander}
+              isDeleting={isDeleting}
+              onClose={() => setShowDeleteModal(false)}
+              onConfirm={handleConfirmDelete}
+            />
+          </>
         )}
     </div>
   );

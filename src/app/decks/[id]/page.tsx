@@ -58,8 +58,8 @@ export default function DeckDetailPage() {
       const { data: deckData, error: deckError } = await supabase.from('decks').select('*, profiles!user_id(username, avatar_url)').eq('id', id).single();
       if (deckError) throw deckError;
 
-      // Fetch ALL user decks for achievements
-      const { data: allDecks } = await supabase.from('decks').select('*').eq('user_id', deckData.user_id);
+      // Fetch ALL active user decks for achievements
+      const { data: allDecks } = await supabase.from('decks').select('*').eq('user_id', deckData.user_id).is('deleted_at', null);
       setUserDecks(allDecks || []);
 
       const { data: upgrades, error: upError } = await supabase.from('deck_upgrades').select('*').eq('deck_id', id).order('month', { ascending: false }).order('created_at', { ascending: false });

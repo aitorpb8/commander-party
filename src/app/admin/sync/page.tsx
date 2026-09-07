@@ -85,6 +85,44 @@ export default function SyncPage() {
         Añade nuevos metadatos de mazos preconstruidos. Para sincronizar las cartas masivamente, usa el script local <code>generate-all-precons.ts</code>.
       </p>
 
+      <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '12px', border: '1px solid rgba(212, 175, 55, 0.3)' }}>
+        <h3 style={{ marginTop: 0, color: 'var(--color-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          💾 Respaldos y Exportación de la Liga
+        </h3>
+        <p style={{ opacity: 0.8, fontSize: '0.9rem', marginBottom: '1.2rem' }}>
+          Descarga en cualquier momento una copia física con todos los mazos, jugadores y el historial completo de mejoras registradas en la liga.
+        </p>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <a 
+            href="/api/admin/export-league?format=csv" 
+            download 
+            style={{ 
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.75rem 1.25rem', background: '#107c41', color: '#fff', 
+              borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem',
+              boxShadow: '0 4px 12px rgba(16, 124, 65, 0.3)'
+            }}
+          >
+            📊 Descargar Historial de Mejoras (CSV / Excel)
+          </a>
+          <a 
+            href="/api/admin/export-league?format=json" 
+            download 
+            style={{ 
+              display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.75rem 1.25rem', background: '#2563eb', color: '#fff', 
+              borderRadius: '8px', textDecoration: 'none', fontWeight: 'bold', fontSize: '0.9rem',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)'
+            }}
+          >
+            📦 Descargar Respaldo Completo (JSON)
+          </a>
+          <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>
+            (También ejecutable en terminal con: <code>npm run backup:league</code>)
+          </span>
+        </div>
+      </div>
+
       <div style={{ marginBottom: '3rem', padding: '1.5rem', background: '#1a1a1a', borderRadius: '12px', border: '1px solid #333' }}>
         <h3 style={{ marginTop: 0, color: 'var(--color-gold)' }}>➕ Añadir Nuevo Mazo Precon</h3>
         <form onSubmit={handleAddPrecon} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

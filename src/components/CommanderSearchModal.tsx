@@ -26,6 +26,7 @@ export default function CommanderSearchModal({ isOpen, onClose, onSelect }: Comm
     const { data, error } = await supabase
       .from('decks')
       .select('*, profiles:user_id(username)')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     
     if (error) {

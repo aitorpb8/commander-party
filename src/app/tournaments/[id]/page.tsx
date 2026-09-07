@@ -65,7 +65,7 @@ export default function TournamentDetailPage() {
       
       // Get deck counts for each profile
       const profilesWithCounts = await Promise.all((data || []).map(async (p: any) => {
-        const { count } = await supabase.from('decks').select('id', { count: 'exact' }).eq('user_id', p.id);
+        const { count } = await supabase.from('decks').select('id', { count: 'exact' }).eq('user_id', p.id).is('deleted_at', null);
         return { ...p, deck_count: count || 0 };
       }));
 
@@ -144,7 +144,7 @@ export default function TournamentDetailPage() {
           onAddPlayer={handleOpenAddPlayer}
           onOpenDeckModal={async (p) => {
             setCurrentParticipant(p);
-            const { data } = await supabase.from('decks').select('*').eq('user_id', p.player_id).order('created_at', { ascending: false });
+            const { data } = await supabase.from('decks').select('*').eq('user_id', p.player_id).is('deleted_at', null).order('created_at', { ascending: false });
             setActivePlayerDecks(data || []);
             setDeckModalOpen(true);
           }}
