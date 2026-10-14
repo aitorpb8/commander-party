@@ -16,9 +16,33 @@ export async function GET() {
     }
 
     const metaPath = path.join(process.cwd(), 'src/data/precons.json');
+    const cachePath = path.join(process.cwd(), 'src/data/precon-decklists.json');
+
     const content = await fs.readFile(metaPath, 'utf8');
     const precons: Precon[] = JSON.parse(content);
-    const response = NextResponse.json(precons);
+
+    let decklists: Record<string, any[]> = {};
+    try {
+      const cacheContent = await fs.readFile(cachePath, 'utf8');
+      decklists = JSON.parse(cacheContent);
+    } catch {
+      decklists = {};
+    }
+
+    const preconsWithStats = precons.map(p => {
+      const cards = decklists[p.name];
+      const isCached = Array.isArray(cards) && cards.length > 0;
+      const cardEntries = isCached ? cards.length : 0;
+      const totalCards = isCached ? cards.reduce((acc, c) => acc + (c.quantity || 1), 0) : 0;
+      return {
+        ...p,
+        isCached,
+        cardEntries,
+        totalCards
+      };
+    });
+
+    const response = NextResponse.json(preconsWithStats);
     response.headers.set('Access-Control-Allow-Origin', '*');
     return response;
   } catch (error: any) {

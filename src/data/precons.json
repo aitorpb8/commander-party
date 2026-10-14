@@ -1,5 +1,59 @@
 [
   {
+    "id": "precon-calling-all-angels",
+    "name": "Calling All Angels",
+    "commander": "Giada, Font of Hope",
+    "imageUrl": "https://cards.scryfall.io/display/front/4/e/4ebc7622-08a1-4f43-92dd-8675d395e8f6.webp?1789752341",
+    "url": "https://archidekt.com/decks/26549829/calling_all_angels_foundations_commander",
+    "series": "Foundations Commander",
+    "year": 2026
+  },
+  {
+    "id": "precon-keen-engineering",
+    "name": "Keen Engineering",
+    "commander": "Sai, Master Thopterist",
+    "imageUrl": "https://cards.scryfall.io/display/front/5/6/5650587a-27a5-4d68-97e2-5745627bd094.webp?1789776685",
+    "url": "https://archidekt.com/decks/26549969/keen_engineering_foundations_commander",
+    "series": "Foundations Commander",
+    "year": 2026
+  },
+  {
+    "id": "precon-reign-of-dragons",
+    "name": "Reign of Dragons",
+    "commander": "Lathliss, Dragon Queen",
+    "imageUrl": "https://cards.scryfall.io/display/front/8/a/8a17ec4e-b508-41af-803b-32acd863e598.webp?1789752347",
+    "url": "https://archidekt.com/decks/26550173/reign_of_dragons_foundations_commander",
+    "series": "Foundations Commander",
+    "year": 2026
+  },
+  {
+    "id": "precon-tramplesaurus-rex",
+    "name": "Tramplesaurus Rex",
+    "commander": "Ghalta, Primal Hunger",
+    "imageUrl": "https://cards.scryfall.io/display/front/5/d/5d9951d1-3228-4d69-8e63-6e6f0a893a86.webp?1789752351",
+    "url": "https://archidekt.com/decks/26550215/tramplesaurus_rex_foundations_commander",
+    "series": "Foundations Commander",
+    "year": 2026
+  },
+  {
+    "id": "precon-wretched-ranks",
+    "name": "Wretched Ranks",
+    "commander": "Ghoulcaller Gisa",
+    "imageUrl": "https://cards.scryfall.io/display/front/9/0/909e62fa-4585-495e-812b-5df56af24610.webp?1789752353",
+    "url": "https://archidekt.com/decks/26550043/wretched_ranks_foundations_commander",
+    "series": "Foundations Commander",
+    "year": 2026
+  },
+  {
+    "id": "precon-multiverse-reforged",
+    "name": "Multiverse Reforged",
+    "commander": "Jace, Multiverse Architect",
+    "imageUrl": "https://cards.scryfall.io/display/front/5/5/55cd03d9-2535-4cf3-a8b2-1418e1190f4a.webp?1789644316",
+    "url": "https://archidekt.com/decks/26484365/multiverse_reforged_reality_fracture",
+    "series": "Reality Fracture",
+    "year": 2026
+  },
+  {
     "id": "precon-wakanda-forever",
     "name": "Wakanda Forever",
     "commander": "T'Challa, the Black Panther",

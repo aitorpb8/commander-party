@@ -58,7 +58,28 @@ export async function POST(req: Request) {
     precons.unshift(newPrecon);
     await fs.writeFile(preconsPath, JSON.stringify(precons, null, 2));
 
-    return NextResponse.json({ success: true, precon: newPrecon });
+    // 3. Auto-sync cards to precon-decklists.json
+    let syncedCards = 0;
+    let totalCards = 0;
+    try {
+      const { fetchPreconCardsFromUrl, savePreconDecklist } = await import('@/lib/precon-sync');
+      const cards = await fetchPreconCardsFromUrl(url, commander);
+      if (cards && cards.length > 0) {
+        await savePreconDecklist(name, cards);
+        syncedCards = cards.length;
+        totalCards = cards.reduce((a, c) => a + (c.quantity || 1), 0);
+      }
+    } catch (err) {
+      console.warn('Could not auto-sync cards for newly added precon:', err);
+    }
+
+    return NextResponse.json({ 
+      success: true, 
+      precon: newPrecon,
+      autoSynced: syncedCards > 0,
+      syncedCards,
+      totalCards
+    });
   } catch (error: any) {
     return apiError(error.message, 500);
   }
