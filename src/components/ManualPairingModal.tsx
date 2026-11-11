@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TournamentPlayer } from '@/lib/tournamentUtils';
 
@@ -16,19 +16,14 @@ export default function ManualPairingModal({
   onCreate 
 }: ManualPairingModalProps) {
   const [selectedPlayers, setSelectedPlayers] = useState<Set<string>>(new Set());
-  const [mounted, setMounted] = useState(false);
+  const [prevOpen, setPrevOpen] = useState(isOpen);
 
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
-  // Reset selection when opening
-  useEffect(() => {
+  if (isOpen !== prevOpen) {
+    setPrevOpen(isOpen);
     if (isOpen) {
       setSelectedPlayers(new Set());
     }
-  }, [isOpen]);
+  }
 
   const togglePlayer = (playerId: string) => {
     const newSet = new Set(selectedPlayers);
@@ -41,7 +36,7 @@ export default function ManualPairingModal({
     onCreate(Array.from(selectedPlayers));
   };
 
-  if (!isOpen || !mounted) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   return createPortal(
     <div style={{
@@ -85,7 +80,7 @@ export default function ManualPairingModal({
                             
                             {/* Avatar or Initial */}
                             {p.profiles?.avatar_url ? (
-                                <img src={p.profiles.avatar_url} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                                <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                             ) : (
                                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#444', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.8rem' }}>
                                     {p.profiles?.username?.charAt(0) || '?'}

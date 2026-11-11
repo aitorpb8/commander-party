@@ -16,27 +16,27 @@ export default function CommanderSearchModal({ isOpen, onClose, onSelect }: Comm
   const [supabase] = useState(() => createClient());
 
   useEffect(() => {
-    if (isOpen) {
-      fetchDecks();
-    }
-  }, [isOpen]);
-
-  const fetchDecks = async () => {
-    setLoadingDecks(true);
-    const { data, error } = await supabase
-      .from('decks')
-      .select('*, profiles:user_id(username)')
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error(error);
-      toast.error('Error cargando mazos');
-    } else {
-      setDecks(data || []);
-    }
-    setLoadingDecks(false);
-  };
+    if (!isOpen) return;
+    let active = true;
+    const loadDecks = async () => {
+      setLoadingDecks(true);
+      const { data, error } = await supabase
+        .from('decks')
+        .select('*, profiles:user_id(username)')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false });
+      if (!active) return;
+      if (error) {
+        console.error(error);
+        toast.error('Error cargando mazos');
+      } else {
+        setDecks(data || []);
+      }
+      setLoadingDecks(false);
+    };
+    loadDecks();
+    return () => { active = false; };
+  }, [isOpen, supabase]);
 
   const handleDeckSelect = (deck: any) => {
      const fakeCard = {

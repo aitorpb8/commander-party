@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
-import { searchCards, ScryfallCard, getAveragePrice, getCollection, getCardPrints, getCardByName } from '@/lib/scryfall';
+import { searchCards, ScryfallCard, getAveragePrice, getCollection, getCardByName } from '@/lib/scryfall';
 import { calculateCardCost } from '@/lib/deckUtils';
-import { DeckCard } from '@/types';
 
 export interface WishlistCard {
   id: string;
@@ -47,8 +46,20 @@ export function useWishlist({ deckId, onUpdateDeck, externalTrendingPrices }: Us
   }, [deckId]);
 
   useEffect(() => {
-    fetchWishlist();
-  }, [fetchWishlist]);
+    let active = true;
+    supabase
+      .from('deck_wishlist')
+      .select('*')
+      .eq('deck_id', deckId)
+      .order('target_month', { ascending: true })
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (!active) return;
+        if (data) setWishlist(data);
+        setLoading(false);
+      });
+    return () => { active = false; };
+  }, [deckId]);
 
   // Fetch trending prices for wishlist items
   useEffect(() => {

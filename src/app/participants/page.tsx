@@ -9,7 +9,7 @@ import { Tooltip } from '@/components/Tooltip';
 export default function ParticipantsPage() {
   const [players, setPlayers] = useState<(any & { badges: Badge[] })[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -50,7 +50,7 @@ export default function ParticipantsPage() {
     };
 
     fetchPlayers();
-  }, []);
+  }, [supabase]);
 
   if (loading) return <div className="container" style={{ paddingTop: '2rem' }}>Cargando participantes...</div>;
 
@@ -100,7 +100,7 @@ export default function ParticipantsPage() {
                 <p style={{ fontSize: '0.85rem', color: '#888' }}>{player.deck_count} Mazos registrados</p>
                 {player.bio && (
                   <p style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.5rem', fontStyle: 'italic', lineHeight: '1.2' }}>
-                    "{player.bio.length > 80 ? player.bio.substring(0, 80) + '...' : player.bio}"
+                    &quot;{player.bio.length > 80 ? player.bio.substring(0, 80) + '...' : player.bio}&quot;
                   </p>
                 )}
               </div>

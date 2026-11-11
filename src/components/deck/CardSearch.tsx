@@ -96,7 +96,7 @@ export default function CardSearch({
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [addQuery, colors, type, rarity]);
+  }, [addQuery, colors, type, rarity, cmc]);
 
   return (
     <div style={{ marginBottom: '1.5rem', position: 'relative' }}>

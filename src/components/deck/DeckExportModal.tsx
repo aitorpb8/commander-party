@@ -126,7 +126,7 @@ export default function DeckExportModal({ deck, cards, upgrades, onClose }: Deck
             </div>
 
             <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'flex-end', opacity: 0.3 }}>
-               <img src="/logo.png" style={{ height: '30px' }} />
+               <img src="/logo.png" alt="Logo" style={{ height: '30px' }} />
             </div>
           </div>
         </div>

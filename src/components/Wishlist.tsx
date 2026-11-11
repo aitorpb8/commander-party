@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ScryfallCard } from '@/lib/scryfall';
+import { ScryfallCard, getCardPrints } from '@/lib/scryfall';
 import ConfirmationDialog from './ConfirmationDialog';
-import { Z_INDEX_MODAL } from '@/lib/constants';
 import { DeckCard } from '@/types';
 import { useWishlist, WishlistCard } from '@/hooks/useWishlist';
 import WishlistColumn from './deck/wishlist/WishlistColumn';
 import { IconInbox } from '@/components/deck/wishlist/WishlistIcons';
-import { getCardPrints, getCollection } from '@/lib/scryfall';
 import styles from './deck/wishlist/Wishlist.module.css';
 
 interface WishlistProps { 
@@ -27,7 +25,6 @@ export default function Wishlist({
 }: WishlistProps) {
   
   const {
-    wishlist,
     loading,
     trendingPrices,
     query,
@@ -140,7 +137,7 @@ export default function Wishlist({
                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                     <img src={r.image_uris?.small || r.card_faces?.[0]?.image_uris?.small} style={{ width: '35px', borderRadius: '4px', boxShadow: '0 2px 5px rgba(0,0,0,0.5)' }} />
+                     <img src={r.image_uris?.small || r.card_faces?.[0]?.image_uris?.small} alt={r.name} style={{ width: '35px', borderRadius: '4px', boxShadow: '0 2px 5px rgba(0,0,0,0.5)' }} />
                      <span style={{ fontWeight: '600' }}>{r.name}</span>
                   </div>
                   <span style={{ color: 'var(--color-gold)', fontWeight: '800' }}>{r.prices.eur ? `${r.prices.eur}€` : 'N/A'}</span>

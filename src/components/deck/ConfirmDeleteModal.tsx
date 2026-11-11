@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface ConfirmDeleteModalProps {
   isOpen: boolean;
@@ -20,12 +20,14 @@ export default function ConfirmDeleteModal({
   onConfirm
 }: ConfirmDeleteModalProps) {
   const [confirmationInput, setConfirmationInput] = useState('');
+  const [prevOpen, setPrevOpen] = useState(isOpen);
 
-  useEffect(() => {
+  if (isOpen !== prevOpen) {
+    setPrevOpen(isOpen);
     if (isOpen) {
       setConfirmationInput('');
     }
-  }, [isOpen]);
+  }
 
   if (!isOpen) return null;
 

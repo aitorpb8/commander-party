@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { createPortal } from 'react-dom';
 
 interface SyncCompleteModalProps {
@@ -7,14 +7,7 @@ interface SyncCompleteModalProps {
 }
 
 export default function SyncCompleteModal({ count, onClose }: SyncCompleteModalProps) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
-  if (!mounted) return null;
+  if (typeof document === 'undefined') return null;
 
   return createPortal(
     <div style={{

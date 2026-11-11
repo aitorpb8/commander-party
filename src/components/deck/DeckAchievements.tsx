@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge, BADGES } from '@/lib/achievements';
+import { Badge } from '@/lib/achievements';
 
 interface DeckAchievementsProps {
   earnedBadges: Badge[];

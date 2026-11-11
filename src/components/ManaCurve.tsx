@@ -11,7 +11,7 @@ import {
   Legend
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
-import { getCollection, ScryfallCard } from '@/lib/scryfall';
+import { getCollection } from '@/lib/scryfall';
 
 ChartJS.register(
   CategoryScale,

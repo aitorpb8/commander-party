@@ -28,7 +28,7 @@ export default function RulesPage() {
           <p>Cada mes se dispone de un presupuesto de **{MONTHLY_ALLOWANCE}.00€** que se añade a tu saldo acumulado disponible.</p>
           <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <li>
-              **Sistema Acumulativo**: El presupuesto se calcula desde el **inicio de la liga (Enero 2026)**. Esto significa que si te unes más tarde, tendrás disponible el presupuesto acumulado de los meses anteriores para ponerte al día. El límite actual es de **(meses desde Enero '26 + 1) × {MONTHLY_ALLOWANCE}€**.
+              **Sistema Acumulativo**: El presupuesto se calcula desde el **inicio de la liga (Enero 2026)**. Esto significa que si te unes más tarde, tendrás disponible el presupuesto acumulado de los meses anteriores para ponerte al día. El límite actual es de **(meses desde Enero &apos;26 + 1) × {MONTHLY_ALLOWANCE}€**.
             </li>
             <li>
               **Precios en Tiempo Real (🔥)**: Para el **mes en curso** y la **Wishlist**, la web muestra el precio de mercado actual (Trend) en tiempo real. Esto significa que el coste de tus últimas mejoras puede oscilar ligeramente según el mercado hasta que termine el mes.
@@ -109,7 +109,7 @@ export default function RulesPage() {
               <ul style={{ fontSize: '0.9rem', listStyle: 'disc', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                 <li>Diálogos de confirmación premium con diseño moderno</li>
                 <li>Nuevo layout de cards en Wishlist (imagen arriba, controles a la derecha)</li>
-                <li>Botón "Añadir todo al mazo" para el mes actual en Wishlist</li>
+                <li>Botón &quot;Añadir todo al mazo&quot; para el mes actual en Wishlist</li>
                 <li>Código de colores mejorado: Verde (dentro presupuesto), Naranja (10-11€), Rojo (&gt;11€)</li>
                 <li>Espaciado optimizado en modales de selección de versiones</li>
               </ul>

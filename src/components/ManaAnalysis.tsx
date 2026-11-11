@@ -149,17 +149,6 @@ export default function ManaAnalysis({ cards, onCMCFilter, activeFilter }: ManaA
     }]
   };
 
-  const prodData = {
-    labels: ['W', 'U', 'B', 'R', 'G'],
-    datasets: [{
-      data: [prod.W, prod.U, prod.B, prod.R, prod.G],
-      backgroundColor: Object.values(wubrgColors).map(c => c + 'aa'),
-      borderColor: Object.values(wubrgColors),
-      borderWidth: 1,
-      borderRadius: 4
-    }]
-  };
-
   const radarData = {
     labels: ['Blanco (W)', 'Azul (U)', 'Negro (B)', 'Rojo (R)', 'Verde (G)'],
     datasets: [

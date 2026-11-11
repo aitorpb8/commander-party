@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { createClient } from '@/lib/supabaseClient';
 import { Z_INDEX_MODAL } from '@/lib/constants';
@@ -27,12 +27,6 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
   const [selectedTags, setSelectedTags] = useState<string[]>(currentTags);
   const [customTag, setCustomTag] = useState('');
   const [saving, setSaving] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
 
   const toggleTag = (tag: string) => {
     if (selectedTags.includes(tag)) {
@@ -76,7 +70,7 @@ export default function TagEditor({ deckId, cardName, currentTags, onClose, onSa
     }
   };
 
-  if (!mounted) return null;
+  if (typeof document === 'undefined') return null;
 
   return createPortal(
     <>

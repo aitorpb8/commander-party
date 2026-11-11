@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-// @ts-ignore
 import * as dotenv from 'dotenv';
 import { calculateAchievements } from '../src/lib/achievements';
 
@@ -34,7 +33,6 @@ async function auditAchievements() {
             userId: profile.id
         });
 
-        const badgesCount = userAchievements.length;
         const badgesNames = userAchievements.map(a => a.name).join(', ');
         const userDecksCount = decks.filter(d => d.user_id === profile.id).length;
         const userMatchesCount = matches.filter(m => m.players?.includes(profile.id)).length;

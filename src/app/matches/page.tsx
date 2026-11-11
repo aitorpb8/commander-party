@@ -89,7 +89,7 @@ export default async function MatchesPage() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   {match.profiles?.avatar_url ? (
-                    <img src={match.profiles.avatar_url} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
+                    <img src={match.profiles.avatar_url} alt={match.profiles?.username || 'Avatar'} style={{ width: '32px', height: '32px', borderRadius: '50%' }} />
                   ) : (
                     <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--color-gold)', color: '#1a1a1a', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' }}>
                       {match.profiles?.username?.charAt(0) || 'W'}
@@ -100,7 +100,7 @@ export default async function MatchesPage() {
                   </span>
                 </div>
                 <p style={{ marginTop: '0.75rem', fontSize: '0.9rem', color: '#CCC', fontStyle: 'italic' }}>
-                   "{match.description || 'Sin descripción'}"
+                   &quot;{match.description || 'Sin descripción'}&quot;
                 </p>
               </div>
 

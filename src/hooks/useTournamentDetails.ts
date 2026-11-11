@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { toast } from 'react-hot-toast';
 import { calculateStandings, TournamentPlayer, TournamentMatchInfo } from '@/lib/tournamentUtils';
@@ -15,12 +15,14 @@ export function useTournamentDetails({ tournamentId }: UseTournamentDetailsProps
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'standings' | 'pairings' | 'registration'>('registration');
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const [supabase] = useState(() =>
+    createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
   );
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       // 1. Tournament Info
@@ -33,8 +35,8 @@ export function useTournamentDetails({ tournamentId }: UseTournamentDetailsProps
       if (tData) {
         setTournament(tData);
         // Auto-switch tab logic (simplified)
-        if (tData.status === 'active' && activeTab === 'registration') {
-          setActiveTab('pairings');
+        if (tData.status === 'active') {
+          setActiveTab(prev => prev === 'registration' ? 'pairings' : prev);
         }
       }
 
@@ -64,11 +66,15 @@ export function useTournamentDetails({ tournamentId }: UseTournamentDetailsProps
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase, tournamentId]);
 
   useEffect(() => {
-    if (tournamentId) loadData();
-  }, [tournamentId]);
+    if (!tournamentId) return;
+    const timer = setTimeout(() => {
+      loadData();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [tournamentId, loadData]);
 
   const startTournament = async () => {
     const { error } = await supabase

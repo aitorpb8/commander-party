@@ -82,7 +82,7 @@ export default function TournamentDeckModal({
                   flexShrink: 0
                 }}>
                   {deck.image_url ? (
-                    <img src={deck.image_url} style={{ width: '100%', height: '100%', borderRadius: '8px', objectFit: 'cover' }} />
+                    <img src={deck.image_url} alt={deck.commander || deck.name} style={{ width: '100%', height: '100%', borderRadius: '8px', objectFit: 'cover' }} />
                   ) : '🃏'}
                 </div>
                 <div style={{ flex: 1 }}>

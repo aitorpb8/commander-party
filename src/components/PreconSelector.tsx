@@ -37,13 +37,9 @@ export default function PreconSelector({ onSelect }: PreconSelectorProps) {
   });
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
+  const startIndex = (safePage - 1) * ITEMS_PER_PAGE;
   const paginatedPrecons = filtered.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-  // Reset to page 1 when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [filter, yearFilter, seriesFilter]);
 
   const years = Array.from(new Set(PRECONS.map(p => p.year))).sort((a, b) => b - a);
   const series = Array.from(new Set(PRECONS.map(p => p.series))).sort();

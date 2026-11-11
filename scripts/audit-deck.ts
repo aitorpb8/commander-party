@@ -1,7 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-// @ts-ignore
 import * as dotenv from 'dotenv';
-import * as fs from 'fs';
 
 dotenv.config({ path: '.env.local' });
 
@@ -48,7 +46,7 @@ async function auditDeck(deckId: string) {
     let calculatedTotal = 0;
     const monthlyTotals: Record<string, number> = {};
 
-    upgrades.forEach((u, i) => {
+    upgrades.forEach((u) => {
         const nameIn = (u.card_in || '').toLowerCase().trim();
         const isPrecon = nameIn && preconCards.has(nameIn);
         const cost = parseFloat(u.cost || '0');

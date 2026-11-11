@@ -2,7 +2,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import React from 'react';
-import BudgetChart from '@/components/BudgetChart'; // Maybe reuse part of it or create something else
 import { MONTHLY_ALLOWANCE } from '@/lib/constants';
 
 export default async function MetaPage() {

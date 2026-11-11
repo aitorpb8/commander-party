@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { DeckCard } from '@/types';
 
 interface ProxyPrintModalProps {
@@ -18,9 +18,10 @@ const BASIC_LANDS = new Set([
 export default function ProxyPrintModal({ isOpen, onClose, cards, deckName }: ProxyPrintModalProps) {
   const [selectedCards, setSelectedCards] = useState<Record<string, { quantity: number; checked: boolean; imageUrl: string; backImageUrl?: string }>>({});
   const [includeBacks, setIncludeBacks] = useState(true);
+  const [prevOpen, setPrevOpen] = useState(false);
 
-  // Initialize selected cards based on props
-  useEffect(() => {
+  if (isOpen !== prevOpen) {
+    setPrevOpen(isOpen);
     if (isOpen) {
       const initial: Record<string, { quantity: number; checked: boolean; imageUrl: string; backImageUrl?: string }> = {};
       cards.forEach(c => {
@@ -29,7 +30,6 @@ export default function ProxyPrintModal({ isOpen, onClose, cards, deckName }: Pr
           const isBasic = BASIC_LANDS.has(nameLower);
           initial[c.card_name] = {
             quantity: c.quantity || 1,
-            // Pre-uncheck basic lands to save ink/paper
             checked: !isBasic,
             imageUrl: c.image_url,
             backImageUrl: c.back_image_url || undefined
@@ -38,7 +38,7 @@ export default function ProxyPrintModal({ isOpen, onClose, cards, deckName }: Pr
       });
       setSelectedCards(initial);
     }
-  }, [isOpen, cards]);
+  }
 
   if (!isOpen) return null;
 
@@ -88,7 +88,7 @@ export default function ProxyPrintModal({ isOpen, onClose, cards, deckName }: Pr
     // Collect all card items (repeated by quantity)
     const itemsToPrint: string[] = [];
 
-    Object.entries(selectedCards).forEach(([name, data]) => {
+    Object.values(selectedCards).forEach((data) => {
       if (data.checked && data.quantity > 0) {
         for (let i = 0; i < data.quantity; i++) {
           itemsToPrint.push(data.imageUrl);

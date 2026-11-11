@@ -109,7 +109,7 @@ export function calculateStandings(
 export function generatePairings(
     participants: TournamentPlayer[],
     pastMatches: TournamentMatchInfo[],
-    currentRound: number
+    _currentRound?: number
 ): string[][] {
     // 1. Get available active players
     const activePlayers = participants.filter(p => !p.is_dropped);
@@ -137,7 +137,6 @@ export function generatePairings(
     });
 
     const N = sortedPlayers.length;
-    const pods: string[][] = [];
 
     // 4. Determine Pod Structure (Avoid 5s, prefer 3s)
     let num5s = 0, num4s = 0, num3s = 0;

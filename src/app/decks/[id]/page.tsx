@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabaseClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'react-hot-toast';
@@ -9,7 +9,7 @@ import styles from './DeckDetail.module.css';
 import DeckHeader from '@/components/deck/DeckHeader';
 import DeckActionButtons from '@/components/deck/DeckActionButtons';
 
-import { Deck, DeckCard, DeckUpgrade, ScryfallCard } from '@/types';
+import { Deck, DeckCard, DeckUpgrade } from '@/types';
 import UpgradeLog from '@/components/UpgradeLog';
 import BudgetChart from '@/components/BudgetChart';
 import ManaAnalysis from '@/components/ManaAnalysis';
@@ -19,7 +19,7 @@ import DeckComparator from '@/components/deck/DeckComparator';
 import DeckExportModal from '@/components/deck/DeckExportModal';
 import MonthlyBreakdown from '@/components/deck/MonthlyBreakdown';
 import Wishlist from '@/components/Wishlist';
-import { searchCards, getCollection, getCardByName } from '@/lib/scryfall';
+import { getCollection, getCardByName } from '@/lib/scryfall';
 import CommanderPicker from '@/components/CommanderPicker';
 import DeckVisualizer from '@/components/DeckVisualizer';
 import TagStats from '@/components/TagStats';
@@ -30,7 +30,6 @@ import ConfirmationDialog from '@/components/ConfirmationDialog';
 
 export default function DeckDetailPage() {
   const { id } = useParams();
-  const router = useRouter();
   const { user } = useAuth();
   
   const [deck, setDeck] = useState<Deck | null>(null);
@@ -41,7 +40,6 @@ export default function DeckDetailPage() {
   const [showPicker, setShowPicker] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const [trendingPrices, setTrendingPrices] = useState<Record<string, number>>({});
-  const [loadingTrending, setLoadingTrending] = useState(false);
   const [cardTags, setCardTags] = useState<Record<string, string[]>>({});
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [activeCmcFilter, setActiveCmcFilter] = useState<number | null>(null);
@@ -50,9 +48,28 @@ export default function DeckDetailPage() {
   const [userUpgrades, setUserUpgrades] = useState<any[]>([]);
   const [allMatches, setAllMatches] = useState<any[]>([]);
 
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
-  const fetchData = async (retries = 3, silent = false) => {
+  const fetchTags = useCallback(async () => {
+    const { data, error } = await supabase.from('deck_card_tags').select('*').eq('deck_id', id);
+    if (error) {
+      console.error('Error fetching tags:', error);
+      return;
+    }
+    const tagsMap: Record<string, string[]> = {};
+    data?.forEach(row => {
+      tagsMap[row.card_name] = row.tags || [];
+    });
+    setCardTags(tagsMap);
+  }, [supabase, id]);
+
+  const fetchCollection = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase.from('user_collection').select('*').eq('user_id', user.id);
+    setUserCollection(data || []);
+  }, [supabase, user]);
+
+  const fetchData = useCallback(async function loadDeckData(retries = 3, silent = false) {
     if (!silent) setLoading(true);
     try {
       const { data: deckData, error: deckError } = await supabase.from('decks').select('*, profiles!user_id(username, avatar_url)').eq('id', id).single();
@@ -99,38 +116,18 @@ export default function DeckDetailPage() {
       fetchTags();
       fetchCollection();
     } catch (err: any) {
-      if (retries > 0) setTimeout(() => fetchData(retries - 1, silent), 1000);
+      if (retries > 0) setTimeout(() => loadDeckData(retries - 1, silent), 1000);
       else setMessageDialog({ title: 'Error', message: `No se pudieron cargar los datos: ${err.message}`, isError: true });
     } finally {
       if (!silent) setLoading(false);
     }
-  };
-
-  const fetchTags = async () => {
-    const { data, error } = await supabase.from('deck_card_tags').select('*').eq('deck_id', id);
-    if (error) {
-      console.error('Error fetching tags:', error);
-      return;
-    }
-    const tagsMap: Record<string, string[]> = {};
-    data?.forEach(row => {
-      tagsMap[row.card_name] = row.tags || [];
-    });
-    setCardTags(tagsMap);
-  };
-
-  const fetchCollection = async () => {
-    if (!user) return;
-    const { data } = await supabase.from('user_collection').select('*').eq('user_id', user.id);
-    setUserCollection(data || []);
-  };
+  }, [supabase, id, fetchTags, fetchCollection]);
 
   useEffect(() => {
     if (id) {
-      // Si ya tenemos el mazo, cargamos en segundo plano para evitar parpadeos
-      fetchData(3, !!deck);
+      fetchData(3, false);
     }
-  }, [id, user?.id]);
+  }, [id, fetchData]);
 
   const handleUpdateDeck = async (change: any) => {
     try {
@@ -197,7 +194,9 @@ export default function DeckDetailPage() {
             : { ...cardDataIn, deck_id: id };
           
           if ((deckCard as any).id) delete (deckCard as any).id;
-          const { collector_number, quantity, ...safeDeckCard } = deckCard as any;
+          const safeDeckCard = { ...(deckCard as any) };
+          delete safeDeckCard.collector_number;
+          delete safeDeckCard.quantity;
           // Keep current quantity unless specifically overridden
           const targetQuantity = change.quantity !== undefined ? change.quantity : cardInRow.quantity;
 
@@ -240,7 +239,8 @@ export default function DeckDetailPage() {
               : { ...cardDataIn, deck_id: id };
             
             if ((deckCard as any).id) delete (deckCard as any).id;
-            const { collector_number, ...safeDeckCard } = deckCard as any;
+            const safeDeckCard = { ...(deckCard as any) };
+            delete safeDeckCard.collector_number;
             
             // Set quantity correctly
             safeDeckCard.quantity = change.quantity !== undefined ? change.quantity : 1;
@@ -351,7 +351,6 @@ export default function DeckDetailPage() {
       const currentMonthUpgrades = upgrades.filter(u => u.month === currentMonth && u.card_in);
       if (currentMonthUpgrades.length === 0) return;
 
-      setLoadingTrending(true);
       const identifiers = currentMonthUpgrades.map(u => u.scryfall_id ? { id: u.scryfall_id } : { name: u.card_in || '' });
       const cards = await getCollection(identifiers);
       
@@ -361,7 +360,6 @@ export default function DeckDetailPage() {
         prices[c.name.toLowerCase()] = parseFloat(c.prices.eur || '0');
       });
       setTrendingPrices(prices);
-      setLoadingTrending(false);
     };
 
     if (upgrades.length > 0) fetchTrending();

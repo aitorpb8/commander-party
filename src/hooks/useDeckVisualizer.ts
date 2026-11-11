@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DeckCard } from '@/types';
-import { GroupBy, SortBy, ViewMode } from '@/components/deck/DeckFilters';
+import { GroupBy, SortBy } from '@/components/deck/DeckFilters';
 import { AdvancedFilters } from '@/components/deck/DeckFilterPanel';
 import { calculateCMC, getCardFunction } from '@/lib/magicUtils';
 

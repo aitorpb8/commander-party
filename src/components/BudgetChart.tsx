@@ -42,7 +42,7 @@ interface BudgetChartProps {
   creationDate?: string;
 }
 
-export default function BudgetChart({ upgrades, initialBudget = 0, creationDate }: BudgetChartProps) {
+export default function BudgetChart({ upgrades, creationDate }: BudgetChartProps) {
   // Helper to generate all months between two dates
   const getMonthList = (start: Date, end: Date) => {
     const list = [];

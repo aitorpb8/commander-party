@@ -59,12 +59,12 @@ export default function DeckAlerts({ cards, cardTags, totalSpent, budgetLimit }:
   }, [cards]);
 
   // 2. Local Tag Counters
-  const taggedCards = Object.entries(cardTags);
-  const drawCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Draw', 'Card Advantage', 'Loot / Rummage', 'Impulse Draw'].includes(t))).length;
-  const rampCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Ramp', 'Mana Rock', 'Mana Dork', 'Land Ramp', 'Ritual', 'Cost Reduction', 'Treasures'].includes(t))).length;
-  const removalCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Removal', 'Board Wipe', 'Asymmetric Wipe', 'Exile', 'Art/Ench Hate'].includes(t))).length;
-  const boardWipeCount = taggedCards.filter(([_, tags]) => tags.some(t => ['Board Wipe', 'Asymmetric Wipe'].includes(t))).length;
-  const winConCount = taggedCards.filter(([_, tags]) => tags.includes('Win-Con')).length;
+  const taggedCards = Object.values(cardTags);
+  const drawCount = taggedCards.filter((tags) => tags.some(t => ['Draw', 'Card Advantage', 'Loot / Rummage', 'Impulse Draw'].includes(t))).length;
+  const rampCount = taggedCards.filter((tags) => tags.some(t => ['Ramp', 'Mana Rock', 'Mana Dork', 'Land Ramp', 'Ritual', 'Cost Reduction', 'Treasures'].includes(t))).length;
+  const removalCount = taggedCards.filter((tags) => tags.some(t => ['Removal', 'Board Wipe', 'Asymmetric Wipe', 'Exile', 'Art/Ench Hate'].includes(t))).length;
+  const boardWipeCount = taggedCards.filter((tags) => tags.some(t => ['Board Wipe', 'Asymmetric Wipe'].includes(t))).length;
+  const winConCount = taggedCards.filter((tags) => tags.includes('Win-Con')).length;
   const landCount = cards.filter(c => c.type_line?.toLowerCase().includes('land')).reduce((acc, c) => acc + c.quantity, 0);
   const totalDeckSize = cards.reduce((acc, c) => acc + c.quantity, 0);
 

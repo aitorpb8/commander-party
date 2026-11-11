@@ -29,8 +29,8 @@ export default async function TestAtogPage() {
   // 5. RESTORE ACTION (Smart: Preserves Upgrades)
   async function restoreNecrons() {
     'use server'
-    const fs = require('fs');
-    const path = require('path');
+    const fs = await import('fs');
+    const path = await import('path');
     const { getCardByName } = await import('@/lib/scryfall');
     const { createClient: createAdmin } = await import('@supabase/supabase-js');
     
@@ -202,7 +202,7 @@ export default async function TestAtogPage() {
                         <strong>¿Qué hará esto?</strong>
                         <ul style={{ paddingLeft: '20px', marginTop: '5px' }}>
                             <li>Eliminará el contenido corrupto actual.</li>
-                            <li>Cargará la lista base de "Necron Dynasties".</li>
+                            <li>Cargará la lista base de &quot;Necron Dynasties&quot;.</li>
                             <li>Buscará tu historial de mejoras (cartas añadidas/quitadas).</li>
                             <li><strong>Re-aplicará cada mejora</strong> sobre la lista base.</li>
                             <li>Buscará datos en Scryfall para las cartas extra que añadiste.</li>
@@ -248,10 +248,10 @@ export default async function TestAtogPage() {
           )
       })()}
       
-      <h2>Decks with "Atog" in name:</h2>
+      <h2>Decks with &quot;Atog&quot; in name:</h2>
       <pre>{JSON.stringify(decks, null, 2)}</pre>
 
-      <h2>Cards named "Atogatog":</h2>
+      <h2>Cards named &quot;Atogatog&quot;:</h2>
       <pre>{JSON.stringify(cards, null, 2)}</pre>
     </div>
   );

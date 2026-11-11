@@ -16,16 +16,12 @@ export default function DeckComparator({ currentDeck, currentCards, currentUpgra
   const [targetCards, setTargetCards] = useState<DeckCard[]>([]);
   const [targetUpgrades, setTargetUpgrades] = useState<DeckUpgrade[]>([]);
   const [loading, setLoading] = useState(false);
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   useEffect(() => {
-    if (!targetDeckId) {
-      setTargetDeck(null);
-      setTargetCards([]);
-      setTargetUpgrades([]);
-      return;
-    }
+    if (!targetDeckId) return;
 
+    let active = true;
     const fetchTargetData = async () => {
       setLoading(true);
       try {
@@ -33,18 +29,20 @@ export default function DeckComparator({ currentDeck, currentCards, currentUpgra
         const { data: cards } = await supabase.from('deck_cards').select('*').eq('deck_id', targetDeckId);
         const { data: upgrades } = await supabase.from('deck_upgrades').select('*').eq('deck_id', targetDeckId);
         
+        if (!active) return;
         setTargetDeck(deck);
         setTargetCards(cards || []);
         setTargetUpgrades(upgrades || []);
       } catch (err) {
         console.error("Error fetching target deck:", err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
     fetchTargetData();
-  }, [targetDeckId]);
+    return () => { active = false; };
+  }, [targetDeckId, supabase]);
 
   const otherDecks = userDecks.filter(d => d.id !== currentDeck.id);
 
@@ -60,7 +58,15 @@ export default function DeckComparator({ currentDeck, currentCards, currentUpgra
         
         <select 
           value={targetDeckId} 
-          onChange={(e) => setTargetDeckId(e.target.value)}
+          onChange={(e) => {
+            const val = e.target.value;
+            setTargetDeckId(val);
+            if (!val) {
+              setTargetDeck(null);
+              setTargetCards([]);
+              setTargetUpgrades([]);
+            }
+          }}
           className="select-premium"
           style={{ 
             padding: '0.8rem 1.5rem', 
@@ -138,7 +144,7 @@ function ComparisonColumn({ deck, cards, upgrades, isCurrent }: { deck: Deck, ca
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <img src={deck.image_url || ''} style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
+        <img src={deck.image_url || ''} alt={deck.commander || deck.name} style={{ width: '60px', height: '60px', borderRadius: '12px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.1)' }} />
         <div>
           <div style={{ fontWeight: '900', fontSize: '1.2rem', color: '#fff' }}>{deck.name}</div>
           <div style={{ fontSize: '0.8rem', color: 'var(--color-gold)', opacity: 0.8 }}>{deck.commander}</div>

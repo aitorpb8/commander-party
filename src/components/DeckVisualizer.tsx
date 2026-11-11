@@ -2,12 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { searchCards, getAveragePrice, getCardPrints, getCollection } from '@/lib/scryfall';
+import { searchCards, getCardPrints, getCollection } from '@/lib/scryfall';
 import { ScryfallCard, DeckCard } from '@/types';
 import ConfirmationDialog from './ConfirmationDialog';
 import TagEditor from '@/components/TagEditor';
-import DeckStats from '@/components/deck/DeckStats';
-import { DeckFilters, GroupBy, SortBy, ViewMode } from '@/components/deck/DeckFilters';
+import { GroupBy, SortBy, ViewMode } from '@/components/deck/DeckFilters';
 import CardSearch from '@/components/deck/CardSearch';
 import PlaytestModal from '@/components/deck/PlaytestModal';
 import CardDetailsModal from '@/components/deck/CardDetailsModal';
@@ -18,7 +17,6 @@ import { renderSymbols } from '@/components/ManaSymbols';
 import DeckFilterPanel, { AdvancedFilters } from '@/components/deck/DeckFilterPanel';
 import SyncCompleteModal from '@/components/deck/SyncCompleteModal';
 import { createClient } from '@/lib/supabaseClient';
-import { calculateCMC, getCardFunction } from '@/lib/magicUtils';
 import { calculateCardCost, transformScryfallToDeckCard } from '@/lib/deckUtils';
 import VisualizerHeader from './deck/visualizer/VisualizerHeader';
 import CardItem from './deck/visualizer/CardItem';
@@ -59,15 +57,15 @@ export default function DeckVisualizer({
   const [filter, setFilter] = useState('');
   const [groupBy, setGroupBy] = useState<GroupBy>('type');
   const [sortBy, setSortBy] = useState<SortBy>('cmc');
-  const [viewMode, setViewMode] = useState<ViewMode>('stack');
-
-  // Persist View Mode
-  useEffect(() => {
-    const saved = localStorage.getItem('deck_builder_view_mode') as ViewMode;
-    if (saved && ['stack', 'grid', 'text', 'list'].includes(saved)) {
-      setViewMode(saved);
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('deck_builder_view_mode') as ViewMode;
+      if (saved && ['stack', 'grid', 'text', 'list'].includes(saved)) {
+        return saved;
+      }
     }
-  }, []);
+    return 'stack';
+  });
 
   useEffect(() => {
     localStorage.setItem('deck_builder_view_mode', viewMode);
@@ -84,7 +82,7 @@ export default function DeckVisualizer({
   const [prints, setPrints] = useState<ScryfallCard[]>([]);
   const [loadingPrints, setLoadingPrints] = useState(false);
   const [versionFilter, setVersionFilter] = useState('');
-  const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [tagFilter] = useState<string | null>(null);
   const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
   const [showPlaytest, setShowPlaytest] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
@@ -111,12 +109,10 @@ export default function DeckVisualizer({
 
   // Use the new hook for grouping and filtering logic
   const {
-    filteredCards,
     grouped,
     distributedColumns,
     categories,
-    sortCards,
-    columnCount
+    sortCards
   } = useDeckVisualizer({
     cards,
     groupBy,
@@ -133,32 +129,35 @@ export default function DeckVisualizer({
   const [hoverTimer, setHoverTimer] = useState<NodeJS.Timeout|null>(null);
 
   useEffect(() => {
-    if (activeInfoCard) {
-      document.body.style.overflow = 'hidden';
-      fetchCardInfo(activeInfoCard.card_name);
-    } else {
+    if (!activeInfoCard) {
       document.body.style.overflow = 'unset';
-      setFullCardData(null);
+      return;
     }
+
+    document.body.style.overflow = 'hidden';
+    let active = true;
+    const fetchInfo = async () => {
+      setIsLoadingInfo(true);
+      try {
+        const results = await searchCards(activeInfoCard.card_name);
+        if (!active) return;
+        if (results && results.length > 0) {
+          const exact = results.find(r => r.name.toLowerCase() === activeInfoCard.card_name.toLowerCase());
+          setFullCardData(exact || results[0]);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (active) setIsLoadingInfo(false);
+      }
+    };
+    fetchInfo();
+
     return () => {
+      active = false;
       document.body.style.overflow = 'unset';
     };
   }, [activeInfoCard]);
-
-  const fetchCardInfo = async (cardName: string) => {
-    setIsLoadingInfo(true);
-    try {
-        const results = await searchCards(cardName);
-        if (results && results.length > 0) {
-            const exact = results.find(r => r.name.toLowerCase() === cardName.toLowerCase());
-            setFullCardData(exact || results[0]);
-        }
-    } catch (e) {
-        console.error(e);
-    } finally {
-        setIsLoadingInfo(false);
-    }
-  };
 
   const handleRemoveCard = (card: DeckCard) => {
     if (onUpdateDeck) {
@@ -300,7 +299,6 @@ export default function DeckVisualizer({
 
   // Stacks distributed via hook logic
   // columnCount also provided by hook
-  const isOwnerAndDeck = isOwner && deckId;
 
   return (
     <div className={styles.visualizerContainer}>
@@ -1008,7 +1006,7 @@ export default function DeckVisualizer({
           cardName={editingTags.cardName}
           currentTags={editingTags.tags}
           onClose={() => setEditingTags(null)}
-          onSave={(tags) => {
+          onSave={() => {
             if (onTagsUpdate) onTagsUpdate();
             setEditingTags(null);
           }}

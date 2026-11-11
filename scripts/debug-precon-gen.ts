@@ -46,7 +46,7 @@ async function fetchDeckCards(archidektId: string): Promise<Card[]> {
         image_url: oc.imageUri,
       };
     }).filter((c: any) => c !== null);
-  } catch (e) {
+  } catch {
     return [];
   }
 }
@@ -80,7 +80,7 @@ async function searchDeckOnArchidekt(deckName: string): Promise<string | null> {
   return null;
 }
 
-async function searchMoxfield(deckName: string, commanderName: string) {
+export async function searchMoxfield(deckName: string) {
     console.log(`[DEBUG] Searching Moxfield for "${deckName}"...`);
     // NOTE: Moxfield API is often strictly rate limited or blocked if User-Agent is generic node
     const headers = { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' };

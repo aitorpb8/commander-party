@@ -11,45 +11,45 @@ export default function ProjectorPage() {
   const [participants, setParticipants] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   // Auto-refresh every 30s
   useEffect(() => {
+    const loadData = async () => {
+      // 1. Tournament Info
+      const { data: tData } = await supabase
+        .from('tournaments')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      setTournament(tData);
+
+      // 2. Participants
+      const { data: pData } = await supabase
+        .from('tournament_participants')
+        .select('*, profiles(username, avatar_url)')
+        .eq('tournament_id', id);
+      setParticipants(pData || []);
+
+      // 3. Matches
+      if (tData) {
+          const { data: mData } = await supabase
+          .from('tournament_matches')
+          .select('*, matches(*)')
+          .eq('tournament_id', id)
+          .eq('round_number', tData.current_round); // Only current round needed
+          
+          setMatches(mData || []);
+      }
+      
+      setLoading(false);
+    };
+
     loadData();
     const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
-  }, [id]);
-
-  const loadData = async () => {
-    // 1. Tournament Info
-    const { data: tData } = await supabase
-      .from('tournaments')
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    setTournament(tData);
-
-    // 2. Participants
-    const { data: pData } = await supabase
-      .from('tournament_participants')
-      .select('*, profiles(username, avatar_url)')
-      .eq('tournament_id', id);
-    setParticipants(pData || []);
-
-    // 3. Matches
-    if (tData) {
-        const { data: mData } = await supabase
-        .from('tournament_matches')
-        .select('*, matches(*)')
-        .eq('tournament_id', id)
-        .eq('round_number', tData.current_round); // Only current round needed
-        
-        setMatches(mData || []);
-    }
-    
-    setLoading(false);
-  };
+  }, [id, supabase]);
 
   if (loading || !tournament) return <div style={{ background: '#000', color: '#fff', height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '2rem' }}>Cargando...</div>;
 
@@ -105,7 +105,7 @@ export default function ProjectorPage() {
                                                 color: isWinner ? '#4CAF50' : '#fff'
                                             }}>
                                                 {p?.commander_image_url ? (
-                                                    <img src={p.commander_image_url} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #333' }} />
+                                                    <img src={p.commander_image_url} alt={p?.profiles?.username || 'Comandante'} style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #333' }} />
                                                 ) : (
                                                     <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#333' }}></div>
                                                 )}
@@ -132,7 +132,7 @@ export default function ProjectorPage() {
                              }}>
                                  <div style={{ fontSize: '2rem', fontWeight: 'bold', width: '80px', color: i < 3 ? 'var(--color-gold)' : '#666' }}>#{i+1}</div>
                                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                     {p.profiles?.avatar_url && <img src={p.profiles.avatar_url} style={{ width: '60px', height: '60px', borderRadius: '50%' }} />}
+                                     {p.profiles?.avatar_url && <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '60px', height: '60px', borderRadius: '50%' }} />}
                                      <div style={{ fontSize: '1.8rem' }}>{p.profiles?.username}</div>
                                  </div>
                                  <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-gold)' }}>{p.points} <span style={{ fontSize: '1rem', color: '#666' }}>PTS</span></div>

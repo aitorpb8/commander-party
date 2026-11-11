@@ -46,7 +46,7 @@ export default function TournamentStandings({ participants }: TournamentStanding
                 <td style={{ padding: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     {p.profiles?.avatar_url ? (
-                      <img src={p.profiles.avatar_url} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
+                      <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />
                     ) : (
                       <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#333', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '0.7rem' }}>
                         {p.profiles?.username?.charAt(0) || '?'}

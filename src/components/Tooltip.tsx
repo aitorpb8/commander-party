@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface TooltipProps {
@@ -9,11 +9,6 @@ interface TooltipProps {
 export const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleMouseEnter = (e: React.MouseEvent) => {
     setIsVisible(true);
@@ -43,7 +38,7 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
       >
         {children}
       </div>
-      {mounted && isVisible && createPortal(
+      {typeof document !== 'undefined' && isVisible && createPortal(
         <div style={{
           position: 'fixed',
           top: position.y,

@@ -1,20 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 export default function AuthErrorPage() {
-  const [errorDesc, setErrorDesc] = useState<string | null>(null)
-
-  useEffect(() => {
-    // Supabase redirects with error details in the hash #
-    const hash = window.location.hash
-    if (hash) {
-      const params = new URLSearchParams(hash.substring(1))
-      setErrorDesc(params.get('error_description') || 'Hubo un error al verificar el enlace.')
+  const [errorDesc] = useState<string | null>(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const params = new URLSearchParams(window.location.hash.substring(1))
+      return params.get('error_description') || 'Hubo un error al verificar el enlace.'
     }
-  }, [])
+    return null
+  })
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
@@ -24,7 +20,7 @@ export default function AuthErrorPage() {
           {errorDesc || 'El enlace ha expirado o ya ha sido utilizado.'}
         </p>
         <p style={{ fontSize: '0.9rem', marginBottom: '2rem' }}>
-          A veces los gestores de correo (como Gmail o Outlook) "abren" el link antes que tú para comprobar si es seguro, lo que lo hace caducar.
+          A veces los gestores de correo (como Gmail o Outlook) &quot;abren&quot; el link antes que tú para comprobar si es seguro, lo que lo hace caducar.
         </p>
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
           <Link href="/login">

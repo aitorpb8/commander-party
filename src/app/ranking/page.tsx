@@ -10,22 +10,16 @@ function RankingContent() {
   const [profiles, setProfiles] = useState<any[]>([]);
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAdd, setShowAdd] = useState(false);
   const searchParams = useSearchParams();
+  const [showAdd, setShowAdd] = useState(() => !!searchParams.get('add'));
   const router = useRouter();
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (searchParams.get('add')) {
-      setShowAdd(true);
-    }
-  }, [searchParams]);
 
   const [winnerId, setWinnerId] = useState('');
   const [selectedPlayerIds, setSelectedPlayerIds] = useState<string[]>([]);
   const [matchDescription, setMatchDescription] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
 
   const fetchData = async () => {
     setLoading(true);
@@ -37,8 +31,18 @@ function RankingContent() {
   };
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    let active = true;
+    (async () => {
+      const { data: profilesData } = await supabase.from('profiles').select('*');
+      const { data: matchesData } = await supabase.from('matches').select('*').not('winner_id', 'is', null);
+      if (active) {
+        setProfiles(profilesData || []);
+        setMatches(matchesData || []);
+        setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [supabase]);
 
   // ... (rest of the logic remains same, just inside RankingContent)
   const leaderboard = profiles.map(profile => {
@@ -320,7 +324,7 @@ function RankingContent() {
                 <td style={{ padding: '1.25rem 1.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     {player.avatar_url ? (
-                      <img src={player.avatar_url} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)' }} />
+                      <img src={player.avatar_url} alt={player.username || 'Avatar'} style={{ width: '40px', height: '40px', borderRadius: '50%', border: '1px solid rgba(255,255,255,0.1)' }} />
                     ) : (
                       <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#222', border: '1px solid #333', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', fontWeight: 'bold' }}>{player.username?.[0]}</div>
                     )}

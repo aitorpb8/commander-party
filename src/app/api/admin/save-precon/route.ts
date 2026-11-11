@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import { apiError } from '@/lib/api-error';
-import { DeckCard } from '@/types';
 
 import { createClient } from '@/lib/supabase/server';
 
@@ -29,7 +28,7 @@ export async function POST(request: Request) {
     try {
       const content = await fs.readFile(cachePath, 'utf8');
       decklists = JSON.parse(content);
-    } catch (e) {
+    } catch {
       console.warn('Starting fresh decklists file');
     }
 

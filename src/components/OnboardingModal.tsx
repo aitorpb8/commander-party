@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { Z_INDEX_OVERLAY } from '@/lib/constants';
 
@@ -10,44 +10,46 @@ export default function OnboardingModal() {
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const [supabase] = useState(() =>
+    createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
   );
 
-  const checkProfile = useCallback(async (retryCount = 0) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('id', user.id)
-      .single();
-
-    // Show modal if:
-    // 1. Profile doesn't exist yet
-    // 2. Username is null/empty
-    // 3. Username is the same as the email (default value from trigger)
-    const needsUsername = !profile || 
-                         !profile.username || 
-                         profile.username.trim() === '' ||
-                         profile.username === user.email;
-
-    if (needsUsername) {
-      if (!profile && retryCount < 3) {
-        // Retry after 1s if profile is completely missing
-        setTimeout(() => checkProfile(retryCount + 1), 1500);
-        return;
-      }
-      setUserId(user.id);
-      setIsOpen(true);
-    }
-  }, [supabase]);
-
   useEffect(() => {
+    const checkProfile = async (retryCount = 0) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('id', user.id)
+        .single();
+
+      // Show modal if:
+      // 1. Profile doesn't exist yet
+      // 2. Username is null/empty
+      // 3. Username is the same as the email (default value from trigger)
+      const needsUsername = !profile || 
+                           !profile.username || 
+                           profile.username.trim() === '' ||
+                           profile.username === user.email;
+
+      if (needsUsername) {
+        if (!profile && retryCount < 3) {
+          // Retry after 1s if profile is completely missing
+          setTimeout(() => checkProfile(retryCount + 1), 1500);
+          return;
+        }
+        setUserId(user.id);
+        setIsOpen(true);
+      }
+    };
+
     checkProfile();
-  }, [checkProfile]);
+  }, [supabase]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

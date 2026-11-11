@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import Image from 'next/image';
-import Link from 'next/link';
 import styles from '@/app/page.module.css';
 
 interface MatchWithProfile {

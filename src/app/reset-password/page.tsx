@@ -1,7 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabaseClient'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function ResetPasswordPage() {

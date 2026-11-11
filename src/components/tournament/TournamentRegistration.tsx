@@ -1,7 +1,6 @@
 import React from 'react';
 import { TournamentPlayer } from '@/lib/tournamentUtils';
 import { calculateDeckBudget } from '@/lib/budgetUtils';
-import Image from 'next/image';
 
 interface TournamentRegistrationProps {
   participants: TournamentPlayer[];
@@ -94,7 +93,7 @@ const TournamentRegistration: React.FC<TournamentRegistrationProps> = ({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
                         <div style={{ position: 'relative', width: '44px', height: '44px' }}>
                             {p.profiles?.avatar_url ? (
-                                <img src={p.profiles.avatar_url} style={{ width: '100%', height: '100%', borderRadius: '50%', border: `2px solid ${statusColor}`, objectFit: 'cover' }} />
+                                <img src={p.profiles.avatar_url} alt={p.profiles?.username || 'Avatar'} style={{ width: '100%', height: '100%', borderRadius: '50%', border: `2px solid ${statusColor}`, objectFit: 'cover' }} />
                             ) : (
                                 <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: 'rgba(255, 255, 255, 0.05)', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '1rem', fontWeight: '900', color: '#fff' }}>
                                     {p.profiles?.username?.charAt(0).toUpperCase()}

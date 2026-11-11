@@ -10,11 +10,8 @@ interface DeckActionButtonsProps {
 }
 
 export default function DeckActionButtons({
-  isOwner,
-  hasArchidektId,
   onCopyMejoras,
   onExportMazo,
-  onSyncArchidekt,
   onExportPro,
 }: DeckActionButtonsProps) {
   return (

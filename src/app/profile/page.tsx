@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { calculateAchievements, Badge } from '@/lib/achievements';
+import { calculateAchievements } from '@/lib/achievements';
 import ConfirmDeleteModal from '@/components/deck/ConfirmDeleteModal';
 
 export default function ProfilePage() {

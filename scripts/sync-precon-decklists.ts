@@ -27,7 +27,7 @@ async function sync() {
   let decklists: Record<string, PreconCard[]> = {};
   try {
     decklists = JSON.parse(await fs.readFile(cachePath, 'utf8'));
-  } catch (e) {
+  } catch {
     console.warn('⚠️ No existing decklists file found, starting fresh.');
   }
 

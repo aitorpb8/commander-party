@@ -27,7 +27,6 @@ export default function CardDetailsModal({
   onOpenVersionPicker,
   onEditTags,
   onRemoveCard,
-  cardTags
 }: CardDetailsModalProps) {
   const [modalFace, setModalFace] = useState(0);
 

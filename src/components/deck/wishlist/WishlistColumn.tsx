@@ -40,19 +40,16 @@ const WishlistColumn: React.FC<WishlistColumnProps> = ({
       return sum + (trending !== undefined ? trending : (item.price || 0));
   }, 0);
   
-  let statusColor = '#3f3f46';
   let headerBg = isBacklog ? 'rgba(63, 63, 70, 0.2)' : 'rgba(0, 0, 0, 0.3)';
   let textColor = '#fff';
   let borderColor = isBacklog ? 'rgba(63, 63, 70, 0.3)' : 'rgba(255, 255, 255, 0.05)';
 
   if (!isBacklog) {
     if (monthTotal > 11) { // High alert
-      statusColor = 'var(--color-red)';
       headerBg = 'rgba(244, 67, 54, 0.15)';
       textColor = 'var(--color-red)';
       borderColor = 'var(--color-red)';
     } else if (monthTotal > MONTHLY_ALLOWANCE) { // Warning
-      statusColor = '#ff9800'; 
       headerBg = 'rgba(255, 152, 0, 0.15)';
       textColor = '#ff9800';
       borderColor = '#ff9800';

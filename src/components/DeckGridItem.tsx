@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import DeckCard from '@/components/DeckCard';
 import { createClient } from '@/lib/supabaseClient';
-import { calculateDeckBudget } from '@/lib/budgetUtils';
 
 import ConfirmDeleteModal from '@/components/deck/ConfirmDeleteModal';
 

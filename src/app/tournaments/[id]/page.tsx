@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createBrowserClient } from '@supabase/ssr';
 import toast from 'react-hot-toast';
@@ -34,7 +34,6 @@ export default function TournamentDetailPage() {
     startTournament,
     updateRound,
     addPlayers,
-    dropPlayer,
     selectCommander,
     selectDeck
   } = useTournamentDetails({ tournamentId });
@@ -71,7 +70,7 @@ export default function TournamentDetailPage() {
 
       setAllProfiles(profilesWithCounts);
       setShowPlayerModal(true);
-    } catch (err: any) {
+    } catch {
       toast.error('Error al cargar jugadores');
     }
   };
@@ -102,7 +101,7 @@ export default function TournamentDetailPage() {
         await supabase.from('tournaments').delete().eq('id', tournamentId);
         toast.success('Torneo eliminado', { id: loadingToast });
         router.push('/tournaments');
-    } catch (error: any) {
+    } catch {
         toast.error('Error al eliminar', { id: loadingToast });
     }
   };
@@ -182,7 +181,7 @@ export default function TournamentDetailPage() {
                            <div style={{ width: '22px', height: '22px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.1)', background: selectedPlayers.has(p.id) ? 'var(--color-gold)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                {selectedPlayers.has(p.id) && <span style={{ color: '#000', fontSize: '12px', fontWeight: 'bold' }}>✓</span>}
                            </div>
-                           {p.avatar_url ? <img src={p.avatar_url} style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }} /> : <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#222', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: '800' }}>{p.username?.charAt(0).toUpperCase()}</div>}
+                           {p.avatar_url ? <img src={p.avatar_url} alt={p.username || 'Avatar'} style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover' }} /> : <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: '#222', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: '800' }}>{p.username?.charAt(0).toUpperCase()}</div>}
                            <div>
                                <div style={{ fontWeight: '800', color: '#fff' }}>{p.username}</div>
                                <div style={{ fontSize: '0.7rem', color: '#555', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{p.deck_count || 0} mazos registrados</div>

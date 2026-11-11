@@ -30,7 +30,7 @@ const WishlistCardItem: React.FC<WishlistCardItemProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const toggleDropdown = (e: React.MouseEvent) => {
+  const toggleDropdown = () => {
     if (!isOwner) return;
     setIsDropdownOpen(!isDropdownOpen);
   };

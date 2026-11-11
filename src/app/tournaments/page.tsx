@@ -15,27 +15,27 @@ export default function TournamentsPage() {
   const [timerMinutes, setTimerMinutes] = useState(50);
   const [creating, setCreating] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
   const { user } = useAuth();
 
   useEffect(() => {
+    const fetchTournaments = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('tournaments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching tournaments:', error);
+      } else {
+        setTournaments(data || []);
+      }
+      setLoading(false);
+    };
+
     fetchTournaments();
-  }, []);
-
-  const fetchTournaments = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('tournaments')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching tournaments:', error);
-    } else {
-      setTournaments(data || []);
-    }
-    setLoading(false);
-  };
+  }, [supabase]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

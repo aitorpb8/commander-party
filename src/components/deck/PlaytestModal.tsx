@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DeckCard } from '@/types';
 import { Z_INDEX_MODAL } from '@/lib/constants';
@@ -22,18 +22,7 @@ export default function PlaytestModal({
   const [deck, setDeck] = useState<DeckCard[]>([]);
   const [hand, setHand] = useState<DeckCard[]>([]);
   const [library, setLibrary] = useState<DeckCard[]>([]);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
-  }, []);
-
-  useEffect(() => {
-    if (isOpen) {
-      initializeGame();
-    }
-  }, [isOpen, cards]); // Re-init if opened or cards change (though cards usually don't change while open)
+  const [prevOpen, setPrevOpen] = useState(false);
 
   const initializeGame = () => {
     const fullDeck: DeckCard[] = [];
@@ -45,6 +34,13 @@ export default function PlaytestModal({
     setHand(shuffled.slice(0, 7));
     setLibrary(shuffled.slice(7));
   };
+
+  if (isOpen !== prevOpen) {
+    setPrevOpen(isOpen);
+    if (isOpen) {
+      initializeGame();
+    }
+  }
 
   const drawCard = () => {
     if (library.length > 0) {
@@ -59,7 +55,7 @@ export default function PlaytestModal({
     setLibrary(shuffled.slice(7));
   };
 
-  if (!isOpen || !mounted) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   return createPortal(
     <>

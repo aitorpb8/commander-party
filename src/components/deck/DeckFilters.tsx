@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import PremiumDropdown from '@/components/ui/PremiumDropdown';
 
 export type GroupBy = 'type' | 'cmc' | 'color' | 'function';
@@ -22,20 +22,6 @@ export function DeckFilters({
   viewMode,
   setViewMode
 }: DeckFiltersProps) {
-  const [showViewMenu, setShowViewMenu] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowViewMenu(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
   const viewOptions = [
     { value: 'stack', label: 'Stacks' },
     { value: 'grid', label: 'Grid' },
@@ -47,9 +33,6 @@ export function DeckFilters({
     { value: 'cmc', label: 'Mana Value' },
     { value: 'name', label: 'Nombre (A-Z)' },
   ];
-
-  // Helper to get active label
-  const activeOption = viewOptions.find(o => o.value === viewMode);
 
   return (
     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>

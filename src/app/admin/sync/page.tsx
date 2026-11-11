@@ -5,15 +5,27 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SyncPage() {
-  const [mounted, setMounted] = useState(false);
   const [newPrecon, setNewPrecon] = useState({ name: '', url: '', series: '', commander: '', year: new Date().getFullYear() });
   const [precons, setPrecons] = useState<any[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
+  const [filterQuery, setFilterQuery] = useState('');
+  const [syncingName, setSyncingName] = useState<string | null>(null);
+  const [isBatchSyncing, setIsBatchSyncing] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; name: string } | null>(null);
+  const [pricingName, setPricingName] = useState<string | null>(null);
+  const [pricesCache, setPricesCache] = useState<Record<string, { eur: number; usd: number }>>({});
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
   const addLog = (msg: string) => {
     setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev].slice(0, 100));
+  };
+
+  const fetchPrecons = () => {
+    fetch('/api/admin/precons')
+      .then(res => res.json())
+      .then(data => setPrecons(data))
+      .catch(err => addLog(`❌ Error cargando precons: ${err.message}`));
   };
 
   useEffect(() => {
@@ -23,18 +35,13 @@ export default function SyncPage() {
       router.push('/');
       return;
     }
-    setMounted(true);
-    fetchPrecons();
-  }, [router, user, authLoading]);
-
-  const fetchPrecons = () => {
     fetch('/api/admin/precons')
       .then(res => res.json())
       .then(data => setPrecons(data))
       .catch(err => addLog(`❌ Error cargando precons: ${err.message}`));
-  };
+  }, [router, user, authLoading]);
 
-  if (!mounted) return null;
+  if (authLoading || user?.email !== 'aitoor91@gmail.com') return null;
 
   const handleAddPrecon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,13 +66,6 @@ export default function SyncPage() {
       alert(`Error de red: ${e.message}`);
     }
   };
-
-  const [filterQuery, setFilterQuery] = useState('');
-  const [syncingName, setSyncingName] = useState<string | null>(null);
-  const [isBatchSyncing, setIsBatchSyncing] = useState(false);
-  const [batchProgress, setBatchProgress] = useState<{ current: number; total: number; name: string } | null>(null);
-  const [pricingName, setPricingName] = useState<string | null>(null);
-  const [pricesCache, setPricesCache] = useState<Record<string, { eur: number; usd: number }>>({});
 
   const syncPreconCards = async (precon: any) => {
     setSyncingName(precon.name);
